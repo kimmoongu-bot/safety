@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#16181d">
+<title>작업안전일지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700&family=Gothic+A1:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --ink:#0d0f13; --panel:#16181d; --panel-2:#1e2128; --line:#2c313b;
+  --txt:#e8eaee; --dim:#8a919e; --ok:#ffd400; --bad:#ff4d3d; --na:#4a5160; --focus:#7cc3ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--ink);color:var(--txt);font-family:'Gothic A1','Noto Sans KR',system-ui,sans-serif;
+  font-size:15px;line-height:1.45;padding:0 0 108px;-webkit-text-size-adjust:100%}
+body.lock{overflow:hidden}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#16181d 70%,rgba(22,24,29,.92));
+  border-bottom:2px solid var(--ok);padding:14px 16px 12px}
+header h1{margin:0;font-size:17px;font-weight:800;letter-spacing:-.02em}
+header .sub{color:var(--dim);font-size:12px;margin-top:2px}
+main{padding:14px 14px 0;max-width:640px;margin:0 auto}
+section{margin-bottom:22px}
+.sec-head{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.sec-head b{font-size:14px;font-weight:800}
+.sec-head span{font-size:11px;color:var(--dim)}
+label.f{display:block;margin-bottom:10px}
+label.f > i{display:block;font-style:normal;font-size:11px;color:var(--dim);margin-bottom:4px;letter-spacing:.04em}
+label.f > i em{font-style:normal;color:var(--ok);opacity:.8;margin-left:4px}
+input[type=text],input[type=date],input[type=time],textarea{
+  width:100%;background:var(--panel-2);color:var(--txt);border:1px solid var(--line);
+  border-radius:8px;padding:11px 12px;font-size:15px;font-family:inherit}
+textarea{resize:vertical;min-height:52px}
+input:focus,textarea:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:transparent}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px}
+label.f.etc{display:none}
+label.f.etc.on{display:block}
+
+.recall{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:11px;
+  background:var(--panel);padding:11px 13px;margin-bottom:16px}
+.recall .txt{flex:1;min-width:0}
+.recall .txt b{display:block;font-size:13.5px;font-weight:700}
+.recall .txt span{display:block;font-size:11px;color:var(--dim);margin-top:1px}
+.sw{flex:0 0 auto;width:50px;height:29px;border-radius:15px;border:1px solid var(--line);
+  background:var(--panel-2);position:relative;padding:0}
+.sw::after{content:"";position:absolute;left:3px;top:2px;width:23px;height:23px;border-radius:50%;
+  background:var(--dim);transition:transform .16s,background .16s}
+.sw[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.sw[aria-pressed="true"]::after{transform:translateX(20px);background:#000}
+.sw:disabled{opacity:.4}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:10px 13px;border-radius:20px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--dim);font-family:inherit;font-size:13.5px;font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#000;font-weight:800}
+.chips.single button[aria-pressed="true"]{background:var(--focus);border-color:var(--focus);color:#000}
+
+.master{display:flex;gap:8px;margin-bottom:12px}
+.master button{flex:1;padding:12px 6px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--txt);font-family:inherit;font-size:13px;font-weight:700}
+.item{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 11px;margin-bottom:8px}
+.item[data-v="부적합"]{border-color:var(--bad);background:#231416}
+.item[data-v="해당없음"]{opacity:.55}
+.item .t{display:flex;gap:8px;font-size:13.5px;line-height:1.4;margin-bottom:9px}
+.item .t em{font-style:normal;flex:0 0 22px;color:var(--dim);font-variant-numeric:tabular-nums;font-weight:700}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.seg button{padding:10px 4px;border-radius:7px;border:1px solid var(--line);background:transparent;
+  color:var(--dim);font-family:inherit;font-size:12.5px;font-weight:700}
+.seg button[aria-pressed="true"]{color:#000;background:var(--ok);border-color:var(--ok)}
+.seg button[data-v="부적합"][aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#fff}
+.seg button[data-v="해당없음"][aria-pressed="true"]{background:var(--na);border-color:var(--na);color:#fff}
+
+.worker{display:grid;grid-template-columns:1.1fr .9fr .9fr auto;gap:6px;margin-bottom:6px;align-items:center}
+.worker input{padding:9px 8px;font-size:14px}
+.mini{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:7px;
+  padding:9px 11px;font-family:inherit;font-size:13px}
+
+/* 서명 슬롯 — 한 줄 버튼 */
+.sigbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:var(--txt);
+  padding:11px 13px;margin-bottom:8px;font-family:inherit;font-size:14px}
+.sigbtn .nm{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sigbtn .pv{flex:0 0 auto;height:26px;width:78px;background:#fff;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sigbtn .pv img{max-height:24px;max-width:74px}
+.sigbtn .pv.empty{background:transparent;color:var(--dim);font-size:11.5px;width:auto}
+.sigbtn.done{border-color:var(--ok)}
+.chk{display:flex;align-items:center;gap:9px;margin-bottom:12px;font-size:14px}
+.chk input{width:21px;height:21px;accent-color:var(--ok)}
+
+/* 서명 모달 */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
+.modal[hidden]{display:none}
+.sheet{width:100%;background:var(--panel);border-top-left-radius:16px;border-top-right-radius:16px;
+  padding:14px 14px calc(14px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.sheet-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sheet-h b{flex:1;font-size:15px;font-weight:800}
+.sheet .hint{font-size:11.5px;color:var(--dim);margin:0 0 7px}
+.saved{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+.saved .s{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;
+  background:var(--panel-2);padding:5px 6px 5px 8px}
+.saved .s span{font-size:12.5px;font-weight:700}
+.saved .s img{height:22px;background:#fff;border-radius:3px;padding:1px 3px}
+.saved .s button{background:none;border:0;color:var(--dim);font-size:15px;padding:0 3px;font-family:inherit}
+.saved .none{font-size:12px;color:var(--dim)}
+#sm-canvas{display:block;width:100%;height:190px;background:#fff;border-radius:10px;touch-action:none;cursor:crosshair}
+.sheet-f{display:flex;gap:8px;margin-top:11px}
+.pv-img{background:#fff;border-radius:9px;overflow:auto;max-height:56vh;-webkit-overflow-scrolling:touch}
+.pv-img img{display:block;width:100%}
+.sheet-f .mini{flex:0 0 auto}
+.apply{flex:1;background:var(--ok);color:#000;border:0;border-radius:9px;padding:12px;
+  font-family:inherit;font-size:14.5px;font-weight:800}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,15,19,.94);
+  backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.thickrow{flex:0 0 100%;order:-1;display:none;gap:6px;align-items:center}
+.thickrow.on{display:flex}
+.thickrow>i{font-style:normal;font-size:11.5px;color:var(--dim);flex:0 0 auto;margin-right:2px}
+.thickrow button{flex:1;padding:9px 4px;border-radius:7px;border:1px solid var(--line);
+  background:transparent;color:var(--dim);font-family:inherit;font-size:12.5px;font-weight:700}
+.thickrow button[aria-pressed="true"]{background:var(--panel-2);color:var(--txt);border-color:var(--focus)}
+.toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:0 0 auto}
+.toggle button{background:transparent;border:0;color:var(--dim);padding:11px 12px;font-family:inherit;font-size:12.5px;font-weight:700}
+.toggle button[aria-pressed="true"]{background:var(--panel-2);color:var(--txt)}
+.go{flex:1;background:var(--ok);color:#000;border:0;border-radius:9px;padding:14px 10px;
+  font-family:inherit;font-size:15px;font-weight:800}
+.go:disabled{background:var(--panel-2);color:var(--dim)}
+.warn{color:var(--bad);font-size:12px;margin:0 14px 6px;text-align:center;min-height:16px}
+
+/* ─────── 출력 문서 ─────── */
+#stage{position:fixed;left:-9999px;top:0}
+#doc{width:1000px;background:#fff;color:#000;padding:24px 28px 20px;font-family:'Noto Sans KR',sans-serif}
+#doc .w{font-weight:600}
+#doc.hand .w{font-weight:400;letter-spacing:.01em;-webkit-text-stroke:0}
+#doc.hw1 .w{font-family:'Gaegu',cursive;font-weight:300;font-size:1.30em}
+#doc.hw2 .w{font-family:'Gaegu',cursive;font-weight:400;font-size:1.34em}
+#doc.hw3 .w{font-family:'Nanum Pen Script',cursive;font-size:1.42em}
+#doc h2{text-align:center;margin:0 0 9px;font-size:28px;font-weight:800;letter-spacing:.24em}
+#doc h3{text-align:center;margin:18px 0 7px;font-size:24px;font-weight:800;letter-spacing:.24em}
+#doc table.grid{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;border:1.6px solid #000}
+#doc td{border:1px solid #000;padding:3px 6px;vertical-align:middle}
+#doc .lab{background:#d9d9d9;text-align:center;font-weight:700;line-height:1.25}
+#doc .ctr{text-align:center}
+#doc .itm{text-align:left;line-height:1.3;height:23px}
+#doc .mk{font-size:17px;font-weight:800;line-height:1;color:#d81e05;text-align:center}
+#doc .blank{height:46px;vertical-align:top;padding-top:6px}
+#doc .tall{height:62px;vertical-align:top;padding-top:6px}
+#doc .tall .w{display:block;line-height:1.3}
+#doc .mid{height:44px;vertical-align:top;padding-top:6px}
+#doc .h{height:30px}
+#doc .edu{line-height:1.65;padding:5px 8px;font-size:12.5px}
+#doc .bullet{margin:13px 0 4px;font-size:14.5px;font-weight:700}
+#doc .bullet.split{display:flex}
+#doc .bullet.split span{flex:1}
+#doc .sigslot{position:relative;display:inline-block;height:34px;min-width:86px;
+  margin-left:10px;vertical-align:middle;font-size:12.5px;font-weight:400;color:#000}
+#doc .sigslot > .cap{display:block;line-height:34px;text-align:center}
+#doc .sigslot > img{position:absolute;left:4px;top:0;height:34px;width:auto;max-width:120px}
+#doc .sigcell{height:32px;text-align:center;padding:1px}
+#doc .sigcell img{max-height:26px;max-width:96px;vertical-align:middle}
+#doc .note{font-size:11.5px;margin-top:6px}
+#doc .stamp{margin-top:8px;font-size:10.5px;color:#444;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>작업안전일지</h1>
+  <div class="sub">작성 → 이미지 생성 → 카톡 전송</div>
+</header>
+
+<main>
+  <div class="recall">
+    <div class="txt"><b>전일과 동일</b><span id="recall-sub">저장된 기록 없음</span></div>
+    <button type="button" class="sw" id="recall" aria-pressed="false" disabled aria-label="전일과 동일"></button>
+  </div>
+
+  <section>
+    <div class="sec-head"><b>기본 정보</b><span>고정값 — 필요할 때만 수정</span></div>
+    <div class="row2">
+      <label class="f"><i>작업일자</i><input type="date" id="f-date"></label>
+      <label class="f"><i>현장명</i><input type="text" id="f-site"></label>
+    </div>
+    <div class="row2">
+      <label class="f"><i>작업책임자</i><input type="text" id="f-boss"></label>
+      <label class="f"><i>소속</i><input type="text" id="f-org"></label>
+    </div>
+    <button type="button" class="sigbtn" id="slot-boss">
+      <span class="nm">작업책임자 서명</span><span class="pv empty">탭하여 서명</span></button>
+  </section>
+
+  <section>
+    <div class="sec-head"><b>일일 점검항목</b><span>15개 전부 선택해야 전송됩니다</span></div>
+    <div class="master">
+      <button type="button" id="all-ok">전체 적합</button>
+      <button type="button" id="all-clear">전체 해제</button>
+    </div>
+    <div id="items"></div>
+    <label class="f" id="fix-wrap" style="display:none"><i>부적합 조치내용</i><textarea id="f-fix"></textarea></label>
+  </section>
+
+  <section>
+    <div class="sec-head"><b>출/퇴근 관리</b><span>이름은 교육 참석자로 자동 반영</span></div>
+    <div id="workers"></div>
+    <button type="button" class="mini" id="add-worker">＋ 작업자 추가</button>
+  </section>
+
+  <section>
+    <div class="sec-head"><b>오전 작업</b></div>
+    <label class="f"><i>작업호기</i><div class="chips single" id="am-ho"></div></label>
+    <label class="f etc" id="am-ho-wrap"><i>작업호기 직접입력</i><input type="text" id="am-ho-etc" placeholder="예: 5호기"></label>
+    <label class="f"><i>작업공정 <em>복수 선택</em></i><div class="chips" id="am-chips"></div></label>
+    <label class="f etc" id="am-etc-wrap"><i>작업공정 직접입력</i><input type="text" id="am-proc-etc"></label>
+    <label class="f"><i>주요 위험 / 예방 대책</i><input type="text" id="am-risk" list="dl-risk"></label>
+    <label class="f"><i>원 포인트 (위험요소)</i><input type="text" id="am-one" list="dl-one"></label>
+  </section>
+
+  <section>
+    <div class="sec-head"><b>오후 작업</b><span>없으면 비워두세요</span></div>
+    <div class="chk"><input type="checkbox" id="pm-same"><label for="pm-same">오전과 동일</label></div>
+    <div id="pm-fields">
+      <label class="f"><i>작업호기</i><div class="chips single" id="pm-ho"></div></label>
+      <label class="f etc" id="pm-ho-wrap"><i>작업호기 직접입력</i><input type="text" id="pm-ho-etc"></label>
+      <label class="f"><i>작업공정 <em>복수 선택</em></i><div class="chips" id="pm-chips"></div></label>
+      <label class="f etc" id="pm-etc-wrap"><i>작업공정 직접입력</i><input type="text" id="pm-proc-etc"></label>
+      <label class="f"><i>주요 위험 / 예방 대책</i><input type="text" id="pm-risk" list="dl-risk"></label>
+      <label class="f"><i>원 포인트 (위험요소)</i><input type="text" id="pm-one" list="dl-one"></label>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><b>일일 안전·보건교육</b></div>
+    <div class="row3">
+      <label class="f"><i>시작</i><input type="time" id="e-start"></label>
+      <label class="f"><i>종료</i><input type="time" id="e-end"></label>
+      <label class="f"><i>교육장소</i><input type="text" id="e-place"></label>
+    </div>
+    <label class="f"><i>교육실시자</i><input type="text" id="e-tutor"></label>
+    <div class="chk"><input type="checkbox" id="tutor-same"><label for="tutor-same">작업책임자 서명과 동일</label></div>
+    <button type="button" class="sigbtn" id="slot-tutor">
+      <span class="nm">교육실시자 서명</span><span class="pv empty">탭하여 서명</span></button>
+    <label class="f"><i>특기사항</i><textarea id="e-etc"></textarea></label>
+  </section>
+
+  <section>
+    <div class="sec-head"><b>교육 참석자 서명</b><span>이름을 탭하면 서명창이 열립니다</span></div>
+    <div id="wsigs"></div>
+  </section>
+</main>
+
+<datalist id="dl-risk"><option>추락 주의</option><option>감전 주의</option><option>협착 주의</option><option>낙하물 주의</option></datalist>
+<datalist id="dl-one"><option>개인보호구 착용!</option><option>안전대 체결 확인!</option><option>전원 차단 확인!</option></datalist>
+
+<div class="warn" id="warn"></div>
+<div class="bar">
+  <div class="thickrow" id="thickrow"><i>손글씨 굵기</i>
+    <button type="button" data-t="1" aria-pressed="true">가늘게</button>
+    <button type="button" data-t="2" aria-pressed="false">보통</button>
+    <button type="button" data-t="3" aria-pressed="false">굵게</button>
+  </div>
+  <div class="toggle" role="group" aria-label="글씨체">
+    <button type="button" id="t-print" aria-pressed="true">인쇄체</button>
+    <button type="button" id="t-hand" aria-pressed="false">손글씨</button>
+  </div>
+  <button class="go" id="go">이미지 만들기</button>
+</div>
+
+<div class="modal" id="sigmodal" hidden>
+  <div class="sheet">
+    <div class="sheet-h"><b id="sm-title">서명</b><button type="button" class="mini" id="sm-close">닫기</button></div>
+    <p class="hint">등록된 서명을 고르거나, 아래 칸에 직접 서명하세요</p>
+    <div class="saved" id="sm-saved"></div>
+    <canvas id="sm-canvas" width="960" height="300"></canvas>
+    <div class="sheet-f">
+      <button type="button" class="mini" id="sm-clear">지우기</button>
+      <button type="button" class="mini" id="sm-reg">이 서명 등록</button>
+      <button type="button" class="apply" id="sm-apply">적용</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="preview" hidden>
+  <div class="sheet">
+    <div class="sheet-h"><b>미리보기</b><button type="button" class="mini" id="pv-close">다시 작성</button></div>
+    <div class="pv-img"><img id="pv-src" alt="위험예지활동일지 미리보기"></div>
+    <p class="hint" id="pv-hint"></p>
+    <div class="sheet-f">
+      <button type="button" class="mini" id="pv-save">갤러리에 저장</button>
+      <button type="button" class="apply" id="pv-send">카톡으로 전송</button>
+    </div>
+  </div>
+</div>
+
+<div id="stage"><div id="doc"></div></div>
+
+<script>
+/* ══════════════ 고정값 ══════════════ */
+const CONFIG = {
+  site:"", boss:"", org:"",
+  workers:[""],
+  inTime:"08:00", outTime:"17:00",
+  eduStart:"08:00", eduEnd:"08:10", eduPlace:"현장", tutor:"",
+  hoList:["1호기","2호기","3호기","4호기"], hoDefault:"1호기",
+  gps:true
+};
+/* ═══════════════════════════════════ */
+
+const ITEMS = [
+ "안전화, 안전모, 안전그네, 추락방지대, 보안경 착용상태",
+ "작업복 및 개인건강 상태(건강이상, 과음유무 등)",
+ "안전 표지판(포스터) 및 안전 스티커 부착상태",
+ "출입구/점검구 등 추락위험 장소에 안전난간대 설치상태",
+ "양중구 홀 덮개 고정 등 개구부 막음상태",
+ "추락방지망, 낙하물방지망 설치상태",
+ "회전체 덮개상태(장비/공구 등)",
+ "출입구, 점검구(방화도어), 분전함, 제어반 잠금상태",
+ "조명상태(작업주변 등 조명) 및 전구보호망 설치상태",
+ "감전위험 장비(전동공구, 용접기 등) 절연 및 접지상태",
+ "정리정돈 상태(자재, 공구, 개구부, 작업주변, 이동통로, 현장 사무실 등)",
+ "화기작업중 소화기, 화재방지포 비치/사용 여부",
+ "양중기계기구(크레인, 전동윈치, 전동체인 등), 달기기구(W/R, 벨트슬링, 샤클 등) 설치/사용상태",
+ "곤돌라 안전인증 필증 확인",
+ "기타 안전시설물 설치 상태 등"
+];
+const EDU = [
+ "안전보호구 착용 및 공정별 안전수칙 준수에 관한 사항",
+ "안전 시설물, 위험기계 기구, 작업대 사용 및 안전사고사례 및 예방대책에 관한 사항",
+ "MSDS에 관한 사항(제품명, 위험성, 보호구, 취급시 주의사항, 응급조치 요령, 사고시 대처방법 등)",
+ "TBM(위험예지활동) 및 기타 안전보건에 관한 사항 外"
+];
+const PROCS = ["닥트설치","조명설치","센서설치","모터외 배선결선","페인트 작업","청소등 정리정돈","자재입고"];
+const RISKS = {
+  "닥트설치":"추락 주의 / 안전대 체결",
+  "조명설치":"추락·감전 주의 / 전원 차단 후 작업",
+  "센서설치":"추락 주의 / 안전대 체결",
+  "모터외 배선결선":"감전 주의 / 전원 차단 및 검전 확인",
+  "페인트 작업":"유기용제 중독·화기 주의 / 환기 및 방독마스크",
+  "청소등 정리정돈":"전도·협착 주의 / 통로 확보",
+  "자재입고":"낙하물·협착 주의 / 신호수 배치"
+};
+
+const $ = s => document.querySelector(s);
+const marks = Array(15).fill(null);
+let hand = false, coords = null;
+
+const store = (()=>{
+  let mem={}, ok=false;
+  try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); ok=true; }catch(e){}
+  return { get:k=>{ try{ return ok?localStorage.getItem(k):(mem[k]??null); }catch(e){ return mem[k]??null; } },
+           set:(k,v)=>{ try{ ok?localStorage.setItem(k,v):(mem[k]=v); }catch(e){ mem[k]=v; } } };
+})();
+
+/* 이 폰에 저장된 기본정보가 있으면 CONFIG 대신 사용 */
+const CFGKEY = "kyt:cfg";
+let CFG = Object.assign({}, CONFIG);
+try{
+  const saved = JSON.parse(store.get(CFGKEY) || "null");
+  if(saved) CFG = Object.assign(CFG, saved);
+}catch(e){}
+function saveCfg(){
+  const rows = workerRows();
+  store.set(CFGKEY, JSON.stringify({
+    site:$("#f-site").value, boss:$("#f-boss").value, org:$("#f-org").value,
+    workers: rows.map(r=>r.querySelector("input").value.trim()).filter(Boolean),
+    inTime: rows[0] ? rows[0].querySelectorAll("input")[1].value : CONFIG.inTime,
+    outTime: rows[0] ? rows[0].querySelectorAll("input")[2].value : CONFIG.outTime,
+    eduStart:$("#e-start").value, eduEnd:$("#e-end").value,
+    eduPlace:$("#e-place").value, tutor:$("#e-tutor").value
+  }));
+}
+
+/* ══════ 서명 ══════ */
+const SIGKEY = "kyt:sigs";
+let library = {};
+try{ library = JSON.parse(store.get(SIGKEY) || "{}"); }catch(e){ library = {}; }
+const saveLib = ()=>store.set(SIGKEY, JSON.stringify(library));
+
+/* 여백을 잘라내 서명이 칸을 꽉 채우게 만듭니다 */
+function crop(cv){
+  const ctx = cv.getContext("2d");
+  const d = ctx.getImageData(0,0,cv.width,cv.height).data;
+  let x0=cv.width, y0=cv.height, x1=-1, y1=-1;
+  for(let y=0;y<cv.height;y++) for(let x=0;x<cv.width;x++){
+    if(d[(y*cv.width+x)*4+3] > 12){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
+  }
+  if(x1 < 0) return "";
+  const pad = 10;
+  x0=Math.max(0,x0-pad); y0=Math.max(0,y0-pad);
+  x1=Math.min(cv.width-1,x1+pad); y1=Math.min(cv.height-1,y1+pad);
+  const o = document.createElement("canvas");
+  o.width = x1-x0+1; o.height = y1-y0+1;
+  o.getContext("2d").drawImage(cv, x0,y0,o.width,o.height, 0,0,o.width,o.height);
+  return o.toDataURL("image/png");
+}
+
+/* 모달 캔버스 */
+const mc = $("#sm-canvas"), mctx = mc.getContext("2d");
+mctx.lineWidth = 7; mctx.lineCap = "round"; mctx.lineJoin = "round"; mctx.strokeStyle = "#111";
+let mDraw = false, mDirty = false, activeSlot = null;
+const mpos = e => { const r = mc.getBoundingClientRect();
+  return [(e.clientX-r.left)*(mc.width/r.width), (e.clientY-r.top)*(mc.height/r.height)]; };
+mc.addEventListener("pointerdown", e=>{ mDraw=true; mc.setPointerCapture(e.pointerId);
+  const [x,y]=mpos(e); mctx.beginPath(); mctx.moveTo(x,y); });
+mc.addEventListener("pointermove", e=>{ if(!mDraw) return; e.preventDefault();
+  const [x,y]=mpos(e); mctx.lineTo(x,y); mctx.stroke(); mDirty=true; });
+["pointerup","pointercancel","pointerleave"].forEach(ev=>mc.addEventListener(ev,()=>{ mDraw=false; }));
+const clearM = ()=>{ mctx.clearRect(0,0,mc.width,mc.height); mDirty=false; };
+$("#sm-clear").onclick = clearM;
+
+function drawLib(url){
+  clearM();
+  const im = new Image();
+  im.onload = ()=>{
+    const s = Math.min(mc.width/im.width, mc.height/im.height) * 0.86;
+    const w0 = im.width*s, h0 = im.height*s;
+    mctx.drawImage(im, (mc.width-w0)/2, (mc.height-h0)/2, w0, h0);
+    mDirty = true;
+  };
+  im.src = url;
+}
+function renderLib(){
+  const names = Object.keys(library);
+  $("#sm-saved").innerHTML = names.length
+    ? names.map(n=>`<div class="s" data-n="${n}"><img src="${library[n]}"><span>${n}</span><button type="button" data-del="${n}">×</button></div>`).join("")
+    : `<div class="none">등록된 서명이 없습니다 — 직접 서명 후 「이 서명 등록」</div>`;
+}
+$("#sm-saved").onclick = e=>{
+  const del = e.target.closest("[data-del]");
+  if(del){ delete library[del.dataset.del]; saveLib(); renderLib(); return; }
+  const s = e.target.closest(".s");
+  if(s) drawLib(library[s.dataset.n]);
+};
+$("#sm-reg").onclick = ()=>{
+  if(!mDirty) return;
+  const suggested = activeSlot ? activeSlot.name() : "";
+  const n = (prompt("서명을 등록할 이름", suggested) || "").trim();
+  if(!n) return;
+  library[n] = crop(mc); saveLib(); renderLib();
+};
+function openSig(slot){
+  activeSlot = slot;
+  $("#sm-title").textContent = (slot.name() || slot.label) + " 서명";
+  renderLib();
+  clearM();
+  const auto = slot.data || library[slot.name()];
+  if(auto) drawLib(auto);
+  $("#sigmodal").hidden = false; document.body.classList.add("lock");
+}
+function closeSig(){ $("#sigmodal").hidden = true; document.body.classList.remove("lock"); activeSlot = null; }
+$("#sm-close").onclick = closeSig;
+$("#sigmodal").addEventListener("click", e=>{ if(e.target.id === "sigmodal") closeSig(); });
+$("#sm-apply").onclick = ()=>{
+  if(activeSlot){ activeSlot.data = mDirty ? crop(mc) : ""; activeSlot.paint(); }
+  closeSig();
+};
+
+function makeSlot(el, label, nameFn){
+  const slot = { el, label, data:"", name:nameFn,
+    paint(){
+      const pv = el.querySelector(".pv");
+      el.querySelector(".nm").textContent = (nameFn() ? nameFn()+" " : "") + label;
+      if(slot.data){ pv.className = "pv"; pv.innerHTML = `<img src="${slot.data}">`; el.classList.add("done"); }
+      else { pv.className = "pv empty"; pv.textContent = "탭하여 서명"; el.classList.remove("done"); }
+    }};
+  el.onclick = ()=>openSig(slot);
+  slot.paint();
+  return slot;
+}
+const slotBoss  = makeSlot($("#slot-boss"),  "서명", ()=>$("#f-boss").value.trim());
+const slotTutor = makeSlot($("#slot-tutor"), "서명", ()=>$("#e-tutor").value.trim());
+$("#f-boss").addEventListener("input", ()=>slotBoss.paint());
+$("#e-tutor").addEventListener("input", ()=>slotTutor.paint());
+$("#tutor-same").onchange = e=>{ $("#slot-tutor").style.display = e.target.checked ? "none" : "flex"; };
+
+/* ══════ 점검 항목 ══════ */
+const wrap = $("#items");
+ITEMS.forEach((t,i)=>{
+  const d=document.createElement("div"); d.className="item"; d.dataset.i=i;
+  d.innerHTML=`<div class="t"><em>${i+1}</em><span>${t}</span></div>
+    <div class="seg"><button type="button" data-v="적합" aria-pressed="false">적합</button>
+    <button type="button" data-v="부적합" aria-pressed="false">부적합</button>
+    <button type="button" data-v="해당없음" aria-pressed="false">해당없음</button></div>`;
+  wrap.appendChild(d);
+});
+function setMark(i,v){
+  marks[i]=v; const b=wrap.children[i]; b.dataset.v=v||"";
+  b.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.v===v));
+}
+wrap.addEventListener("click", e=>{
+  const b=e.target.closest("button[data-v]"); if(!b) return;
+  const i=+b.closest(".item").dataset.i;
+  setMark(i, marks[i]===b.dataset.v ? null : b.dataset.v); sync();
+});
+$("#all-ok").onclick    = ()=>{ ITEMS.forEach((_,i)=>setMark(i,"적합")); sync(); };
+$("#all-clear").onclick = ()=>{ ITEMS.forEach((_,i)=>setMark(i,null)); sync(); };
+
+/* ══════ 작업자 & 참석자 서명 ══════ */
+const wSlots = [];
+function addWorker(name="",i=(CFG&&CFG.inTime)||CONFIG.inTime,o=(CFG&&CFG.outTime)||CONFIG.outTime){
+  const r=document.createElement("div"); r.className="worker";
+  r.innerHTML=`<input type="text" placeholder="작업자명" value="${name}">
+    <input type="time" value="${i}"><input type="time" value="${o}">
+    <button type="button" class="mini" aria-label="삭제">×</button>`;
+  r.querySelector("button").onclick=()=>{ r.remove(); refreshSigs(); };
+  r.querySelector("input").addEventListener("input", refreshSigs);
+  $("#workers").appendChild(r);
+  refreshSigs();
+}
+$("#add-worker").onclick = ()=>addWorker();
+const workerRows = ()=>[...document.querySelectorAll("#workers .worker")];
+function refreshSigs(){
+  const rows = workerRows(), box = $("#wsigs");
+  while(box.children.length > rows.length){ box.lastElementChild.remove(); wSlots.pop(); }
+  while(box.children.length < rows.length){
+    const idx = box.children.length;
+    const b = document.createElement("button");
+    b.type="button"; b.className="sigbtn";
+    b.innerHTML = `<span class="nm"></span><span class="pv empty">탭하여 서명</span>`;
+    box.appendChild(b);
+    wSlots.push(makeSlot(b, "서명", ()=>{
+      const r = workerRows()[idx];
+      return r ? r.querySelector("input").value.trim() : "";
+    }));
+  }
+  wSlots.forEach(s=>s.paint());
+}
+(CFG.workers && CFG.workers.length ? CFG.workers : CONFIG.workers).forEach(n=>addWorker(n));
+
+/* ══════ 작업호기 ══════ */
+["am","pm"].forEach(k=>{
+  const box=$("#"+k+"-ho");
+  box.innerHTML = CONFIG.hoList.map(h=>`<button type="button" data-h="${h}" aria-pressed="false">${h}</button>`).join("")
+    + `<button type="button" data-h="__etc" aria-pressed="false">기타</button>`;
+  box.addEventListener("click", e=>{
+    const b=e.target.closest("button[data-h]"); if(!b) return;
+    const on = b.getAttribute("aria-pressed") !== "true";
+    box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed", on);
+    $("#"+k+"-ho-wrap").classList.toggle("on", on && b.dataset.h==="__etc");
+    if(on && b.dataset.h==="__etc") $("#"+k+"-ho-etc").focus();
+  });
+});
+function setHo(k,val){
+  const box=$("#"+k+"-ho");
+  box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  const hit=[...box.querySelectorAll("button")].find(x=>x.dataset.h===val);
+  if(hit){ hit.setAttribute("aria-pressed","true"); $("#"+k+"-ho-wrap").classList.remove("on"); }
+  else if(val){ box.querySelector('[data-h="__etc"]').setAttribute("aria-pressed","true");
+    $("#"+k+"-ho-wrap").classList.add("on"); $("#"+k+"-ho-etc").value=val; }
+}
+function hoOf(k){
+  const b=$("#"+k+"-ho").querySelector('[aria-pressed="true"]');
+  if(!b) return "";
+  return b.dataset.h==="__etc" ? $("#"+k+"-ho-etc").value.trim() : b.dataset.h;
+}
+setHo("am", CONFIG.hoDefault);
+
+/* ══════ 작업공정 ══════ */
+const picked = {am:[], pm:[]};
+["am","pm"].forEach(k=>{
+  const box=$("#"+k+"-chips");
+  box.innerHTML = PROCS.map(p=>`<button type="button" data-p="${p}" aria-pressed="false">${p}</button>`).join("")
+    + `<button type="button" data-p="__etc" aria-pressed="false">직접입력</button>`;
+  box.addEventListener("click", e=>{
+    const b=e.target.closest("button[data-p]"); if(!b) return;
+    const v=b.dataset.p, on=b.getAttribute("aria-pressed")!=="true";
+    b.setAttribute("aria-pressed", on);
+    if(v==="__etc"){
+      $("#"+k+"-etc-wrap").classList.toggle("on", on);
+      if(on) $("#"+k+"-proc-etc").focus(); else $("#"+k+"-proc-etc").value="";
+    }else{
+      if(on) picked[k].push(v); else picked[k]=picked[k].filter(x=>x!==v);
+      picked[k].sort((a,b2)=>PROCS.indexOf(a)-PROCS.indexOf(b2));
+    }
+    autoRisk(k);
+  });
+  $("#"+k+"-risk").addEventListener("input", e=>{ e.target.dataset.auto="0"; });
+});
+function autoRisk(k){
+  const rf=$("#"+k+"-risk");
+  if(rf.value.trim() && rf.dataset.auto!=="1") return;
+  rf.value=[...new Set(picked[k].map(x=>RISKS[x]).filter(Boolean))].join(" / ");
+  rf.dataset.auto="1";
+}
+function setProcs(k,list){
+  picked[k]=[];
+  const box=$("#"+k+"-chips");
+  box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  $("#"+k+"-etc-wrap").classList.remove("on"); $("#"+k+"-proc-etc").value="";
+  (list||[]).forEach(v=>{
+    const hit=[...box.querySelectorAll("button")].find(x=>x.dataset.p===v);
+    if(hit){ hit.setAttribute("aria-pressed","true"); picked[k].push(v); }
+    else{ box.querySelector('[data-p="__etc"]').setAttribute("aria-pressed","true");
+      $("#"+k+"-etc-wrap").classList.add("on"); $("#"+k+"-proc-etc").value=v; }
+  });
+  picked[k].sort((a,b)=>PROCS.indexOf(a)-PROCS.indexOf(b));
+}
+function procList(k){
+  const etc=$("#"+k+"-proc-etc").value.trim();
+  return etc ? [...picked[k], etc] : [...picked[k]];
+}
+$("#pm-same").onchange = e=>{ $("#pm-fields").style.display = e.target.checked ? "none" : "block"; };
+
+/* ══════ 기본값 ══════ */
+$("#f-date").value  = new Date().toISOString().slice(0,10);
+$("#f-site").value  = CFG.site;
+$("#f-boss").value  = CFG.boss;
+$("#f-org").value   = CFG.org;
+$("#e-start").value = CFG.eduStart;
+$("#e-end").value   = CFG.eduEnd;
+$("#e-place").value = CFG.eduPlace;
+$("#e-tutor").value = CFG.tutor;
+slotBoss.paint(); slotTutor.paint();
+
+$("#t-print").onclick = ()=>setFont(false);
+$("#t-hand").onclick  = ()=>setFont(true);
+let thick = 1;
+function setFont(h){
+  hand=h;
+  $("#t-print").setAttribute("aria-pressed",!h);
+  $("#t-hand").setAttribute("aria-pressed",h);
+  $("#thickrow").classList.toggle("on", h);
+}
+$("#thickrow").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-t]"); if(!b) return;
+  thick = +b.dataset.t;
+  $("#thickrow").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+});
+
+function sync(){
+  const miss = marks.map((v,i)=>v?null:i+1).filter(Boolean);
+  $("#fix-wrap").style.display = marks.some(v=>v==="부적합") ? "block" : "none";
+  $("#go").disabled = miss.length>0;
+  $("#warn").textContent = miss.length ? `점검항목 ${miss.join(", ")}번이 비어 있습니다` : "";
+}
+sync();
+
+if(CONFIG.gps && navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(p=>{
+    coords = p.coords.latitude.toFixed(5)+", "+p.coords.longitude.toFixed(5);
+  }, ()=>{}, {timeout:6000});
+}
+
+/* ══════ 전일과 동일 ══════ */
+const KEY="kyt:last";
+function snapshot(){
+  return { savedOn:$("#f-date").value,
+    site:$("#f-site").value, boss:$("#f-boss").value, org:$("#f-org").value,
+    ws:workerRows().map(r=>{ const[n,i,o]=r.querySelectorAll("input"); return [n.value,i.value,o.value]; }),
+    amHo:hoOf("am"), amP:procList("am"), amR:$("#am-risk").value, amO:$("#am-one").value,
+    pmSame:$("#pm-same").checked,
+    pmHo:hoOf("pm"), pmP:procList("pm"), pmR:$("#pm-risk").value, pmO:$("#pm-one").value,
+    es:$("#e-start").value, ee:$("#e-end").value, ep:$("#e-place").value,
+    et:$("#e-tutor").value, ts:$("#tutor-same").checked, etc:$("#e-etc").value };
+}
+function restore(S){
+  $("#f-site").value=S.site; $("#f-boss").value=S.boss; $("#f-org").value=S.org;
+  $("#workers").innerHTML=""; $("#wsigs").innerHTML=""; wSlots.length=0;
+  (S.ws||[]).forEach(([n,i,o])=>addWorker(n,i,o));
+  setHo("am",S.amHo); setProcs("am",S.amP);
+  $("#am-risk").value=S.amR; $("#am-risk").dataset.auto="0"; $("#am-one").value=S.amO;
+  $("#pm-same").checked=!!S.pmSame; $("#pm-fields").style.display=S.pmSame?"none":"block";
+  setHo("pm",S.pmHo); setProcs("pm",S.pmP);
+  $("#pm-risk").value=S.pmR; $("#pm-risk").dataset.auto="0"; $("#pm-one").value=S.pmO;
+  $("#e-start").value=S.es; $("#e-end").value=S.ee; $("#e-place").value=S.ep;
+  $("#e-tutor").value=S.et; $("#e-etc").value=S.etc;
+  $("#tutor-same").checked=!!S.ts; $("#slot-tutor").style.display=S.ts?"none":"flex";
+  slotBoss.paint(); slotTutor.paint();
+}
+let lastSnap=null;
+try{ lastSnap=JSON.parse(store.get(KEY)||"null"); }catch(e){}
+if(lastSnap){
+  $("#recall").disabled=false;
+  $("#recall-sub").textContent = `${lastSnap.savedOn} 기록 불러오기 · 서명·점검 제외`;
+}
+$("#recall").onclick = ()=>{
+  const on = $("#recall").getAttribute("aria-pressed")!=="true";
+  $("#recall").setAttribute("aria-pressed", on);
+  if(on && lastSnap) restore(lastSnap);
+};
+
+/* ══════ 문서 ══════ */
+function collect(){
+  const rows = workerRows();
+  const ws = rows.map((r,i)=>{
+    const [n,a,b]=r.querySelectorAll("input");
+    return { n:n.value.trim(), i:a.value, o:b.value, sig:(wSlots[i]&&wSlots[i].data)||"" };
+  }).filter(x=>x.n);
+  const same = $("#pm-same").checked;
+  const am = {no:hoOf("am"), p:procList("am"), r:$("#am-risk").value, o:$("#am-one").value};
+  const pm = same ? {...am} : {no:hoOf("pm"), p:procList("pm"), r:$("#pm-risk").value, o:$("#pm-one").value};
+  return { date:$("#f-date").value, site:$("#f-site").value, boss:$("#f-boss").value, org:$("#f-org").value,
+    fix:$("#f-fix").value, ws, am, pm,
+    es:$("#e-start").value, ee:$("#e-end").value, ep:$("#e-place").value,
+    et:$("#e-tutor").value, etc:$("#e-etc").value,
+    bossSig: slotBoss.data,
+    tutorSig: $("#tutor-same").checked ? slotBoss.data : slotTutor.data };
+}
+const esc = t => String(t||"").replace(/</g,"&lt;");
+const w   = t => t ? `<span class="w">${esc(t)}</span>` : "";
+const sigslot = u => `<span class="sigslot"><span class="cap">(서명)</span>${u ? `<img src="${u}">` : ""}</span>`;
+const kdate = s => { if(!s) return ""; const[y,m,d]=s.split("-"); return `${y}년 ${+m}월 ${+d}일`; };
+
+function build(){
+  const D = collect();
+  const hasPM = !!(D.pm.p.length || D.pm.r || D.pm.o || D.pm.no);
+  const plines = a => a.map(t=>`<div class="w">${esc(t)}</div>`).join("");
+
+  const rows = ITEMS.map((t,i)=>`<tr>
+    ${i===0?`<td class="lab" rowspan="15">점<br>검<br>내<br>용</td>`:""}
+    <td colspan="4" class="itm">${i+1}. ${t}</td>
+    <td class="mk">${marks[i]==="적합"?"✔":""}</td>
+    <td class="mk">${marks[i]==="부적합"?"✔":""}</td>
+    <td class="mk">${marks[i]==="해당없음"?"✔":""}</td></tr>`).join("");
+
+  const half = Math.max(2, Math.ceil(D.ws.length/2));
+  const L = D.ws.slice(0,half), R = D.ws.slice(half);
+  let cmt="";
+  for(let i=0;i<half;i++){
+    const a=L[i]||{}, b=R[i]||{};
+    cmt += `<tr><td class="ctr h">${w(a.n)}</td><td class="ctr h">${w(a.i)}</td><td class="ctr h">${w(a.o)}</td>
+      <td class="ctr h">${w(b.n)}</td><td class="ctr h">${w(b.i)}</td><td class="ctr h">${w(b.o)}</td></tr>`;
+  }
+
+  const list = D.ws.length ? D.ws : [{n:"",sig:""}];
+  const att = list.map(v=>`<tr>
+    <td class="ctr h">${w(D.org)}</td><td class="ctr h">${w(v.n)}</td>
+    <td class="sigcell">${v.sig?`<img src="${v.sig}">`:""}</td>
+    <td class="ctr h">${hasPM?w(D.org):""}</td><td class="ctr h">${hasPM?w(v.n):""}</td>
+    <td class="sigcell">${hasPM&&v.sig?`<img src="${v.sig}">`:""}</td></tr>`).join("");
+
+  $("#doc").className = hand ? ("hand hw"+thick) : "";
+  $("#doc").innerHTML = `
+  <h2>위험예지활동일지 (작업일지)</h2>
+  <table class="grid">
+    <colgroup><col style="width:40px"><col style="width:150px"><col style="width:66px"><col>
+      <col style="width:88px"><col style="width:58px"><col style="width:58px"><col style="width:68px"></colgroup>
+    <tr><td class="lab">작업일자</td><td class="ctr">${w(kdate(D.date))}</td>
+        <td class="lab">현장명</td><td class="ctr">${w(D.site)}</td>
+        <td class="lab">작업책임자</td><td class="ctr" colspan="3">${w(D.boss)}${sigslot(D.bossSig)}</td></tr>
+    <tr><td class="lab">구 분</td><td class="lab" colspan="4">일일점검항목</td>
+        <td class="lab">적합</td><td class="lab">부적합</td><td class="lab">해당없음</td></tr>
+    ${rows}
+    <tr><td class="lab">부적합<br>조치내용</td><td colspan="7" class="blank">${w(D.fix)}</td></tr>
+  </table>
+
+  <div class="bullet">■ <u>출/퇴근 관리</u></div>
+  <table class="grid">
+    <colgroup><col style="width:16.6%"><col style="width:16.6%"><col style="width:16.6%">
+      <col style="width:16.6%"><col style="width:16.6%"><col></colgroup>
+    <tr><td class="lab">작업자명</td><td class="lab">출근시간</td><td class="lab">퇴근시간</td>
+        <td class="lab">작업자명</td><td class="lab">출근시간</td><td class="lab">퇴근시간</td></tr>
+    ${cmt}
+  </table>
+
+  <div class="bullet split">
+    <span>■ <u>오전작업</u> &nbsp;&nbsp;&nbsp; 작업호기 : <span class="w">${esc(D.am.no)}</span></span>
+    <span>■ <u>오후 작업</u> &nbsp;&nbsp;&nbsp; 작업호기 : <span class="w">${esc(D.pm.no)}</span></span>
+  </div>
+  <table class="grid">
+    <colgroup><col style="width:110px"><col><col style="width:110px"><col></colgroup>
+    <tr><td class="lab">작업공정</td><td class="tall">${plines(D.am.p)}</td>
+        <td class="lab">작업공정</td><td class="tall">${plines(D.pm.p)}</td></tr>
+    <tr><td class="lab">주요 위험<br>/ 예방 대책</td><td class="mid">${w(D.am.r)}</td>
+        <td class="lab">주요 위험<br>/ 예방 대책</td><td class="mid">${w(D.pm.r)}</td></tr>
+    <tr><td class="lab">원 포인트<br>(위험요소)</td><td class="mid">${w(D.am.o)}</td>
+        <td class="lab">원 포인트<br>(위험요소)</td><td class="mid">${w(D.pm.o)}</td></tr>
+  </table>
+
+  <h3>일일안전·보건교육일지</h3>
+  <table class="grid">
+    <colgroup><col style="width:104px"><col style="width:104px"><col><col style="width:104px">
+      <col style="width:104px"><col><col style="width:104px"></colgroup>
+    <tr><td class="lab">교육시간</td><td class="ctr" colspan="2">${w(D.es+" ~ "+D.ee)}</td>
+        <td class="lab">교육장소</td><td class="ctr">${w(D.ep)}</td>
+        <td class="lab">교육실시자</td><td class="ctr">${w(D.et)}${sigslot(D.tutorSig)}</td></tr>
+    <tr><td class="lab">교육내용</td><td colspan="6" class="edu">${EDU.map((t,i)=>`${i+1}. ${t}`).join("<br>")}</td></tr>
+    <tr><td class="lab" rowspan="${list.length+2}">교육명단<br>(위험예지<br>활동 참석자)</td>
+        <td class="lab" colspan="3">오전작업</td><td class="lab" colspan="3">오후작업</td></tr>
+    <tr><td class="lab">소속</td><td class="lab">성명</td><td class="lab">서명</td>
+        <td class="lab">소속</td><td class="lab">성명</td><td class="lab">서명</td></tr>
+    ${att}
+    <tr><td class="lab">특기사항</td><td colspan="6" class="blank">${w(D.etc)}</td></tr>
+  </table>
+  <div class="note">※ MSDS(Material Safety Data Sheet) : 물질안전보건자료</div>
+  <div class="stamp"><span>작성 ${new Date().toLocaleString("ko-KR",{hour12:false})}</span>
+    <span>${coords ? "위치 "+coords : ""}</span></div>`;
+}
+
+let outBlob = null, outUrl = "", outName = "";
+
+$("#pv-hint").textContent = "저장하면 Download 폴더에 들어갑니다 · 갤러리 > 앨범에서 확인";
+
+function closePreview(){
+  $("#preview").hidden = true; document.body.classList.remove("lock");
+  if(outUrl){ URL.revokeObjectURL(outUrl); outUrl = ""; }
+  outBlob = null; $("#pv-src").removeAttribute("src");
+}
+$("#pv-close").onclick = closePreview;
+$("#preview").addEventListener("click", e=>{ if(e.target.id === "preview") closePreview(); });
+
+function download(){
+  const a = document.createElement("a");
+  a.href = outUrl; a.download = outName;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+$("#pv-save").onclick = ()=>{
+  if(!outBlob) return;
+  download();
+  const h = $("#pv-hint");
+  h.textContent = `저장 완료 — Download / ${outName}`;
+  h.style.color = "var(--ok)";
+};
+
+$("#pv-send").onclick = async ()=>{
+  if(!outBlob) return;
+  const file = new File([outBlob], outName, {type:"image/png"});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:outName}); }catch(e){}
+  }else{
+    download();
+  }
+};
+
+$("#go").onclick = async ()=>{
+  const btn=$("#go"), old=btn.textContent;
+  btn.disabled=true; btn.textContent="만드는 중…";
+  try{
+    build();
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r=>setTimeout(r,150));
+    const canvas = await html2canvas($("#doc"), {scale:2, backgroundColor:"#ffffff", useCORS:true});
+    outBlob = await new Promise(r=>canvas.toBlob(r,"image/png",0.96));
+    if(outUrl) URL.revokeObjectURL(outUrl);
+    outUrl  = URL.createObjectURL(outBlob);
+    outName = `${$("#f-date").value}.png`;
+    store.set(KEY, JSON.stringify(snapshot())); saveCfg();
+    $("#pv-hint").textContent = "저장하면 Download 폴더에 들어갑니다 · 갤러리 > 앨범에서 확인";
+    $("#pv-hint").style.color = "";
+    $("#pv-src").src = outUrl;
+    $("#preview").hidden = false; document.body.classList.add("lock");
+  }catch(err){
+    $("#warn").textContent = "이미지 생성에 실패했습니다. 다시 시도해 주세요.";
+  }finally{
+    btn.disabled=false; btn.textContent=old; sync();
+  }
+};
+</script>
+</body>
+</html>
