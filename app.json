@@ -6,7 +6,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "jamgim",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "bundleIdentifier": "app.jamgim.vault",
       "supportsTablet": false,
@@ -19,7 +21,11 @@
       "package": "app.jamgim.vault",
       "allowBackup": false,
       "permissions": [],
-      "blockedPermissions": ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE"]
+      "blockedPermissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "versionCode": 1
     },
     "plugins": [
       "expo-secure-store",

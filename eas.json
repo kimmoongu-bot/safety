@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "preview": {
+      "//": "폰에 바로 깔아서 눌러 보는 용도. JS 까지 안에 들어 있어 컴퓨터 없이 혼자 돈다.",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "development": {
+      "//": "고치면서 볼 때 쓰는 개발 빌드. 컴퓨터에서 npm start 를 띄워 두어야 한다.",
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "//": "스토어 올릴 때. 구글 플레이는 apk 가 아니라 aab 를 받는다.",
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
