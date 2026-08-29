@@ -121,7 +121,7 @@ export function SettingsScreen() {
       )}
 
       <View style={{ height: space.md }} />
-      <Title>비밀번호(핀) 바꾸기</Title>
+      <Title>비밀번호(PIN) 바꾸기</Title>
       {changing ? (
         <>
           <Field
@@ -164,7 +164,7 @@ export function SettingsScreen() {
       <View style={{ height: space.lg }} />
       <Title>금고 초기화</Title>
       <Notice>
-        숫자(핀)·지문·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다. 그럴 때는 금고를 지우고
+        숫자(PIN)·지문·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다. 그럴 때는 금고를 지우고
         새로 시작할 수 있지만, 넣어 둔 내용은 되살아나지 않습니다.
       </Notice>
       <BigButton label="금고 지우고 새로 시작" tone="danger" onPress={() => setWipeStep(1)} />

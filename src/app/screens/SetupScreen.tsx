@@ -55,7 +55,7 @@ export function SetupScreen() {
     const value = step === 'pin' ? pin : pinAgain;
     const setValue = step === 'pin' ? setPin : setPinAgain;
     return (
-      <Screen title={step === 'pin' ? '비밀번호(핀) 만들기' : '한 번 더 눌러 주세요'}>
+      <Screen title={step === 'pin' ? '비밀번호(PIN) 만들기' : '한 번 더 눌러 주세요'}>
         <Body dim>
           {step === 'pin'
             ? '금고를 열 때 쓸 숫자를 정합니다. 4자리 이상이면 됩니다.'
@@ -122,7 +122,7 @@ export function SetupScreen() {
     return (
       <Screen title="복구 코드를 적어 두세요">
         <Notice>
-          숫자(핀)를 잊었을 때 금고를 열 수 있는 유일한 방법입니다. 종이에 적어 폰과 다른 곳에 두세요.
+          숫자(PIN)를 잊었을 때 금고를 열 수 있는 유일한 방법입니다. 종이에 적어 폰과 다른 곳에 두세요.
           화면을 캡처하지 마세요.
         </Notice>
         <View style={{ height: space.md }} />
@@ -147,7 +147,7 @@ export function SetupScreen() {
       />
       <Notice tone="plain">
         {useBiometric ? '지문·얼굴로도 열 수 있게 해 두었습니다. ' : ''}
-        숫자(핀)·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다.
+        숫자(PIN)·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다.
       </Notice>
       <View style={{ height: space.md }} />
       <BigButton
