@@ -101,10 +101,10 @@ export function LockScreen() {
 
       {waiting ? (
         <Notice>
-          {`숫자를 ${failures}번 잘못 눌렀습니다. ${waitText(waitMs)}.`}
+          {`PIN(핀)을 ${failures}번 잘못 눌렀습니다. ${waitText(waitMs)}.`}
         </Notice>
       ) : failures > 0 ? (
-        <Notice>{`숫자를 ${failures}번 잘못 눌렀습니다.`}</Notice>
+        <Notice>{`PIN(핀)을 ${failures}번 잘못 눌렀습니다.`}</Notice>
       ) : null}
 
       <PinDots length={pin.length} />
@@ -114,7 +114,7 @@ export function LockScreen() {
       {canUseBiometric ? (
         <BigButton label={`${biometricLabel}으로 열기`} tone="plain" onPress={tryBiometric} disabled={waiting} />
       ) : null}
-      <BigButton label="숫자를 잊었어요 (복구 코드)" tone="plain" onPress={() => setMode('recovery')} />
+      <BigButton label="PIN(핀)을 잊었어요 (복구 코드)" tone="plain" onPress={() => setMode('recovery')} />
     </Screen>
   );
 }
