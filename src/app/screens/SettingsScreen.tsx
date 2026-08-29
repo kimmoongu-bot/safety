@@ -54,7 +54,7 @@ export function SettingsScreen() {
 
       <Toggle
         label="지문·얼굴로 열기"
-        description="켜면 숫자를 누르지 않아도 열 수 있습니다."
+        description="켜면 PIN(핀)을 누르지 않아도 열 수 있습니다."
         value={settings.biometricUnlock}
         onChange={async (next) => {
           if (!vault) return;
@@ -104,7 +104,7 @@ export function SettingsScreen() {
 
       <Toggle
         label="10번 틀리면 금고 지우기"
-        description="켜면 숫자를 10번 잘못 누를 때 금고를 통째로 지웁니다. 백업 파일이 없으면 되살릴 수 없습니다."
+        description="켜면 PIN(핀)을 10번 잘못 누를 때 금고를 통째로 지웁니다. 백업 파일이 없으면 되살릴 수 없습니다."
         value={settings.wipeAfterTenFailures}
         onChange={(next) => void saveSettings({ wipeAfterTenFailures: next })}
       />
@@ -125,14 +125,14 @@ export function SettingsScreen() {
       {changing ? (
         <>
           <Field
-            label="지금 쓰는 숫자"
+            label="지금 쓰는 PIN(핀)"
             value={currentPin}
             onChangeText={setCurrentPin}
             keyboardType="number-pad"
             secureTextEntry
           />
           <Field
-            label="새로 쓸 숫자"
+            label="새로 쓸 PIN(핀)"
             value={nextPin}
             onChangeText={setNextPin}
             keyboardType="number-pad"
@@ -147,14 +147,14 @@ export function SettingsScreen() {
               setNextPin('');
               if (done.ok) {
                 setChanging(false);
-                showToast('숫자를 바꿨습니다.');
+                showToast('PIN(핀)을 바꿨습니다.');
               }
             }}
           />
           <BigButton label="그만두기" tone="plain" onPress={() => setChanging(false)} />
         </>
       ) : (
-        <BigButton label="숫자 바꾸기" tone="plain" onPress={() => setChanging(true)} />
+        <BigButton label="PIN(핀) 바꾸기" tone="plain" onPress={() => setChanging(true)} />
       )}
 
       <View style={{ height: space.md }} />
