@@ -16,7 +16,7 @@ export type VaultErrorCode =
   | 'INVALID_INPUT';
 
 const MESSAGES: Record<VaultErrorCode, string> = {
-  WRONG_PIN: '비밀번호(PIN)가 맞지 않습니다.',
+  WRONG_PIN: '비밀번호(핀)가 맞지 않습니다.',
   WRONG_RECOVERY_CODE: '복구 코드가 맞지 않습니다.',
   WRONG_BACKUP_PASSWORD: '백업 비밀번호가 맞지 않습니다.',
   LOCKED_OUT: '여러 번 틀렸습니다. 잠시 뒤에 다시 해 주세요.',
