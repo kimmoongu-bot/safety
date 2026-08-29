@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "잠김",
+    "slug": "jamgim",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "jamgim",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "bundleIdentifier": "app.jamgim.vault",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "금고를 열 때 얼굴로 본인을 확인합니다. 얼굴 정보는 기기 밖으로 나가지 않습니다.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.jamgim.vault",
+      "allowBackup": false,
+      "permissions": [],
+      "blockedPermissions": ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE"]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-local-authentication",
+      "./plugins/withJamgimSecurity"
+    ],
+    "extra": {
+      "note": "서버 없음 · 계정 없음 · 인터넷 권한 없음 (명세 1장)"
+    }
+  }
+}
