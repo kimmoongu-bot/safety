@@ -37,6 +37,11 @@ type State = {
   failures: number;
   /** 마지막으로 화면을 만진 시각. 자동 잠금 판단에 쓴다. */
   lastActivityAt: number;
+  /**
+   * 이 시각까지는 백그라운드로 나가도 잠그지 않는다.
+   * 파일 고르기·보내기처럼 사용자가 방금 누른 시스템 창이 앱을 잠깐 가릴 때만 쓴다.
+   */
+  systemDialogUntil: number;
 };
 
 type Actions = {
@@ -48,6 +53,8 @@ type Actions = {
   refreshLockState(): Promise<void>;
   lock(): void;
   touch(): void;
+  beginSystemDialog(): void;
+  endSystemDialog(): void;
   showToast(text: string, tone?: 'ok' | 'bad'): void;
   hideToast(): void;
   run<T>(work: () => Promise<T>): Promise<RunResult<T>>;
@@ -68,6 +75,7 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
   waitMs: 0,
   failures: 0,
   lastActivityAt: Date.now(),
+  systemDialogUntil: 0,
 
   attach(vault) {
     set({ vault });
@@ -110,6 +118,20 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
 
   touch() {
     set({ lastActivityAt: Date.now() });
+  },
+
+  /**
+   * 파일 고르기·보내기 창을 열기 직전에 부른다.
+   * 이 창들은 앱을 백그라운드로 밀어내는데, 그때마다 잠기면 백업과 되살리기를
+   * 끝낼 수 없다. 그래서 사용자가 방금 누른 경우에 한해, 2분 동안만 예외를 둔다.
+   * 그 사이에도 화면은 가림 뷰로 덮이고, 2분을 넘겨 돌아오면 그냥 잠근다.
+   */
+  beginSystemDialog() {
+    set({ systemDialogUntil: Date.now() + 2 * 60_000 });
+  },
+
+  endSystemDialog() {
+    set({ systemDialogUntil: 0, lastActivityAt: Date.now() });
   },
 
   showToast(text, tone = 'ok') {

@@ -24,7 +24,7 @@ function formatDate(ms?: number): string {
 }
 
 export function BackupScreen() {
-  const { vault, back, showToast, run, refresh } = useVaultStore();
+  const { vault, back, showToast, run, refresh, beginSystemDialog, endSystemDialog } = useVaultStore();
   const [password, setPassword] = useState('');
   const [passwordAgain, setPasswordAgain] = useState('');
   const [importPassword, setImportPassword] = useState('');
@@ -48,10 +48,12 @@ export function BackupScreen() {
     if (!result.ok) return;
     const { fileName, contents, recordCount } = result.value;
     const path = await writeBackupToCache(fileName, contents);
+    beginSystemDialog(); // 보내기 창이 앱을 잠깐 덮는다.
     try {
       await shareBackup(path);
     } finally {
-      await removeCachedBackup(path);
+      endSystemDialog();
+      await removeCachedBackup(path); // 캐시에 백업본을 남기지 않는다.
     }
     setPassword('');
     setPasswordAgain('');
@@ -62,7 +64,13 @@ export function BackupScreen() {
   };
 
   const doPick = async () => {
-    const file = await pickBackupFile();
+    beginSystemDialog(); // 파일 고르기 창이 앱을 잠깐 덮는다.
+    let file: Awaited<ReturnType<typeof pickBackupFile>>;
+    try {
+      file = await pickBackupFile();
+    } finally {
+      endSystemDialog();
+    }
     if (!file) return;
     setPicked(file);
     setPreviewCount(null);

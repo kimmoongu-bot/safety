@@ -97,14 +97,20 @@ export default function App() {
   /**
    * 백그라운드로 가는 즉시 잠근다 (명세 5.5).
    * 메모리의 DEK 와 열려 있던 내용이 함께 사라지고, 클립보드도 비운다.
+   *
+   * 'inactive' 에서는 잠그지 않는다. iOS 에서 지문·얼굴 확인 창이나 알림 센터가
+   * 잠깐 덮을 때도 'inactive' 가 오는데, 그때 잠가 버리면 생체인증으로 여는 것
+   * 자체가 불가능해진다. 그 순간 화면은 PrivacyShield 가 덮는다.
    */
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
-      if (next === 'active') return;
-      if (useVaultStore.getState().vault?.isUnlocked) {
-        lock();
-        void clearClipboardNow();
-      }
+      if (next !== 'background') return;
+      const state = useVaultStore.getState();
+      if (!state.vault?.isUnlocked) return;
+      // 사용자가 방금 연 파일 고르기·보내기 창이면 잠깐 봐준다 (2분 한도).
+      if (Date.now() < state.systemDialogUntil) return;
+      lock();
+      void clearClipboardNow();
     });
     return () => sub.remove();
   }, [lock]);
@@ -115,6 +121,7 @@ export default function App() {
     const timer = setInterval(() => {
       const state = useVaultStore.getState();
       if (!state.vault?.isUnlocked) return;
+      if (Date.now() < state.systemDialogUntil) return; // 파일 고르기 창이 떠 있는 동안
       if (Date.now() - activityRef.current >= limit) {
         state.lock();
         void clearClipboardNow();

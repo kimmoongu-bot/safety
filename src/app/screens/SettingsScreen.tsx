@@ -13,7 +13,8 @@ import { space } from '../theme/index.ts';
  * 07 설정 — 자동 잠금 시간, 생체인증, 클립보드 삭제 시간, 캡처 차단, 백업, 금고 초기화
  */
 export function SettingsScreen() {
-  const { vault, settings, saveSettings, go, back, showToast, run, reset } = useVaultStore();
+  const { vault, settings, saveSettings, go, back, showToast, run, reset, beginSystemDialog, endSystemDialog } =
+    useVaultStore();
   const [revealed, setRevealed] = useState('');
   const [changing, setChanging] = useState(false);
   const [currentPin, setCurrentPin] = useState('');
@@ -22,7 +23,15 @@ export function SettingsScreen() {
 
   const revealRecoveryCode = async () => {
     if (!vault) return;
-    if (!(await authenticate('복구 코드를 보려면 확인이 필요합니다'))) {
+    // 지문·얼굴 확인 창이 앱을 잠깐 덮어도 금고가 잠기지 않게 한다.
+    beginSystemDialog();
+    let passed = false;
+    try {
+      passed = await authenticate('복구 코드를 보려면 확인이 필요합니다');
+    } finally {
+      endSystemDialog();
+    }
+    if (!passed) {
       showToast('확인하지 못했습니다.', 'bad');
       return;
     }
@@ -56,7 +65,10 @@ export function SettingsScreen() {
               return;
             }
           }
+          // 키 저장소에 생체 키를 만들 때도 시스템 확인 창이 뜬다.
+          beginSystemDialog();
           const done = await run(() => vault.setBiometricUnlock(next));
+          endSystemDialog();
           if (done.ok) {
             await saveSettings({ biometricUnlock: next });
             showToast(next ? '지문·얼굴로 열 수 있습니다.' : '지문·얼굴 열기를 껐습니다.');
