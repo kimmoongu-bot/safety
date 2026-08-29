@@ -149,7 +149,7 @@ export function BackupScreen() {
 
       <View style={{ height: space.lg }} />
       <Notice>
-        숫자(PIN)·지문·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다.
+        PIN(핀)·지문·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다.
       </Notice>
 
       <Confirm
