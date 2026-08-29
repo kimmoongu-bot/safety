@@ -105,7 +105,7 @@ export function BackupScreen() {
       </Body>
       <Field
         label="백업 비밀번호"
-        hint={`${MIN_BACKUP_PASSWORD_LENGTH}자 이상. 앱을 열 때 쓰는 숫자와 다르게 정해 주세요.`}
+        hint={`${MIN_BACKUP_PASSWORD_LENGTH}자 이상. 앱을 열 때 쓰는 PIN(핀)과 다르게 정해 주세요.`}
         value={password}
         onChangeText={setPassword}
         secureTextEntry

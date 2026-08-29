@@ -59,7 +59,7 @@ export function SetupScreen() {
         <Body dim>
           {step === 'pin'
             ? '금고를 열 때 쓸 숫자를 정합니다. 4자리 이상이면 됩니다.'
-            : '방금 정한 숫자를 한 번 더 눌러 주세요.'}
+            : '방금 정한 PIN(핀)을 한 번 더 눌러 주세요.'}
         </Body>
         <PinDots length={value.length} />
         <PinPad value={value} onChange={setValue} />
@@ -73,7 +73,7 @@ export function SetupScreen() {
               return;
             }
             if (pin !== pinAgain) {
-              showToast('두 번 누른 숫자가 다릅니다. 처음부터 다시 정해 주세요.', 'bad');
+              showToast('두 번 누른 PIN(핀)이 다릅니다. 처음부터 다시 정해 주세요.', 'bad');
               setPin('');
               setPinAgain('');
               setStep('pin');
@@ -91,7 +91,7 @@ export function SetupScreen() {
       <Screen title={`${biometricLabel}으로도 열까요?`}>
         <Body dim>
           {biometricAvailable
-            ? `${biometricLabel}을 쓰면 매번 숫자를 누르지 않아도 됩니다. 나중에 설정에서 바꿀 수 있습니다.`
+            ? `${biometricLabel}을 쓰면 매번 PIN(핀)을 누르지 않아도 됩니다. 나중에 설정에서 바꿀 수 있습니다.`
             : `이 기기에는 ${biometricLabel} 확인이 준비되어 있지 않습니다. 숫자로만 열 수 있습니다.`}
         </Body>
         <View style={{ height: space.md }} />
