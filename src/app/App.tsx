@@ -143,7 +143,10 @@ export default function App() {
       });
       if (due) state.lock();
       void clearClipboardIfDue();
-    }, 5_000);
+      // 1초마다 본다. 5초마다 보면 "1분"이 실제로는 60~65초가 되고,
+      // "즉시"는 최대 5초 뒤가 된다. 화면에 적힌 대로 동작해야 한다.
+      // 앱이 뒤로 가면 잠기므로 이 타이머가 배터리를 계속 먹지는 않는다.
+    }, 1_000);
     return () => clearInterval(timer);
   }, [settings.autoLock]);
 
