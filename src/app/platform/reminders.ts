@@ -23,7 +23,7 @@ export async function scheduleBackupReminder(lastBackupAt: number): Promise<void
         title: '잠김 — 백업할 때가 되었습니다',
         body: '마지막 백업 후 90일이 지났습니다. 새 백업 파일을 만들어 두세요.',
       },
-      trigger: { seconds, repeats: false },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds, repeats: false },
     });
   } catch {
     // 알림을 못 걸어도 앱은 그대로 쓴다.
