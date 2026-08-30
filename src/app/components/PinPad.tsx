@@ -57,11 +57,13 @@ export function PinPad({
 }
 
 const styles = StyleSheet.create({
-  dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.md },
+  dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.sm },
   dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   dotOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   pad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.sm },
-  key: { width: '30%', minWidth: TOUCH * 1.6, minHeight: TOUCH + 20, alignItems: 'center', justifyContent: 'center' },
+  // 높이는 손가락이 닿는 최소 크기(48dp)보다 넉넉하되, 숫자판 네 줄에 버튼 세 개까지
+  // 한 화면에 들어가야 한다. 스크롤이 생기면 실패 안내나 아래 버튼이 밀려난다.
+  key: { width: '30%', minWidth: TOUCH * 1.6, minHeight: TOUCH + 10, alignItems: 'center', justifyContent: 'center' },
   keyBox: { borderRadius: radius.md, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.bg },
   pressed: { opacity: 0.7, backgroundColor: colors.surface },
   off: { opacity: 0.5 },
