@@ -4,7 +4,8 @@ import { BigButton, Body, Field, Notice, Screen, Title } from '../components/Bas
 import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { checkBiometricSupport } from '../platform/biometrics.ts';
-import { formatRecoveryCode, normalizeRecoveryCode } from '../../core/recoveryCode.ts';
+import { normalizeRecoveryCode } from '../../core/recoveryCode.ts';
+import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
 import { eul, ro } from '../josa.ts';
 import { space } from '../theme/index.ts';
 
@@ -127,7 +128,7 @@ export function SetupScreen() {
           화면을 캡처하지 마세요.
         </Notice>
         <View style={{ height: space.md }} />
-        <Title>{formatRecoveryCode(recoveryCode)}</Title>
+        <RecoveryCodeView code={recoveryCode} />
         <Body dim>다음 화면에서 이 코드를 직접 입력해 확인합니다.</Body>
         <View style={{ height: space.md }} />
         <BigButton label="적었습니다. 다음" onPress={() => setStep('code-check')} />
@@ -144,7 +145,7 @@ export function SetupScreen() {
         onChangeText={setTypedCode}
         autoCapitalize="characters"
         autoCorrect={false}
-        placeholder="예: ABCDEF-GHJKMN-PQRSTV-WXYZ01"
+        placeholder="예: WZC7-1W7M-KHRP-DNEN"
       />
       <Notice tone="plain">
         {useBiometric ? '지문·얼굴로도 열 수 있게 해 두었습니다. ' : ''}

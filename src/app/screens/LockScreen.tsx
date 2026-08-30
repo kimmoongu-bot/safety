@@ -77,14 +77,14 @@ export function LockScreen() {
   if (mode === 'recovery') {
     return (
       <Screen title="복구 코드로 열기" onBack={() => setMode('pin')}>
-        <Body dim>최초 설정 때 적어 둔 24자리 코드를 입력해 주세요.</Body>
+        <Body dim>최초 설정 때 적어 둔 복구 코드를 입력해 주세요.</Body>
         <Field
           label="복구 코드"
           value={code}
           onChangeText={setCode}
           autoCapitalize="characters"
           autoCorrect={false}
-          placeholder="예: ABCDEF-GHJKMN-PQRSTV-WXYZ01"
+          placeholder="예: WZC7-1W7M-KHRP-DNEN"
           editable={!waiting}
         />
         {waiting ? <Notice>{waitText(waitMs)}</Notice> : null}

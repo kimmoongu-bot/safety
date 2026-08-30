@@ -151,7 +151,7 @@ export function Toggle({
         {description ? <Text style={styles.fieldHint}>{description}</Text> : null}
       </View>
       <View style={[styles.knobTrack, value && styles.knobTrackOn]}>
-        <Text style={[styles.knobLabel, value && styles.knobLabelOn]}>{value ? '켬' : '끔'}</Text>
+        <Text style={[styles.knobLabel, value && styles.knobLabelOn]}>{value ? '켜짐' : '꺼짐'}</Text>
       </View>
     </Pressable>
   );
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   toggleText: { flex: 1, gap: 2 },
   knobTrack: {
-    minWidth: 64,
+    minWidth: 76,
     minHeight: TOUCH - 8,
     borderRadius: radius.lg,
     borderWidth: 2,

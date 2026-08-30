@@ -5,7 +5,7 @@ import { Confirm } from '../components/Confirm.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { authenticate, checkBiometricSupport } from '../platform/biometrics.ts';
 import { disableScreenGuard, enableScreenGuard } from '../platform/screenGuard.ts';
-import { formatRecoveryCode } from '../../core/recoveryCode.ts';
+import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
 import { CLIPBOARD_CHOICES } from '../../core/settings.ts';
 import { space } from '../theme/index.ts';
 
@@ -113,7 +113,7 @@ export function SettingsScreen() {
       <Title>복구 코드</Title>
       {revealed ? (
         <>
-          <Notice>{formatRecoveryCode(revealed)}</Notice>
+          <RecoveryCodeView code={revealed} />
           <BigButton label="다시 숨기기" tone="plain" onPress={() => setRevealed('')} />
         </>
       ) : (

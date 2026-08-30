@@ -11,7 +11,7 @@ test('금고 만들기 → PIN 으로 열기', async () => {
   const h = makeHarness();
   assert.equal(await h.vault.status(), 'empty');
   const { recoveryCode } = await h.vault.create({ pin: PIN });
-  assert.equal(recoveryCode.length, 24);
+  assert.equal(recoveryCode.length, 16);
   assert.ok(h.vault.isUnlocked); // 만든 직후에는 열린 상태로 이어진다.
 
   h.vault.lock();

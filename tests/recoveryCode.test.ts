@@ -11,12 +11,45 @@ import {
 import { isVaultError } from '../src/core/errors.ts';
 import { provider } from './helpers.ts';
 
-test('복구 코드는 6자 4묶음이고 검사 문자가 맞는다 (명세 6.1)', () => {
+test('복구 코드는 4자 4묶음이고 검사 문자가 맞는다', () => {
   for (let i = 0; i < 200; i++) {
     const code = generateRecoveryCode(provider);
+    assert.equal(code.length, 16);
     assert.equal(code.length, RECOVERY_CODE_LENGTH);
     assert.equal(formatRecoveryCode(code).split('-').length, 4);
     assert.ok(isValidRecoveryCode(code));
+  }
+});
+
+/**
+ * 옛 24자 코드를 하나 만들어 낸다. 실제 사용자의 코드를 저장소에 적어 둘 수는
+ * 없으므로, 검사 문자 2자를 전부 대입해 맞는 것을 찾는다.
+ */
+function makeLegacyCode(): string {
+  const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  const body = 'K4ANB8JNKMGAM49HZ7NBW2'; // 22자
+  for (const a of ALPHABET) {
+    for (const b of ALPHABET) {
+      const candidate = body + a + b;
+      if (isValidRecoveryCode(candidate)) return candidate;
+    }
+  }
+  throw new Error('옛 형식 코드를 만들지 못했다');
+}
+
+test('예전에 만든 24자 코드도 계속 열린다', () => {
+  // 길이를 줄이면서 옛 코드가 막히면 그 금고는 복구 수단을 잃는다.
+  const old = makeLegacyCode();
+  assert.equal(old.length, 24);
+  assert.ok(isValidRecoveryCode(old));
+  assert.ok(isValidRecoveryCode(formatRecoveryCode(old).toLowerCase()));
+  assert.equal(formatRecoveryCode(old).split('-').length, 4);
+  assert.doesNotThrow(() => recoveryCodeToSecret(old));
+});
+
+test('16자도 24자도 아닌 길이는 거절한다', () => {
+  for (const bad of ['ABCD', 'ABCD-EFGH-JKMN-PQRS-TVWX']) {
+    assert.ok(!isValidRecoveryCode(bad));
   }
 });
 
