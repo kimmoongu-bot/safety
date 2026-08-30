@@ -10,12 +10,12 @@ import { createDeviceCryptoProvider } from './platform/deviceCryptoProvider.ts';
 import { ExpoMetaStore } from '../data/adapters/expoMetaStore.ts';
 import { ExpoSecureKeyStore } from '../data/adapters/expoSecureKeyStore.ts';
 import { ExpoSqliteRecordStore } from '../data/adapters/expoSqliteRecordStore.ts';
-import { clearNow as clearClipboardNow } from './platform/clipboard.ts';
+import { clearIfDue as clearClipboardIfDue } from './platform/clipboard.ts';
 import { enableScreenGuard } from './platform/screenGuard.ts';
 import { PrivacyShield } from './components/PrivacyShield.tsx';
 import { ToastHost } from './components/Toast.tsx';
 import { useVaultStore } from './state/vaultStore.ts';
-import { shouldLockForIdle, shouldLockOnBackground } from './lockPolicy.ts';
+import { FALLBACK_AUTO_LOCK_MS, shouldLockForIdle, shouldLockOnBackground } from './lockPolicy.ts';
 import { BackupScreen } from './screens/BackupScreen.tsx';
 import { DetailScreen } from './screens/DetailScreen.tsx';
 import { EditScreen } from './screens/EditScreen.tsx';
@@ -105,6 +105,11 @@ export default function App() {
    */
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') {
+        // 다른 앱에 다녀오는 동안 타이머가 멈춘다. 돌아왔을 때 시간이 지났으면 지운다.
+        void clearClipboardIfDue();
+        return;
+      }
       if (next !== 'background') return;
       const state = useVaultStore.getState();
       const route = state.stack[state.stack.length - 1];
@@ -116,14 +121,15 @@ export default function App() {
       });
       if (!shouldLock) return;
       lock();
-      void clearClipboardNow();
+      // 클립보드는 여기서 비우지 않는다. 다른 앱에 붙여넣으려고 복사한 것인데
+      // 앱을 벗어나는 순간 비우면 붙여넣기가 아예 안 된다 (명세 5.5 는 60초다).
     });
     return () => sub.remove();
   }, [lock]);
 
   /** 손을 놓고 있으면 설정한 시간 뒤에 잠근다 (기본 1분). */
   useEffect(() => {
-    const limit = AUTO_LOCK_MS[settings.autoLock];
+    const limit = AUTO_LOCK_MS[settings.autoLock] ?? FALLBACK_AUTO_LOCK_MS;
     const timer = setInterval(() => {
       const state = useVaultStore.getState();
       const route = state.stack[state.stack.length - 1];
@@ -135,10 +141,8 @@ export default function App() {
         lastActivityAt: activityRef.current,
         autoLockMs: limit,
       });
-      if (due) {
-        state.lock();
-        void clearClipboardNow();
-      }
+      if (due) state.lock();
+      void clearClipboardIfDue();
     }, 5_000);
     return () => clearInterval(timer);
   }, [settings.autoLock]);

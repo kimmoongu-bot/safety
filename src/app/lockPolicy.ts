@@ -35,11 +35,33 @@ export function shouldLockOnBackground(ctx: LockContext): boolean {
   return !holdsLock(ctx);
 }
 
-/** 손을 놓고 있어서 잠글 때가 되었는가. */
+/** 자동 잠금 시간을 못 읽었을 때 쓸 값. 명세 5.5 의 기본값과 같다. */
+export const FALLBACK_AUTO_LOCK_MS = 60_000;
+
+/**
+ * 손을 놓고 있어서 잠글 때가 되었는가.
+ *
+ * autoLockMs 가 숫자가 아니면(설정을 못 읽었거나 예전 형식이면) 비교가 언제나
+ * 거짓이 되어 **영영 잠기지 않는다.** 잠금 장치가 조용히 꺼지는 셈이라, 그런
+ * 값이 들어오면 기본값으로 되돌린다.
+ */
 export function shouldLockForIdle(
   ctx: LockContext & { lastActivityAt: number; autoLockMs: number },
 ): boolean {
   if (!ctx.unlocked) return false;
   if (holdsLock(ctx)) return false;
-  return ctx.now - ctx.lastActivityAt >= ctx.autoLockMs;
+  const limit = Number.isFinite(ctx.autoLockMs) && ctx.autoLockMs >= 0
+    ? ctx.autoLockMs
+    : FALLBACK_AUTO_LOCK_MS;
+  return ctx.now - ctx.lastActivityAt >= limit;
+}
+
+/**
+ * 복사한 내용을 지울 때가 되었는가 (명세 5.5).
+ *
+ * 앱을 벗어났다고 지우지 않는다. 비밀번호를 복사하는 이유가 다른 앱에 붙여넣기
+ * 위해서다. 정해진 시간이 지났을 때에만 지운다.
+ */
+export function shouldClearClipboard(input: { dueAt: number; now: number }): boolean {
+  return input.now >= input.dueAt;
 }

@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { holdsLock, shouldLockForIdle, shouldLockOnBackground } from '../src/app/lockPolicy.ts';
+import {
+  FALLBACK_AUTO_LOCK_MS,
+  holdsLock,
+  shouldClearClipboard,
+  shouldLockForIdle,
+  shouldLockOnBackground,
+} from '../src/app/lockPolicy.ts';
 
 const NOW = 1_700_000_000_000;
 const base = { unlocked: true, routeName: 'list', systemDialogUntil: 0, now: NOW };
@@ -50,4 +56,27 @@ test('이미 잠겨 있으면 더 할 일이 없다', () => {
   const locked = { ...base, unlocked: false };
   assert.ok(!shouldLockOnBackground(locked));
   assert.ok(!shouldLockForIdle({ ...locked, lastActivityAt: NOW - 600_000, autoLockMs: 60_000 }));
+});
+
+test('복사한 내용은 앱을 벗어났다고 지우지 않는다 — 정해진 시간이 되어야 지운다', () => {
+  // 붙여넣으려고 복사한 것이다. 카카오톡으로 넘어가는 순간 지우면 붙여넣기가 안 된다.
+  const dueAt = NOW + 60_000;
+  assert.ok(!shouldClearClipboard({ dueAt, now: NOW }));
+  assert.ok(!shouldClearClipboard({ dueAt, now: NOW + 59_999 }));
+  assert.ok(shouldClearClipboard({ dueAt, now: NOW + 60_000 }));
+  assert.ok(shouldClearClipboard({ dueAt, now: NOW + 120_000 })); // 늦게 돌아와도 지운다
+});
+
+test('자동 잠금 시간을 못 읽어도 잠금이 꺼지지 않는다', () => {
+  // 숫자가 아니면 비교가 언제나 거짓이 되어 영영 안 잠긴다. 그러면 안 된다.
+  for (const broken of [undefined, null, NaN, 'abc']) {
+    assert.ok(
+      shouldLockForIdle({
+        ...base,
+        lastActivityAt: NOW - FALLBACK_AUTO_LOCK_MS,
+        autoLockMs: broken as unknown as number,
+      }),
+      `${String(broken)} 일 때 기본값(1분)으로 잠겨야 한다`,
+    );
+  }
 });
