@@ -5,6 +5,7 @@ import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { checkBiometricSupport } from '../platform/biometrics.ts';
 import { formatRecoveryCode, normalizeRecoveryCode } from '../../core/recoveryCode.ts';
+import { eul, ro } from '../josa.ts';
 import { space } from '../theme/index.ts';
 
 /**
@@ -88,16 +89,16 @@ export function SetupScreen() {
 
   if (step === 'biometric') {
     return (
-      <Screen title={`${biometricLabel}으로도 열까요?`}>
+      <Screen title={`${ro(biometricLabel)}도 열까요?`}>
         <Body dim>
           {biometricAvailable
-            ? `${biometricLabel}을 쓰면 매번 PIN(핀)을 누르지 않아도 됩니다. 나중에 설정에서 바꿀 수 있습니다.`
+            ? `${eul(biometricLabel)} 쓰면 매번 PIN(핀)을 누르지 않아도 됩니다. 나중에 설정에서 바꿀 수 있습니다.`
             : `이 기기에는 ${biometricLabel} 확인이 준비되어 있지 않습니다. 숫자로만 열 수 있습니다.`}
         </Body>
         <View style={{ height: space.md }} />
         {biometricAvailable ? (
           <BigButton
-            label={`${biometricLabel}으로도 열기`}
+            label={`${ro(biometricLabel)}도 열기`}
             busy={busy}
             onPress={() => {
               setUseBiometric(true);

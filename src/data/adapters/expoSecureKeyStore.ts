@@ -23,12 +23,19 @@ const DEVICE_OPTIONS: SecureStore.SecureStoreOptions = {
   requireAuthentication: false,
 };
 
-const BIOMETRIC_OPTIONS: SecureStore.SecureStoreOptions = {
+// 생체인증을 통과해야만 값을 내준다. 생체정보가 재등록되면 이 항목은 무효가 된다.
+const BIOMETRIC_BASE: SecureStore.SecureStoreOptions = {
   keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-  // 생체인증을 통과해야만 값을 내준다. 생체정보가 재등록되면 이 항목은 무효가 된다.
   requireAuthentication: true,
-  authenticationPrompt: '금고를 열려면 지문이나 얼굴로 확인해 주세요',
 };
+
+/** 확인 창에 뜨는 문구. 여는 때와 만드는 때가 다르다. */
+function biometricOptions(prompt: string): SecureStore.SecureStoreOptions {
+  return { ...BIOMETRIC_BASE, authenticationPrompt: prompt };
+}
+
+const OPEN_PROMPT = biometricOptions('금고를 열려면 지문이나 얼굴로 확인해 주세요');
+const CREATE_PROMPT = biometricOptions('지문이나 얼굴로 열 수 있게 준비합니다. 한 번 확인해 주세요');
 
 export class ExpoSecureKeyStore implements SecureKeyStore {
   private readonly provider: CryptoProvider;
@@ -52,13 +59,13 @@ export class ExpoSecureKeyStore implements SecureKeyStore {
 
   async createBiometricKey(): Promise<Uint8Array> {
     const key = this.provider.randomBytes(AES_KEY_BYTES);
-    await SecureStore.setItemAsync(BIOMETRIC_KEY, toBase64(key), BIOMETRIC_OPTIONS);
+    await SecureStore.setItemAsync(BIOMETRIC_KEY, toBase64(key), CREATE_PROMPT);
     return key;
   }
 
   async getBiometricKey(): Promise<Uint8Array | null> {
     try {
-      const stored = await SecureStore.getItemAsync(BIOMETRIC_KEY, BIOMETRIC_OPTIONS);
+      const stored = await SecureStore.getItemAsync(BIOMETRIC_KEY, OPEN_PROMPT);
       return stored ? fromBase64(stored) : null;
     } catch {
       // 인증 취소 또는 생체정보 재등록으로 무효화된 경우. PIN 경로는 그대로 살아 있다.
@@ -67,7 +74,7 @@ export class ExpoSecureKeyStore implements SecureKeyStore {
   }
 
   async deleteBiometricKey(): Promise<void> {
-    await SecureStore.deleteItemAsync(BIOMETRIC_KEY, BIOMETRIC_OPTIONS);
+    await SecureStore.deleteItemAsync(BIOMETRIC_KEY, OPEN_PROMPT);
   }
 
   async clear(): Promise<void> {

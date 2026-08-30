@@ -15,6 +15,7 @@ import { enableScreenGuard } from './platform/screenGuard.ts';
 import { PrivacyShield } from './components/PrivacyShield.tsx';
 import { ToastHost } from './components/Toast.tsx';
 import { useVaultStore } from './state/vaultStore.ts';
+import { shouldLockForIdle, shouldLockOnBackground } from './lockPolicy.ts';
 import { BackupScreen } from './screens/BackupScreen.tsx';
 import { DetailScreen } from './screens/DetailScreen.tsx';
 import { EditScreen } from './screens/EditScreen.tsx';
@@ -106,9 +107,14 @@ export default function App() {
     const sub = AppState.addEventListener('change', (next) => {
       if (next !== 'background') return;
       const state = useVaultStore.getState();
-      if (!state.vault?.isUnlocked) return;
-      // 사용자가 방금 연 파일 고르기·보내기 창이면 잠깐 봐준다 (2분 한도).
-      if (Date.now() < state.systemDialogUntil) return;
+      const route = state.stack[state.stack.length - 1];
+      const shouldLock = shouldLockOnBackground({
+        unlocked: !!state.vault?.isUnlocked,
+        routeName: route?.name ?? '',
+        systemDialogUntil: state.systemDialogUntil,
+        now: Date.now(),
+      });
+      if (!shouldLock) return;
       lock();
       void clearClipboardNow();
     });
@@ -120,9 +126,16 @@ export default function App() {
     const limit = AUTO_LOCK_MS[settings.autoLock];
     const timer = setInterval(() => {
       const state = useVaultStore.getState();
-      if (!state.vault?.isUnlocked) return;
-      if (Date.now() < state.systemDialogUntil) return; // 파일 고르기 창이 떠 있는 동안
-      if (Date.now() - activityRef.current >= limit) {
+      const route = state.stack[state.stack.length - 1];
+      const due = shouldLockForIdle({
+        unlocked: !!state.vault?.isUnlocked,
+        routeName: route?.name ?? '',
+        systemDialogUntil: state.systemDialogUntil,
+        now: Date.now(),
+        lastActivityAt: activityRef.current,
+        autoLockMs: limit,
+      });
+      if (due) {
         state.lock();
         void clearClipboardNow();
       }

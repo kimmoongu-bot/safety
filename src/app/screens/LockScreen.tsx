@@ -4,6 +4,7 @@ import { BigButton, Body, Field, Notice, Screen } from '../components/Basics.tsx
 import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { authenticate, checkBiometricSupport } from '../platform/biometrics.ts';
+import { ro } from '../josa.ts';
 import { colors, font, space } from '../theme/index.ts';
 
 /**
@@ -57,7 +58,7 @@ export function LockScreen() {
 
   const tryBiometric = async () => {
     if (!vault) return;
-    if (!(await authenticate(`${biometricLabel}으로 금고를 엽니다`))) return;
+    if (!(await authenticate(`${ro(biometricLabel)} 금고를 엽니다`))) return;
     const done = await run(() => vault.unlockWithBiometrics());
     await refreshLockState();
     if (done.ok) await afterUnlock();
@@ -112,7 +113,7 @@ export function LockScreen() {
       <View style={{ height: space.sm }} />
       <BigButton label="금고 열기" onPress={tryPin} disabled={waiting || pin.length < 4} />
       {canUseBiometric ? (
-        <BigButton label={`${biometricLabel}으로 열기`} tone="plain" onPress={tryBiometric} disabled={waiting} />
+        <BigButton label={`${ro(biometricLabel)} 열기`} tone="plain" onPress={tryBiometric} disabled={waiting} />
       ) : null}
       <BigButton label="PIN(핀)을 잊었어요 (복구 코드)" tone="plain" onPress={() => setMode('recovery')} />
     </Screen>
