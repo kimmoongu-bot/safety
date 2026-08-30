@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { BigButton, Body, Field, Notice, Screen } from '../components/Basics.tsx';
 import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { authenticate, checkBiometricSupport } from '../platform/biometrics.ts';
 import { ro } from '../josa.ts';
-import { colors, font, space } from '../theme/index.ts';
+import { space } from '../theme/index.ts';
 
 /**
- * 02 잠금 화면 — 로고, 생체인증 버튼, PIN 패드, 실패 횟수·대기 표시 (명세 3장)
+ * 02 잠금 화면 — 생체인증 버튼, PIN 패드, 실패 횟수·대기 표시 (명세 3장)
+ *
+ * 한 화면에 담는다. 스크롤이 생기면 "몇 번 틀렸고 얼마나 기다려야 하는지"가
+ * 위로 밀려나 보이지 않는다. 제목 줄의 "잠김"이 로고 노릇을 한다.
  */
 function waitText(ms: number): string {
   const total = Math.ceil(ms / 1000);
@@ -102,11 +105,6 @@ export function LockScreen() {
 
   return (
     <Screen title="잠김">
-      <View style={styles.logoWrap}>
-        <Text style={styles.logo}>잠김</Text>
-        <Body dim>내 아이디와 비밀번호를 넣어 두는 곳</Body>
-      </View>
-
       {waiting ? (
         <Notice>
           {`PIN(핀)을 ${failures}번 잘못 눌렀습니다. ${waitText(waitMs)}.`}
@@ -126,8 +124,3 @@ export function LockScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  logoWrap: { alignItems: 'center', gap: space.xs, marginBottom: space.md },
-  logo: { fontSize: font.huge, fontWeight: '800', color: colors.primary, letterSpacing: 4 },
-});

@@ -33,10 +33,11 @@ export function ToastHost() {
 
 const styles = StyleSheet.create({
   toast: {
+    // 위쪽에 띄운다. 아래쪽은 버튼과 폰 내비게이션 바에 가려 잘린다.
     position: 'absolute',
     left: space.md,
     right: space.md,
-    bottom: space.xl,
+    top: space.sm,
     padding: space.md,
     borderRadius: radius.md,
     borderWidth: 2,
