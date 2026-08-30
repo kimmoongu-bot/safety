@@ -191,3 +191,30 @@ test('백 건 규모도 열어서 검색할 수 있다 (명세 4장 검색 처�
   const hits = all.filter((r) => r.service.includes('서비스-1') || r.username.includes('user1'));
   assert.ok(hits.length > 0);
 });
+
+test('항목 하나가 손상돼도 나머지는 열린다 (금고 전체가 막히면 안 된다)', async () => {
+  const h = await unlocked();
+  await h.vault.addRecord({ ...SAMPLE, service: '멀쩡한 것' });
+  const broken = await h.vault.addRecord({ ...SAMPLE, service: '망가질 것' });
+
+  // 저장된 암호문을 한 글자 망가뜨린다.
+  const row = await h.recordStore.get(broken.id);
+  assert.ok(row);
+  const ct = row.cipher.ciphertext;
+  await h.recordStore.put({
+    ...row,
+    cipher: { ...row.cipher, ciphertext: `${ct[0] === 'A' ? 'B' : 'A'}${ct.slice(1)}` },
+  });
+
+  const list = await h.vault.listOpenRecords();
+  assert.equal(list.length, 1);
+  assert.equal(list[0]?.service, '멀쩡한 것');
+  assert.equal(h.vault.unreadableRecordCount, 1);
+});
+
+test('다 멀쩡하면 못 연 항목 수는 0 이다', async () => {
+  const h = await unlocked();
+  await h.vault.addRecord({ ...SAMPLE });
+  await h.vault.listOpenRecords();
+  assert.equal(h.vault.unreadableRecordCount, 0);
+});

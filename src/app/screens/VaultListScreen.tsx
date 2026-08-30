@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BigButton, Body, Screen } from '../components/Basics.tsx';
+import { BigButton, Body, Notice, Screen } from '../components/Basics.tsx';
 import { RecordCard } from '../components/RecordCard.tsx';
 import { filterRecords, useVaultStore } from '../state/vaultStore.ts';
 import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
@@ -9,7 +9,7 @@ import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
  * 03 내 금고 — 상단 대형 검색창, 계정 리스트, 즐겨찾기, + 추가 (명세 3장)
  */
 export function VaultListScreen() {
-  const { records, go, updateRecord, showToast } = useVaultStore();
+  const { records, go, updateRecord, showToast, unreadableCount } = useVaultStore();
   const [query, setQuery] = useState('');
   const now = Date.now();
   const shown = useMemo(() => filterRecords(records, query), [records, query]);
@@ -36,6 +36,10 @@ export function VaultListScreen() {
           if (query.trim()) go({ name: 'search', query: query.trim() });
         }}
       />
+
+      {unreadableCount > 0 ? (
+        <Notice>{`${unreadableCount}개 항목을 열지 못했습니다. 백업 파일이 있으면 되살려 보세요.`}</Notice>
+      ) : null}
 
       {records.length === 0 ? (
         <View style={styles.empty}>

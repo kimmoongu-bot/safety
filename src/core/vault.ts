@@ -88,6 +88,7 @@ export class Vault {
   private readonly presetKdf: KdfParams | undefined;
   private dek: Uint8Array | null = null;
   private meta: VaultMeta | null = null;
+  private unreadable = 0;
 
   constructor(deps: VaultDeps) {
     this.provider = deps.provider;
@@ -329,17 +330,31 @@ export class Vault {
   }
 
   // ── 항목 다루기 ─────────────────────────────────────────────────────────
+  /** 마지막으로 목록을 읽을 때 열지 못한 항목 수. 0 이 아니면 화면에서 알린다. */
+  get unreadableRecordCount(): number {
+    return this.unreadable;
+  }
+
   /**
    * 전체를 열어 메모리에 올린다 (명세 4장 "검색 처리").
    * 수십~수백 건 규모를 전제로 한다.
+   *
+   * 항목 하나가 열리지 않는다고 예외를 던지지 않는다. 그러면 손상된 항목 하나가
+   * 금고 전체를 못 쓰게 만든다. 열리는 것은 다 돌려주고, 못 연 개수를 남긴다.
    */
   async listOpenRecords(): Promise<OpenRecord[]> {
     const dek = this.requireDek();
     const records = await this.recordStore.list();
     const out: OpenRecord[] = [];
+    let unreadable = 0;
     for (const record of records) {
-      out.push(toOpenRecord(record, await decryptRecord(this.provider, dek, record)));
+      try {
+        out.push(toOpenRecord(record, await decryptRecord(this.provider, dek, record)));
+      } catch {
+        unreadable += 1;
+      }
     }
+    this.unreadable = unreadable;
     return out.sort((a, b) => Number(b.favorite) - Number(a.favorite) || a.service.localeCompare(b.service, 'ko'));
   }
 

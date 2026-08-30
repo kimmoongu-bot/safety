@@ -35,6 +35,8 @@ type State = {
   /** 잠금 화면에 보여 줄 남은 대기 시간(ms). */
   waitMs: number;
   failures: number;
+  /** 열지 못한 항목 수. 0 이 아니면 화면에서 알린다. */
+  unreadableCount: number;
   /** 마지막으로 화면을 만진 시각. 자동 잠금 판단에 쓴다. */
   lastActivityAt: number;
   /**
@@ -65,6 +67,21 @@ type Actions = {
   removeRecord(id: string): Promise<void>;
 };
 
+/**
+ * 오류를 사용자 문장으로 바꾼다.
+ *
+ * 우리가 예상한 오류(VaultError)는 쉬운 한국어 문장이 이미 붙어 있다.
+ * 예상 못 한 것은 정체를 조금이라도 보여 준다. 아무 말 없이 멈추면 무엇이
+ * 잘못됐는지 알 길이 없어서, 실기기에서 원인을 찾는 데 하루가 걸린다.
+ * 금고 내용·PIN·복구 코드는 이 경로를 지나가지 않는다.
+ */
+function describeFailure(e: unknown): string {
+  if (isVaultError(e)) return (e as VaultError).userMessage;
+  const detail = e instanceof Error ? e.message : String(e ?? '');
+  const short = detail.replace(/\s+/g, ' ').trim().slice(0, 90);
+  return short ? `잘 되지 않았습니다. (${short})` : '잘 되지 않았습니다. 다시 해 주세요.';
+}
+
 export const useVaultStore = create<State & Actions>((set, get) => ({
   vault: null,
   stack: [{ name: 'loading' }],
@@ -74,6 +91,7 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
   busy: false,
   waitMs: 0,
   failures: 0,
+  unreadableCount: 0,
   lastActivityAt: Date.now(),
   systemDialogUntil: 0,
 
@@ -96,15 +114,30 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
   async refresh() {
     const vault = get().vault;
     if (!vault || !vault.isUnlocked) return;
-    const [records, settings] = await Promise.all([vault.listOpenRecords(), vault.readSettings()]);
-    set({ records, settings });
+    // 둘을 갈라 놓는다. 목록 읽기가 실패해도 설정은 읽히고, 그 반대도 마찬가지다.
+    try {
+      set({ settings: await vault.readSettings() });
+    } catch {
+      // 설정은 못 읽어도 기본값으로 쓸 수 있다.
+    }
+    const records = await vault.listOpenRecords();
+    set({ records, unreadableCount: vault.unreadableRecordCount });
   },
 
+  /**
+   * 잠금 화면에 보여 줄 대기 상태를 읽는다.
+   * 여기서 던지면 잠금 화면의 처리 흐름이 통째로 끊겨서, 금고가 열렸는데도
+   * 화면이 잠금에 남는다. 그래서 어떤 경우에도 밖으로 예외를 내보내지 않는다.
+   */
   async refreshLockState() {
     const vault = get().vault;
     if (!vault) return;
-    const view = await vault.lockoutView();
-    set({ waitMs: view.waitMs, failures: view.failures });
+    try {
+      const view = await vault.lockoutView();
+      set({ waitMs: view.waitMs, failures: view.failures });
+    } catch {
+      set({ waitMs: 0 });
+    }
   },
 
   /**
@@ -113,7 +146,7 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
    */
   lock() {
     get().vault?.lock();
-    set({ records: [], stack: [{ name: 'lock' }], toast: null });
+    set({ records: [], unreadableCount: 0, stack: [{ name: 'lock' }], toast: null });
   },
 
   touch() {
@@ -148,10 +181,7 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
     try {
       return { ok: true, value: await work() };
     } catch (e) {
-      const message = isVaultError(e)
-        ? (e as VaultError).userMessage
-        : '잘 되지 않았습니다. 다시 해 주세요.';
-      get().showToast(message, 'bad');
+      get().showToast(describeFailure(e), 'bad');
       return { ok: false };
     } finally {
       set({ busy: false, lastActivityAt: Date.now() });

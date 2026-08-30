@@ -13,7 +13,8 @@ export function ToastHost() {
 
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(hide, 3200);
+    // 오류는 읽을 시간이 필요하다. 잘 됐다는 알림보다 오래 둔다.
+    const timer = setTimeout(hide, toast.tone === 'bad' ? 9000 : 3200);
     return () => clearTimeout(timer);
   }, [toast, hide]);
 

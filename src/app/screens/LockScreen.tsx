@@ -43,9 +43,16 @@ export function LockScreen() {
     return () => clearInterval(timer);
   }, [waitMs, refreshLockState]);
 
+  /**
+   * 금고가 열린 뒤 처리.
+   *
+   * 화면부터 옮긴다. 금고가 열린 것은 이미 사실이고, 목록을 읽다가 실패했다고
+   * 사용자를 잠금 화면에 가둬 두면 안 된다. 예전에는 이 뒤의 실패를 아무도 받지
+   * 않아서, 금고는 열렸는데 화면이 그대로 멈추고 아무 문구도 뜨지 않았다.
+   */
   const afterUnlock = async () => {
-    await refresh();
     reset({ name: 'list' });
+    await run(() => refresh());
   };
 
   const tryPin = async () => {
