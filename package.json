@@ -1,0 +1,45 @@
+{
+  "name": "jamgim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "잠김 — 개인용 아이디·비밀번호 보관 금고 (local-first, no server)",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild",
+    "test": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/*.test.ts",
+    "typecheck:core": "tsc -p tsconfig.core.json",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "expo": "~57.0.18",
+    "expo-clipboard": "~57.0.1",
+    "expo-crypto": "~57.0.2",
+    "expo-dev-client": "~57.0.16",
+    "expo-document-picker": "~57.0.1",
+    "expo-file-system": "~57.0.6",
+    "expo-local-authentication": "~57.0.2",
+    "expo-notifications": "~57.0.15",
+    "expo-screen-capture": "~57.0.2",
+    "expo-secure-store": "~57.0.2",
+    "expo-sharing": "~57.0.16",
+    "expo-sqlite": "~57.0.2",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-nitro-modules": "0.33.2",
+    "react-native-quick-base64": "^3.0.0",
+    "react-native-quick-crypto": "^1.1.7",
+    "react-native-safe-area-context": "~5.7.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@types/react": "~19.1.1",
+    "babel-plugin-transform-remove-console": "^6.9.4",
+    "babel-preset-expo": "~57.0.9",
+    "typescript": "~5.7.3"
+  }
+}
