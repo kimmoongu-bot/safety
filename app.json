@@ -2,6 +2,7 @@
   "expo": {
     "name": "잠김",
     "slug": "jamgim",
+    "owner": "az52aa",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -33,7 +34,10 @@
       "./plugins/withJamgimSecurity"
     ],
     "extra": {
-      "note": "서버 없음 · 계정 없음 · 인터넷 권한 없음 (명세 1장)"
+      "note": "서버 없음 · 계정 없음 · 인터넷 권한 없음 (명세 1장)",
+      "eas": {
+        "projectId": "de38d9d3-c3eb-4da9-b4af-3e4c81662451"
+      }
     }
   }
 }
