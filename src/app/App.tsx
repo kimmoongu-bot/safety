@@ -24,7 +24,7 @@ import { SearchResultsScreen } from './screens/SearchResultsScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import { SetupScreen } from './screens/SetupScreen.tsx';
 import { VaultListScreen } from './screens/VaultListScreen.tsx';
-import { colors } from './theme/index.ts';
+import { colors, frame } from './theme/index.ts';
 
 /** 화면 하나만 고른다. 화면 수가 8개뿐이라 별도 네비게이션 라이브러리를 두지 않는다. */
 function Router() {
@@ -188,15 +188,18 @@ export default function App() {
         안 그러면 위치를 정하는 곳이 두 군데(SafeAreaView 의 여백 + 상자의 top)가 되어
         기기마다 시계·배터리를 가리거나 너무 내려간다. 지금은 상자가 스스로 한 번만 계산한다.
       */}
-      <View style={styles.root}>
-        <SafeAreaView style={styles.root} onTouchStart={() => useVaultStore.getState().touch()}>
-          <StatusBar style="dark" />
-          {ready ? <Router /> : (
-            <View style={styles.center}>
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-          )}
-          <PrivacyShield />
+      <View style={styles.outer}>
+        <SafeAreaView style={styles.safe} onTouchStart={() => useVaultStore.getState().touch()}>
+          {/* 바깥 바탕이 어두우므로 시계·배터리는 밝게 그려야 보인다. */}
+          <StatusBar style="light" />
+          <View style={styles.card}>
+            {ready ? <Router /> : (
+              <View style={styles.center}>
+                <ActivityIndicator size="large" color={colors.primary} />
+              </View>
+            )}
+            <PrivacyShield />
+          </View>
         </SafeAreaView>
         <ToastHost />
       </View>
@@ -205,6 +208,19 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
+  /** 상자 바깥. 화면 끝까지 채운다. */
+  outer: { flex: 1, backgroundColor: colors.frame },
+  safe: { flex: 1 },
+  /**
+   * 앱 상자. 둘레에 여백을 두고 모서리를 둥글린다.
+   * overflow: 'hidden' 이 있어야 안쪽 화면이 둥근 모서리 밖으로 삐져나오지 않는다.
+   */
+  card: {
+    flex: 1,
+    margin: frame.inset,
+    borderRadius: frame.radius,
+    backgroundColor: colors.bg,
+    overflow: 'hidden',
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

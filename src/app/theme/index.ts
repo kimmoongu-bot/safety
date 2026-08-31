@@ -19,6 +19,8 @@ export const colors = {
   warnBg: '#FFF6E0',
   warnText: '#6B4A00',
   favorite: '#B26A00',
+  /** 앱 상자 바깥 바탕. 앱이 액자 안에 담긴 것처럼 보이게 한다. */
+  frame: '#1E232B',
 } as const;
 
 export const font = {
@@ -42,3 +44,12 @@ export const space = {
 export const TOUCH = 48;
 
 export const radius = { sm: 8, md: 12, lg: 18 } as const;
+
+/**
+ * 앱 상자 (액자)
+ *
+ * 화면 전체를 채우지 않고, 둘레에 여백을 두고 모서리 둥근 상자 안에 담는다.
+ * 여백을 늘리면 그만큼 쓸 수 있는 화면이 줄어든다. 명세 3장이 요구하는
+ * 본문 17sp · 터치 48dp · 글꼴 200% 확대를 지켜야 하므로 얇게 잡는다.
+ */
+export const frame = { inset: 10, radius: 22 } as const;
