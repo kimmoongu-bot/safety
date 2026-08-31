@@ -90,9 +90,40 @@ export default function App() {
     };
   }, [attach, reset, refreshLockState, loadSettings]);
 
-  // 화면 찍기 막기 (명세 5.5). 기본값은 켬이다.
+  /**
+   * 화면 찍기·최근 앱 미리보기 막기 (명세 5.5). 기본값은 켬이다.
+   *
+   * 앱이 막 뜨는 순간에는 안드로이드 화면(액티비티)이 아직 붙기 전일 수 있다.
+   * 그때 걸면 실패하므로 잠깐 쉬었다가 세 번까지 다시 걸어 본다. 앱이 다시 앞으로
+   * 나올 때도 한 번 더 건다 — 화면이 새로 만들어지면 표시가 풀리기 때문이다.
+   *
+   * 세 번 다 실패하면 조용히 넘어가지 않고 화면에 알린다. 예전에는 실패를 삼켜서,
+   * 최근 앱 목록에 비밀번호가 그대로 보이는데도 아무도 몰랐다.
+   */
   useEffect(() => {
-    if (settings.blockScreenCapture) void enableScreenGuard();
+    if (!settings.blockScreenCapture) return;
+    let cancelled = false;
+    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+    const apply = async () => {
+      let last = '알 수 없는 이유';
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt += 1) {
+        if (attempt > 0) await wait(400);
+        const result = await enableScreenGuard();
+        if (result.ok) return;
+        last = result.reason;
+      }
+      if (!cancelled) {
+        useVaultStore.getState().showToast(`화면 가리기를 걸지 못했습니다. (${last})`, 'bad');
+      }
+    };
+    void apply();
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') void apply();
+    });
+    return () => {
+      cancelled = true;
+      sub.remove();
+    };
   }, [settings.blockScreenCapture]);
 
   /**

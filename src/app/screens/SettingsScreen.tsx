@@ -89,9 +89,14 @@ export function SettingsScreen() {
         value={settings.blockScreenCapture}
         onChange={async (next) => {
           await saveSettings({ blockScreenCapture: next });
-          if (next) await enableScreenGuard();
-          else await disableScreenGuard();
-          showToast(next ? '화면 찍기를 막습니다.' : '화면 찍기 막기를 껐습니다.');
+          if (!next) {
+            await disableScreenGuard();
+            showToast('화면 찍기 막기를 껐습니다.');
+            return;
+          }
+          const result = await enableScreenGuard();
+          if (result.ok) showToast('화면 찍기를 막습니다.');
+          else showToast(`화면 가리기를 걸지 못했습니다. (${result.reason})`, 'bad');
         }}
       />
 
