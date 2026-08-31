@@ -183,16 +183,23 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.root} onTouchStart={() => useVaultStore.getState().touch()}>
-        <StatusBar style="dark" />
-        {ready ? <Router /> : (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        )}
+      {/*
+        알림 상자는 안전 영역 바깥, 화면 전체를 기준으로 띄운다.
+        안 그러면 위치를 정하는 곳이 두 군데(SafeAreaView 의 여백 + 상자의 top)가 되어
+        기기마다 시계·배터리를 가리거나 너무 내려간다. 지금은 상자가 스스로 한 번만 계산한다.
+      */}
+      <View style={styles.root}>
+        <SafeAreaView style={styles.root} onTouchStart={() => useVaultStore.getState().touch()}>
+          <StatusBar style="dark" />
+          {ready ? <Router /> : (
+            <View style={styles.center}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          )}
+          <PrivacyShield />
+        </SafeAreaView>
         <ToastHost />
-        <PrivacyShield />
-      </SafeAreaView>
+      </View>
     </SafeAreaProvider>
   );
 }

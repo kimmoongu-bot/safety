@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, font, radius, space } from '../theme/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 
@@ -10,6 +11,7 @@ import { useVaultStore } from '../state/vaultStore.ts';
 export function ToastHost() {
   const toast = useVaultStore((s) => s.toast);
   const hide = useVaultStore((s) => s.hideToast);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!toast) return;
@@ -23,7 +25,12 @@ export function ToastHost() {
     <View
       accessibilityLiveRegion="polite"
       accessibilityRole="alert"
-      style={[styles.toast, toast.tone === 'bad' ? styles.bad : styles.ok]}
+      style={[
+        styles.toast,
+        // 시계·배터리가 있는 상태 표시줄을 비켜 간다. 기기가 알려 주지 않으면 24 를 쓴다.
+        { top: (insets.top || 24) + space.sm },
+        toast.tone === 'bad' ? styles.bad : styles.ok,
+      ]}
       pointerEvents="none"
     >
       <Text style={styles.text}>{toast.text}</Text>
@@ -34,10 +41,10 @@ export function ToastHost() {
 const styles = StyleSheet.create({
   toast: {
     // 위쪽에 띄운다. 아래쪽은 버튼과 폰 내비게이션 바에 가려 잘린다.
+    // top 은 위에서 기기별 상태 표시줄 높이를 더해 넣는다.
     position: 'absolute',
     left: space.md,
     right: space.md,
-    top: space.sm,
     padding: space.md,
     borderRadius: radius.md,
     borderWidth: 2,
