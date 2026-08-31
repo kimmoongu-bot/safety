@@ -4,3 +4,7 @@ dist/
 android/
 ios/
 *.log
+
+# 파이썬 캐시 (tools/logo)
+__pycache__/
+*.pyc
