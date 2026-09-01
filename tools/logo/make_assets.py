@@ -109,6 +109,11 @@ if __name__ == "__main__":
                      ("lock-mark.png", app_mark())]:
         im.save(os.path.join(ASSETS, name))
         print("assets/" + name, im.size, im.mode)
+    # 스토어 목록에 쓰는 아이콘. 구글 플레이는 512x512 를 따로 요구한다.
+    store_icon = stacked(1024, INK, WHITE).resize((512, 512), Image.LANCZOS)
+    store_icon.save(os.path.join(STORE, "store-icon-512.png"))
+    print("docs/store/store-icon-512.png", store_icon.size)
+
     g = store_graphic()
     g.save(os.path.join(STORE, "feature-graphic.png"))
     print("docs/store/feature-graphic.png", g.size)
