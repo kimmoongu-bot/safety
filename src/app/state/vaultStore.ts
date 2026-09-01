@@ -77,8 +77,14 @@ type Actions = {
  */
 function describeFailure(e: unknown): string {
   if (isVaultError(e)) return (e as VaultError).userMessage;
+  // 우리가 예상하지 못한 오류다. 원인을 끝까지 보여 준다.
+  //
+  // 90자에서 자르고 있었는데, 실기기에서 데이터베이스 오류가 났을 때 하필
+  // 'java.lang.N' 에서 잘려 무슨 예외인지 알 수 없었다. 기기에서만 나는 오류는
+  // 이 문구가 유일한 단서다. 화면에 영어가 길게 나오는 것은 보기 좋지 않지만,
+  // 원인을 모르는 것보다는 낫다. (명세 3장의 '쉬운 말' 은 예상한 오류에 적용된다.)
   const detail = e instanceof Error ? e.message : String(e ?? '');
-  const short = detail.replace(/\s+/g, ' ').trim().slice(0, 90);
+  const short = detail.replace(/\s+/g, ' ').trim().slice(0, 200);
   return short ? `잘 되지 않았습니다. (${short})` : '잘 되지 않았습니다. 다시 해 주세요.';
 }
 
