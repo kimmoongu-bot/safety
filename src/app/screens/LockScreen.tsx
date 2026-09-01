@@ -11,7 +11,7 @@ import { space } from '../theme/index.ts';
  * 02 잠금 화면 — 생체인증 버튼, PIN 패드, 실패 횟수·대기 표시 (명세 3장)
  *
  * 한 화면에 담는다. 스크롤이 생기면 "몇 번 틀렸고 얼마나 기다려야 하는지"가
- * 위로 밀려나 보이지 않는다. 제목 줄의 "잠김"이 로고 노릇을 한다.
+ * 위로 밀려나 보이지 않는다. 제목 줄의 자물쇠 표시와 "잠김"이 로고 노릇을 한다.
  */
 function waitText(ms: number): string {
   const total = Math.ceil(ms / 1000);
@@ -104,7 +104,7 @@ export function LockScreen() {
   }
 
   return (
-    <Screen title="잠김">
+    <Screen title="잠김" mark>
       {waiting ? (
         <Notice>
           {`PIN(핀)을 ${failures}번 잘못 눌렀습니다. ${waitText(waitMs)}.`}

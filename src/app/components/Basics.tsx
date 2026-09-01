@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
+
+/** 아이콘과 같은 자물쇠. 앱 아이콘과 화면이 한 벌로 보이게 한다. */
+const LOCK_MARK = require('../../../assets/lock-mark.png');
 
 /**
  * 화면 기본 조각들.
@@ -90,11 +94,14 @@ export function Screen({
   onBack,
   children,
   footer,
+  mark,
 }: {
   title: string;
   onBack?: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** 제목 앞에 자물쇠 표시를 넣는다. 잠금 화면처럼 앱 얼굴이 되는 화면에서만 쓴다. */
+  mark?: boolean;
 }) {
   return (
     <View style={styles.screen}>
@@ -104,9 +111,15 @@ export function Screen({
             <Text style={styles.backText}>‹ 뒤로</Text>
           </Pressable>
         ) : null}
-        <Text style={styles.headerTitle} numberOfLines={2}>
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          {mark ? (
+            // 그림은 장식이다. 화면 낭독기에는 옆의 제목만 읽히면 된다.
+            <Image source={LOCK_MARK} style={styles.mark} accessibilityElementsHidden importantForAccessibility="no" />
+          ) : null}
+          <Text style={styles.headerTitle} numberOfLines={2}>
+            {title}
+          </Text>
+        </View>
       </View>
       <ScrollView
         style={styles.scroll}
@@ -202,7 +215,13 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     backgroundColor: colors.bg,
   },
-  headerTitle: { fontSize: font.title, fontWeight: '700', color: colors.text },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  /**
+   * 자물쇠 표시. 글꼴을 키워도 제목 줄이 무너지지 않게 크기를 고정한다.
+   * flexShrink 를 줘서 글자가 길어지면 그림이 먼저 줄어든다.
+   */
+  mark: { width: 34, height: 34, flexShrink: 0 },
+  headerTitle: { fontSize: font.title, fontWeight: '700', color: colors.text, flexShrink: 1 },
   back: { minHeight: TOUCH, justifyContent: 'center' },
   backText: { fontSize: font.body, color: colors.primary, fontWeight: '600' },
   scroll: { flex: 1 },

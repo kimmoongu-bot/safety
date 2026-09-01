@@ -73,6 +73,17 @@ def notification_icon(size=192):
     return fit(draw, size, 0.72)
 
 
+def app_mark(size=192):
+    """
+    앱 화면 안에서 쓰는 자물쇠 표시. 잠금 화면 제목 줄에 들어간다.
+    먹색 실루엣 + 투명 배경. 흰 카드 위에 얹힌다.
+    """
+    def draw(im):
+        S = im.size[0]
+        padlock(ImageDraw.Draw(im), S / 2, 0.14 * S, 0.62 * S, 0.70 * S, INK, (0, 0, 0, 0), keyhole=False)
+    return fit(draw, size, 0.94)
+
+
 def store_graphic(w=1024, h=500):
     """구글 플레이 대표 그래픽. 자물쇠와 이름을 가로로 놓는다."""
     W, H = w * 2, h * 2
@@ -94,7 +105,8 @@ if __name__ == "__main__":
     os.makedirs(STORE, exist_ok=True)
     for name, im in [("icon.png", stacked(1024, INK, WHITE)),
                      ("adaptive-icon.png", adaptive_foreground()),
-                     ("notification-icon.png", notification_icon())]:
+                     ("notification-icon.png", notification_icon()),
+                     ("lock-mark.png", app_mark())]:
         im.save(os.path.join(ASSETS, name))
         print("assets/" + name, im.size, im.mode)
     g = store_graphic()
