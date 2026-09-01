@@ -40,7 +40,7 @@ export function Confirm({
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: space.md },
-  card: { backgroundColor: colors.bg, borderRadius: radius.lg, padding: space.lg, gap: space.sm },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.lg, gap: space.sm },
   title: { fontSize: font.title, fontWeight: '700', color: colors.text },
   message: { fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5, marginBottom: space.sm },
 });

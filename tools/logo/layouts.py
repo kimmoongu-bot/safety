@@ -2,7 +2,7 @@
 from PIL import Image, ImageDraw
 from hangul import draw_wordmark, SS
 
-INK = (30, 35, 43)
+INK = (32, 33, 36)      # #202124 — 앱 액자·기본 버튼과 같은 색
 WHITE = (255, 255, 255)
 GOLD = (214, 168, 92)
 

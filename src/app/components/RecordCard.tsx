@@ -67,16 +67,18 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: space.md,
     gap: 2,
-    backgroundColor: colors.bg,
+    // 크림 바탕 위의 흰 카드. 바탕과 같은 색이면 카드 경계가 사라진다.
+    backgroundColor: colors.surface,
   },
-  pressed: { opacity: 0.75, backgroundColor: colors.surface },
+  pressed: { opacity: 0.75, backgroundColor: colors.bg },
   service: { fontSize: font.big, fontWeight: '700', color: colors.text },
   username: { fontSize: font.bodySmall, color: colors.textDim },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
   badge: {
-    fontSize: font.bodySmall - 2,
+    fontSize: font.caption,
     color: colors.text,
-    backgroundColor: colors.surface,
+    // 흰 카드 위에 얹히므로 크림색이어야 보인다.
+    backgroundColor: colors.bg,
     borderRadius: radius.sm,
     paddingHorizontal: space.sm,
     paddingVertical: 2,

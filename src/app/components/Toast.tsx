@@ -50,7 +50,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 2,
   },
-  ok: { backgroundColor: '#E8F5EF', borderColor: colors.ok },
-  bad: { backgroundColor: '#FDEDED', borderColor: colors.danger },
+  // 크림 바탕에 얹히는 색이다. 흰 바탕 시절 색을 그대로 두면 혼자 튄다.
+  ok: { backgroundColor: '#E7EFE6', borderColor: colors.ok },
+  bad: { backgroundColor: '#F6E4E2', borderColor: colors.danger },
   text: { fontSize: font.body, color: colors.text, fontWeight: '600', lineHeight: font.body * 1.4 },
 });

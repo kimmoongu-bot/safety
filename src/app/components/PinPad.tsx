@@ -74,9 +74,9 @@ const styles = StyleSheet.create({
    * 한 화면에 들어가는 크기다. 더 키우면 스크롤이 생겨 실패 안내가 밀려난다.
    */
   key: { width: KEY, height: KEY, alignItems: 'center', justifyContent: 'center' },
-  keyBox: { borderRadius: KEY / 2, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.bg },
+  keyBox: { borderRadius: KEY / 2, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
   pressed: { opacity: 0.7, backgroundColor: colors.surface },
   off: { opacity: 0.5 },
   keyText: { fontSize: font.huge, fontWeight: '700', color: colors.text },
-  keyTextSmall: { fontSize: font.body, fontWeight: '700', color: colors.primary },
+  keyTextSmall: { fontSize: font.body, fontWeight: '700', color: colors.accent },
 });

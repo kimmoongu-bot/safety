@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   box: {
     backgroundColor: colors.warnBg,
     borderWidth: 2,
-    borderColor: '#E4C97A',
+    borderColor: '#D8C08A',
     borderRadius: radius.md,
     padding: space.md,
     gap: space.sm,
