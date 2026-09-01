@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import { BigButton } from './Basics.tsx';
-import { colors, font, radius, space } from '../theme/index.ts';
+import { colors, font, radius, space, WEIGHT } from '../theme/index.ts';
 
 /**
  * 되돌릴 수 없는 일에 쓰는 확인창.
@@ -41,6 +41,6 @@ export function Confirm({
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: space.md },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.lg, gap: space.sm },
-  title: { fontSize: font.title, fontWeight: '700', color: colors.text },
-  message: { fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5, marginBottom: space.sm },
+  title: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
+  message: { fontFamily: font.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5, marginBottom: space.sm },
 });

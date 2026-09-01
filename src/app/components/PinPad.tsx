@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, font, space } from '../theme/index.ts';
+import { colors, font, space, WEIGHT } from '../theme/index.ts';
 
 /**
  * 큰 숫자 패드 (명세 3장: 터치 타깃 48dp 이상, 한 화면의 핵심 행동 1~2개).
@@ -77,6 +77,6 @@ const styles = StyleSheet.create({
   keyBox: { borderRadius: KEY / 2, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
   pressed: { opacity: 0.7, backgroundColor: colors.surface },
   off: { opacity: 0.5 },
-  keyText: { fontSize: font.huge, fontWeight: '700', color: colors.text },
-  keyTextSmall: { fontSize: font.body, fontWeight: '700', color: colors.accent },
+  keyText: { fontFamily: font.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.text },
+  keyTextSmall: { fontFamily: font.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.accent },
 });

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, font, frame, radius, space } from '../theme/index.ts';
+import { colors, font, frame, radius, space, WEIGHT } from '../theme/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 
 /**
@@ -53,5 +53,5 @@ const styles = StyleSheet.create({
   // 크림 바탕에 얹히는 색이다. 흰 바탕 시절 색을 그대로 두면 혼자 튄다.
   ok: { backgroundColor: '#E7EFE6', borderColor: colors.ok },
   bad: { backgroundColor: '#F6E4E2', borderColor: colors.danger },
-  text: { fontSize: font.body, color: colors.text, fontWeight: '600', lineHeight: font.body * 1.4 },
+  text: { fontFamily: font.familyBold, fontSize: font.body, color: colors.text, fontWeight: WEIGHT, lineHeight: font.body * 1.4 },
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
-import { colors, font } from '../theme/index.ts';
+import { colors, font, WEIGHT } from '../theme/index.ts';
 import { needsPrivacyShield } from '../platform/screenGuard.ts';
 
 /**
@@ -40,5 +40,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 999,
   },
-  logo: { fontSize: font.huge, fontWeight: '800', color: colors.primary, letterSpacing: 4 },
+  logo: { fontFamily: font.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.primary, letterSpacing: 4 },
 });

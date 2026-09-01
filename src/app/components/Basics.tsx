@@ -11,7 +11,7 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
-import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
+import { colors, font, radius, space, TOUCH, WEIGHT } from '../theme/index.ts';
 
 /** 아이콘과 같은 자물쇠. 앱 아이콘과 화면이 한 벌로 보이게 한다. */
 const LOCK_MARK = require('../../../assets/lock-mark.png');
@@ -268,14 +268,14 @@ const styles = StyleSheet.create({
    * flexShrink 를 줘서 글자가 길어지면 그림이 먼저 줄어든다.
    */
   mark: { width: 34, height: 34, flexShrink: 0 },
-  headerTitle: { fontSize: font.title, fontWeight: '700', color: colors.text, flexShrink: 1 },
+  headerTitle: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, flexShrink: 1 },
   back: { minHeight: TOUCH, justifyContent: 'center' },
-  backText: { fontSize: font.body, color: colors.accent, fontWeight: '700' },
+  backText: { fontFamily: font.familyBold, fontSize: font.body, color: colors.accent, fontWeight: WEIGHT },
   scroll: { flex: 1 },
   scrollContent: { padding: space.md, paddingBottom: space.xl, gap: space.sm },
   footer: { padding: space.md, borderTopWidth: 1, borderTopColor: colors.border, gap: space.sm },
-  title: { fontSize: font.title, fontWeight: '700', color: colors.text, marginBottom: space.sm },
-  body: { fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5 },
+  title: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, marginBottom: space.sm },
+  body: { fontFamily: font.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5 },
   bodyDim: { color: colors.textDim },
   notice: {
     backgroundColor: colors.warnBg,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     borderColor: '#D8C08A',
   },
   noticePlain: { backgroundColor: colors.surface, borderColor: colors.border },
-  noticeText: { fontSize: font.bodySmall, color: colors.warnText, lineHeight: font.bodySmall * 1.5 },
+  noticeText: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.warnText, lineHeight: font.bodySmall * 1.5 },
   noticeTextPlain: { color: colors.text },
   btn: {
     minHeight: TOUCH + 8,
@@ -305,13 +305,13 @@ const styles = StyleSheet.create({
   btnText_: { backgroundColor: 'transparent' },
   btnPressed: { opacity: 0.75 },
   btnDisabled: { opacity: 0.5 },
-  btnLabelOnFill: { fontSize: font.big, fontWeight: '700', color: colors.primaryText, textAlign: 'center' },
-  btnLabelPlain: { fontSize: font.big, fontWeight: '700', color: colors.text, textAlign: 'center' },
-  btnLabelDanger: { fontSize: font.big, fontWeight: '700', color: colors.danger, textAlign: 'center' },
-  btnLabelText: { fontSize: font.big, fontWeight: '700', color: colors.accent, textAlign: 'center' },
+  btnLabelOnFill: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText, textAlign: 'center' },
+  btnLabelPlain: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text, textAlign: 'center' },
+  btnLabelDanger: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.danger, textAlign: 'center' },
+  btnLabelText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.accent, textAlign: 'center' },
   field: { gap: space.xs, marginBottom: space.sm },
-  fieldLabel: { fontSize: font.label, fontWeight: '700', color: colors.text },
-  fieldHint: { fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },
+  fieldLabel: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.text },
+  fieldHint: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },
   /**
    * 테두리는 글자칸이 아니라 바깥 상자가 갖는다. 그래야 오른쪽에 "보기" 같은
    * 조작을 넣어도 테두리 안에 들어간다.
@@ -333,6 +333,7 @@ const styles = StyleSheet.create({
     minHeight: TOUCH,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
+    fontFamily: font.family,
     fontSize: font.body,
     color: colors.text,
   },
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 2,
     borderLeftColor: colors.border,
   },
-  fieldActionText: { fontSize: font.bodySmall, fontWeight: '700', color: colors.accent },
+  fieldActionText: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.accent },
   row: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
   toggle: {
     minHeight: TOUCH + 8,
@@ -375,7 +376,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   knobTrackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  knobLabel: { fontSize: font.bodySmall, fontWeight: '700', color: colors.text },
+  knobLabel: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.text },
   knobLabelOn: { color: colors.primaryText },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   choice: {
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   choiceOn: { borderColor: colors.primary, backgroundColor: colors.primary },
-  choiceText: { fontSize: font.body, fontWeight: '600', color: colors.text },
+  choiceText: { fontFamily: font.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.text },
   choiceTextOn: { color: colors.primaryText },
 });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { recoveryCodeGroups } from '../../core/recoveryCode.ts';
-import { colors, font, radius, space } from '../theme/index.ts';
+import { colors, font, radius, space, WEIGHT } from '../theme/index.ts';
 
 /**
  * 복구 코드 보여 주기.
@@ -36,16 +36,18 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   index: {
+    fontFamily: font.familyBold,
     fontSize: font.body,
-    fontWeight: '700',
+    fontWeight: WEIGHT,
     color: colors.warnText,
     minWidth: 24,
     textAlign: 'center',
   },
   group: {
     flex: 1,
+    fontFamily: font.familyBold,
     fontSize: font.huge,
-    fontWeight: '700',
+    fontWeight: WEIGHT,
     color: colors.text,
     letterSpacing: 4,
   },

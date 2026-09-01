@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { OpenRecord } from '../../core/schema.ts';
-import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
+import { colors, font, radius, space, TOUCH, WEIGHT } from '../theme/index.ts';
 
 /**
  * 카드 왼쪽의 네모 표시.
@@ -112,12 +112,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  markText: { fontSize: font.big, fontWeight: '700', color: colors.primaryText },
+  markText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText },
   cardText: { flex: 1, gap: 2 },
-  service: { fontSize: font.big, fontWeight: '700', color: colors.text },
-  username: { fontSize: font.bodySmall, color: colors.textDim },
+  service: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text },
+  username: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
   badge: {
+    fontFamily: font.family,
     fontSize: font.caption,
     color: colors.text,
     // 흰 카드 위에 얹히므로 크림색이어야 보인다.
@@ -137,6 +138,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.border,
   },
-  starText: { fontSize: font.title, color: colors.textDim },
+  starText: { fontFamily: font.family, fontSize: font.title, color: colors.textDim },
   starOn: { color: colors.favorite },
 });

@@ -5,7 +5,7 @@ import { Confirm } from '../components/Confirm.tsx';
 import { isPasswordStale } from '../components/RecordCard.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { copySensitive } from '../platform/clipboard.ts';
-import { colors, font, radius, space } from '../theme/index.ts';
+import { colors, font, radius, space, WEIGHT } from '../theme/index.ts';
 
 /**
  * 05 계정 상세 — 아이디·비밀번호(숨김)·메모, 복사/보기/수정/삭제, 마지막 변경일
@@ -136,6 +136,6 @@ const styles = StyleSheet.create({
     gap: space.sm,
     marginBottom: space.sm,
   },
-  label: { fontSize: font.label, fontWeight: '700', color: colors.textDim },
-  value: { fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
+  label: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.textDim },
+  value: { fontFamily: font.family, fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
 });

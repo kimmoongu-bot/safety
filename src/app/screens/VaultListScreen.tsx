@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BigButton, Body, Notice, Screen } from '../components/Basics.tsx';
 import { RecordCard } from '../components/RecordCard.tsx';
 import { filterRecords, useVaultStore } from '../state/vaultStore.ts';
-import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
+import { colors, font, radius, space, TOUCH, WEIGHT } from '../theme/index.ts';
 
 /**
  * 03 내 금고 — 상단 대형 검색창, 계정 리스트, 즐겨찾기, + 추가 (명세 3장)
@@ -84,11 +84,12 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     borderRadius: radius.md,
     paddingHorizontal: space.md,
+    fontFamily: font.family,
     fontSize: font.big,
     color: colors.text,
     marginBottom: space.sm,
   },
   empty: { paddingVertical: space.xl, gap: space.sm, alignItems: 'center' },
   addHint: { minHeight: TOUCH, justifyContent: 'center', paddingHorizontal: space.md },
-  addHintText: { fontSize: font.body, color: colors.primary, fontWeight: '700' },
+  addHintText: { fontFamily: font.familyBold, fontSize: font.body, color: colors.primary, fontWeight: WEIGHT },
 });
