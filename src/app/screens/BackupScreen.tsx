@@ -136,8 +136,10 @@ export function BackupScreen() {
       />
       <BigButton label="열어 보기 (몇 개인지 확인)" tone="plain" onPress={doPreview} />
       {previewCount !== null ? <Notice tone="plain">{`${previewCount}개가 들어 있습니다.`}</Notice> : null}
+      {/* 되살리기는 지금 금고를 덮어쓴다. 되돌릴 수 없으므로 강조색으로 구분한다. */}
       <BigButton
         label="이 파일로 되살리기"
+        tone="accent"
         onPress={() => {
           if (!picked) {
             showToast('먼저 파일을 골라 주세요.', 'bad');

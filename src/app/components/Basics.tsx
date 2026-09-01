@@ -38,6 +38,17 @@ export function Notice({ children, tone = 'warn' }: { children: React.ReactNode;
   );
 }
 
+/**
+ * 버튼 (디자인 시안의 4종)
+ *
+ * - primary  기본. 먹색 바탕에 흰 글자. 한 화면에 하나만 둔다.
+ * - plain    보조. 흰 바탕에 테두리.
+ * - accent   강조. 갈색 바탕에 흰 글자. 되돌릴 수 없는 일 앞에서 쓴다.
+ * - danger   위험. 흰 바탕에 빨간 테두리와 빨간 글자.
+ * - text     글자만. 가장 약한 것. 테두리도 바탕도 없다.
+ */
+type ButtonTone = 'primary' | 'plain' | 'accent' | 'danger' | 'text';
+
 export function BigButton({
   label,
   onPress,
@@ -47,14 +58,25 @@ export function BigButton({
 }: {
   label: string;
   onPress: () => void;
-  tone?: 'primary' | 'plain' | 'danger';
+  tone?: ButtonTone;
   disabled?: boolean;
   busy?: boolean;
 }) {
-  const toneStyle =
-    tone === 'primary' ? styles.btnPrimary : tone === 'danger' ? styles.btnDanger : styles.btnPlain;
-  const textStyle =
-    tone === 'plain' ? styles.btnTextPlain : tone === 'danger' ? styles.btnTextDanger : styles.btnText;
+  const box = {
+    primary: styles.btnPrimary,
+    plain: styles.btnPlain,
+    accent: styles.btnAccent,
+    danger: styles.btnDanger,
+    text: styles.btnText_,
+  }[tone];
+  const textStyle = {
+    primary: styles.btnLabelOnFill,
+    plain: styles.btnLabelPlain,
+    accent: styles.btnLabelOnFill,
+    danger: styles.btnLabelDanger,
+    text: styles.btnLabelText,
+  }[tone];
+  const spinner = tone === 'primary' || tone === 'accent' ? colors.primaryText : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -62,30 +84,55 @@ export function BigButton({
       accessibilityState={{ disabled: !!disabled || !!busy }}
       disabled={disabled || busy}
       onPress={onPress}
-      style={({ pressed }) => [styles.btn, toneStyle, pressed && styles.btnPressed, disabled && styles.btnDisabled]}
+      style={({ pressed }) => [styles.btn, box, pressed && styles.btnPressed, disabled && styles.btnDisabled]}
     >
-      {busy ? <ActivityIndicator color={tone === 'primary' ? colors.primaryText : colors.primary} /> : null}
+      {busy ? <ActivityIndicator color={spinner} /> : null}
       <Text style={textStyle}>{label}</Text>
     </Pressable>
   );
 }
 
+/**
+ * 입력창.
+ *
+ * `trailing` 은 입력창 오른쪽 안쪽에 들어가는 작은 조작이다 (비밀번호 보기/숨김 등).
+ * 시안은 여기에 눈 모양 그림을 뒀지만 글자로 쓴다 — 중장년층 대상이고, 명세 3장이
+ * 뜻이 분명한 말을 쓰라고 한다. 그림은 배워야 알지만 "보기"는 읽으면 안다.
+ */
 export function Field({
   label,
   hint,
+  trailing,
   ...props
-}: TextInputProps & { label: string; hint?: string }) {
+}: TextInputProps & { label: string; hint?: string; trailing?: React.ReactNode }) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
       {hint ? <Text style={styles.fieldHint}>{hint}</Text> : null}
-      <TextInput
-        {...props}
-        style={[styles.input, props.multiline && styles.inputMultiline]}
-        placeholderTextColor={colors.textDim}
-        accessibilityLabel={label}
-      />
+      <View style={[styles.inputBox, props.multiline && styles.inputBoxMultiline]}>
+        <TextInput
+          {...props}
+          style={[styles.input, props.multiline && styles.inputMultiline]}
+          placeholderTextColor={colors.textDim}
+          accessibilityLabel={label}
+        />
+        {trailing}
+      </View>
     </View>
+  );
+}
+
+/** 입력창 안에 넣는 작은 글자 단추. 터치 크기는 48dp 를 지킨다. */
+export function FieldAction({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.fieldAction, pressed && styles.btnPressed]}
+    >
+      <Text style={styles.fieldActionText}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -251,29 +298,56 @@ const styles = StyleSheet.create({
     paddingVertical: space.sm,
   },
   btnPrimary: { backgroundColor: colors.primary },
-  btnPlain: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  btnPlain: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border },
+  btnAccent: { backgroundColor: colors.accent },
   btnDanger: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.danger },
+  /** 글자만 있는 버튼. 테두리도 바탕도 없다. */
+  btnText_: { backgroundColor: 'transparent' },
   btnPressed: { opacity: 0.75 },
   btnDisabled: { opacity: 0.5 },
-  btnText: { fontSize: font.big, fontWeight: '700', color: colors.primaryText, textAlign: 'center' },
-  btnTextPlain: { fontSize: font.big, fontWeight: '700', color: colors.text, textAlign: 'center' },
-  btnTextDanger: { fontSize: font.big, fontWeight: '700', color: colors.danger, textAlign: 'center' },
+  btnLabelOnFill: { fontSize: font.big, fontWeight: '700', color: colors.primaryText, textAlign: 'center' },
+  btnLabelPlain: { fontSize: font.big, fontWeight: '700', color: colors.text, textAlign: 'center' },
+  btnLabelDanger: { fontSize: font.big, fontWeight: '700', color: colors.danger, textAlign: 'center' },
+  btnLabelText: { fontSize: font.big, fontWeight: '700', color: colors.accent, textAlign: 'center' },
   field: { gap: space.xs, marginBottom: space.sm },
   fieldLabel: { fontSize: font.label, fontWeight: '700', color: colors.text },
   fieldHint: { fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },
-  input: {
+  /**
+   * 테두리는 글자칸이 아니라 바깥 상자가 갖는다. 그래야 오른쪽에 "보기" 같은
+   * 조작을 넣어도 테두리 안에 들어간다.
+   */
+  inputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
     minHeight: TOUCH + 4,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: radius.md,
+    // 크림 바탕 위의 흰 입력창. 같은 색이면 입력하는 자리가 어디인지 안 보인다.
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  inputBoxMultiline: { alignItems: 'stretch' },
+  input: {
+    flex: 1,
+    minHeight: TOUCH,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
     fontSize: font.body,
     color: colors.text,
-    // 크림 바탕 위의 흰 입력창. 같은 색이면 입력하는 자리가 어디인지 안 보인다.
-    backgroundColor: colors.surface,
   },
   inputMultiline: { minHeight: TOUCH * 2, textAlignVertical: 'top' },
+  /** 입력창 안 오른쪽 글자 단추. 손가락이 닿는 크기(48dp)를 지킨다. */
+  fieldAction: {
+    minWidth: TOUCH + 8,
+    minHeight: TOUCH,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: space.sm,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.border,
+  },
+  fieldActionText: { fontSize: font.bodySmall, fontWeight: '700', color: colors.accent },
   row: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
   toggle: {
     minHeight: TOUCH + 8,

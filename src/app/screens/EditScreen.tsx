@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { BigButton, Body, Choice, Field, Screen } from '../components/Basics.tsx';
+import { BigButton, Body, Choice, Field, FieldAction, Screen } from '../components/Basics.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import type { VaultPayload } from '../../core/schema.ts';
-import { space } from '../theme/index.ts';
 
 /**
  * 04 새 정보 추가 / 수정 — 서비스명 / 아이디 / 비밀번호 / 메모 / 카테고리
@@ -80,13 +78,14 @@ export function EditScreen({ id }: { id?: string }) {
         autoCapitalize="none"
         autoCorrect={false}
         secureTextEntry={!showPassword}
+        // 보기/숨김을 입력창 안으로 넣었다 (시안). 큰 버튼 하나가 줄어 화면이 그만큼 여유롭다.
+        trailing={
+          <FieldAction
+            label={showPassword ? '숨김' : '보기'}
+            onPress={() => setShowPassword((v) => !v)}
+          />
+        }
       />
-      <BigButton
-        label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-        tone="plain"
-        onPress={() => setShowPassword((v) => !v)}
-      />
-      <View style={{ height: space.sm }} />
       <Choice
         label="갈래"
         value={category}
