@@ -63,7 +63,24 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.sm },
   dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   dotOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  pad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.sm },
+  /**
+   * 숫자판은 **한 줄에 셋**이다.
+   *
+   * 칸 너비를 비율(%)에서 고정값으로 바꾸면서(동그라미를 만들려면 가로세로가 같아야
+   * 한다) 줄 너비를 안 묶어 뒀더니, 넓은 화면에서 한 줄에 넷이 들어가
+   * 1234 / 5678 / 9 0 지움 으로 흐트러졌다. 실기기에서 그렇게 나왔다.
+   *
+   * 그래서 판 자체의 너비를 '셋 + 사이 둘' 로 못박는다. 화면이 아무리 넓어도
+   * 넷째는 자리가 없어 다음 줄로 내려간다.
+   */
+  pad: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: space.sm,
+    width: KEY * 3 + space.sm * 2,
+    alignSelf: 'center',
+  },
   /**
    * 동그란 숫자판.
    *
