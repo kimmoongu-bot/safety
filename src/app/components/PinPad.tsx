@@ -1,4 +1,5 @@
 import React from 'react';
+import { useT } from '../i18n/index.ts';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { font, space, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
@@ -9,13 +10,22 @@ import { createStyles } from '../theme/useStyles.ts';
  */
 export const PIN_MAX_LENGTH = 12;
 
+/**
+ * 지우기 칸을 가리키는 표시.
+ *
+ * 화면에 나오는 말이 아니라 **어느 칸인지 구분하는 이름**이다. 예전에는 '지움' 이라는
+ * 한국어를 값으로 썼는데, 그러면 다른 언어로 바꿀 때 이 비교문까지 깨진다.
+ */
+const ERASE = 'erase';
+
 /** 숫자 하나의 지름. 최소 터치 크기(48dp)보다 넉넉하다. */
 const KEY = 66;
 
 export function PinDots({ length }: { length: number }) {
   const styles = useStyles();
+  const t = useT();
   return (
-    <View style={styles.dots} accessibilityLabel={`${length}자리 입력함`}>
+    <View style={styles.dots} accessibilityLabel={t('pinpad.entered', { count: length })}>
       {Array.from({ length: Math.max(6, length) }).map((_, i) => (
         <View key={i} style={[styles.dot, i < length && styles.dotOn]} />
       ))}
@@ -33,13 +43,14 @@ export function PinPad({
   disabled?: boolean;
 }) {
   const styles = useStyles();
+  const t = useT();
   const press = (key: string) => {
     if (disabled) return;
-    if (key === '지움') onChange(value.slice(0, -1));
+    if (key === ERASE) onChange(value.slice(0, -1));
     else if (value.length < PIN_MAX_LENGTH) onChange(value + key);
   };
 
-  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '지움'];
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ERASE];
   return (
     <View style={styles.pad}>
       {keys.map((key, index) =>
@@ -49,12 +60,14 @@ export function PinPad({
           <Pressable
             key={key}
             accessibilityRole="button"
-            accessibilityLabel={key === '지움' ? '한 글자 지우기' : `숫자 ${key}`}
+            accessibilityLabel={key === ERASE ? t('pinpad.eraseOne') : t('pinpad.digit', { digit: key })}
             disabled={disabled}
             onPress={() => press(key)}
             style={({ pressed }) => [styles.key, styles.keyBox, pressed && styles.pressed, disabled && styles.off]}
           >
-            <Text style={key === '지움' ? styles.keyTextSmall : styles.keyText}>{key}</Text>
+            <Text style={key === ERASE ? styles.keyTextSmall : styles.keyText}>
+              {key === ERASE ? t('pinpad.erase') : key}
+            </Text>
           </Pressable>
         ),
       )}

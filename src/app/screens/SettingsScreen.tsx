@@ -5,7 +5,7 @@ import { Confirm } from '../components/Confirm.tsx';
 import { useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { authenticate, checkBiometricSupport } from '../platform/biometrics.ts';
-import { disableScreenGuard, enableScreenGuard } from '../platform/screenGuard.ts';
+import { disableScreenGuard, enableScreenGuard, guardFailureMessage } from '../platform/screenGuard.ts';
 import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
 import { CLIPBOARD_CHOICES } from '../../core/settings.ts';
 import { space } from '../theme/index.ts';
@@ -38,7 +38,7 @@ export function SettingsScreen() {
       endSystemDialog();
     }
     if (!passed) {
-      showToast('확인하지 못했습니다.', 'bad');
+      showToast(t('settings.checkFailed'), 'bad');
       return;
     }
     const code = await run(() => vault.revealRecoveryCode());
@@ -46,28 +46,28 @@ export function SettingsScreen() {
   };
 
   return (
-    <Screen title="설정" onBack={back}>
+    <Screen title={t('settings.title')} onBack={back}>
       <Choice
-        label="얼마 뒤에 저절로 잠글까요?"
+        label={t('settings.autoLock')}
         value={settings.autoLock}
         options={[
-          { value: 'immediate', label: '바로' },
-          { value: '1m', label: '1분' },
-          { value: '5m', label: '5분' },
+          { value: 'immediate', label: t('settings.autoLockNow') },
+          { value: '1m', label: t('settings.autoLock1m') },
+          { value: '5m', label: t('settings.autoLock5m') },
         ]}
         onChange={(v) => void saveSettings({ autoLock: v })}
       />
 
       <Toggle
-        label="지문·얼굴로 열기"
-        description="켜면 PIN(핀)을 누르지 않아도 열 수 있습니다."
+        label={t('settings.biometric')}
+        description={t('settings.biometricWhy')}
         value={settings.biometricUnlock}
         onChange={async (next) => {
           if (!vault) return;
           if (next) {
             const support = await checkBiometricSupport();
             if (!support.available) {
-              showToast('이 기기에는 지문·얼굴 확인이 준비되어 있지 않습니다.', 'bad');
+              showToast(t('settings.biometricNone'), 'bad');
               return;
             }
           }
@@ -77,80 +77,83 @@ export function SettingsScreen() {
           endSystemDialog();
           if (done.ok) {
             await saveSettings({ biometricUnlock: next });
-            showToast(next ? '지문·얼굴로 열 수 있습니다.' : '지문·얼굴 열기를 껐습니다.');
+            showToast(t(next ? 'settings.biometricOn' : 'settings.biometricOff'));
           }
         }}
       />
 
       <Choice
-        label="복사한 내용을 언제 지울까요?"
+        label={t('settings.clipboard')}
         value={settings.clipboardClearSeconds}
-        options={CLIPBOARD_CHOICES.map((s) => ({ value: s, label: `${s}초 뒤` }))}
+        options={CLIPBOARD_CHOICES.map((s) => ({ value: s, label: t('settings.clipboardAfter', { seconds: s }) }))}
         onChange={(v) => void saveSettings({ clipboardClearSeconds: v })}
       />
 
       <Toggle
-        label="화면 찍기 막기"
-        description="캡처와 최근 앱 목록 미리보기를 막습니다."
+        label={t('settings.screenGuard')}
+        description={t('settings.screenGuardWhy')}
         value={settings.blockScreenCapture}
         onChange={async (next) => {
           await saveSettings({ blockScreenCapture: next });
           if (!next) {
             await disableScreenGuard();
-            showToast('화면 찍기 막기를 껐습니다.');
+            showToast(t('settings.screenGuardOff'));
             return;
           }
           const result = await enableScreenGuard();
-          if (result.ok) showToast('화면 찍기를 막습니다.');
-          else showToast(`화면 가리기를 걸지 못했습니다. (${result.reason})`, 'bad');
+          if (result.ok) showToast(t('settings.screenGuardOn'));
+          else {
+            const why = guardFailureMessage(result);
+            showToast(t(why.key, why.params), 'bad');
+          }
         }}
       />
 
       <Toggle
-        label="바꾸기 전 비밀번호 1개 남기기"
-        description="새 비밀번호가 안 될 때 되돌리는 용도입니다."
+        label={t('settings.keepPrev')}
+        description={t('settings.keepPrevWhy')}
         value={settings.keepPreviousPassword}
         onChange={(next) => void saveSettings({ keepPreviousPassword: next })}
       />
 
       <Toggle
-        label="10번 틀리면 금고 지우기"
-        description="켜면 PIN(핀)을 10번 잘못 누를 때 금고를 통째로 지웁니다. 백업 파일이 없으면 되살릴 수 없습니다."
+        label={t('settings.wipe')}
+        description={t('settings.wipeWhy')}
         value={settings.wipeAfterTenFailures}
         onChange={(next) => void saveSettings({ wipeAfterTenFailures: next })}
       />
 
       <View style={{ height: space.md }} />
-      <Title>복구 코드</Title>
+      <Title>{t('settings.recoveryHeading')}</Title>
       {revealed ? (
         <>
           <RecoveryCodeView code={revealed} />
-          <BigButton label="다시 숨기기" tone="plain" onPress={() => setRevealed('')} />
+          <BigButton label={t('settings.recoveryHide')} tone="plain" onPress={() => setRevealed('')} />
         </>
       ) : (
-        <BigButton label="복구 코드 다시 보기" tone="plain" onPress={revealRecoveryCode} />
+        <BigButton label={t('settings.recoveryShow')} tone="plain" onPress={revealRecoveryCode} />
       )}
 
       <View style={{ height: space.md }} />
-      <Title>PIN(핀) 바꾸기</Title>
+      <Title>{t('settings.pinHeading')}</Title>
       {changing ? (
         <>
           <Field
-            label="지금 쓰는 PIN(핀)"
+            label={t('settings.pinCurrent')}
             value={currentPin}
             onChangeText={setCurrentPin}
             keyboardType="number-pad"
             secureTextEntry
           />
           <Field
-            label="새로 쓸 PIN(핀)"
+            label={t('settings.pinNext')}
             value={nextPin}
             onChangeText={setNextPin}
             keyboardType="number-pad"
             secureTextEntry
           />
           <BigButton
-            label="바꾸기"
+            label={t('settings.pinChange')}
             onPress={async () => {
               if (!vault) return;
               const done = await run(() => vault.changePin(currentPin, nextPin));
@@ -158,43 +161,42 @@ export function SettingsScreen() {
               setNextPin('');
               if (done.ok) {
                 setChanging(false);
-                showToast('PIN(핀)을 바꿨습니다.');
+                showToast(t('settings.pinChanged'));
               }
             }}
           />
-          <BigButton label="그만두기" tone="plain" onPress={() => setChanging(false)} />
+          <BigButton label={t('settings.cancel')} tone="plain" onPress={() => setChanging(false)} />
         </>
       ) : (
-        <BigButton label="PIN(핀) 바꾸기" tone="plain" onPress={() => setChanging(true)} />
+        <BigButton label={t('settings.pinHeading')} tone="plain" onPress={() => setChanging(true)} />
       )}
 
       <View style={{ height: space.md }} />
-      <Title>백업</Title>
-      <BigButton label="백업 파일 만들기 / 가져오기" tone="plain" onPress={() => go({ name: 'backup' })} />
+      <Title>{t('settings.backupHeading')}</Title>
+      <BigButton label={t('settings.backupGo')} tone="plain" onPress={() => go({ name: 'backup' })} />
 
       <View style={{ height: space.lg }} />
-      <Title>금고 초기화</Title>
+      <Title>{t('settings.wipeHeading')}</Title>
       <Notice>
-        PIN(핀)·지문·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다. 그럴 때는 금고를 지우고
-        새로 시작할 수 있지만, 넣어 둔 내용은 되살아나지 않습니다.
+        {t('settings.wipeExplain')}
       </Notice>
-      <BigButton label="금고 지우고 새로 시작" tone="danger" onPress={() => setWipeStep(1)} />
-      <Body dim>지우기 전에 두 번 물어봅니다.</Body>
+      <BigButton label={t('settings.wipeStart')} tone="danger" onPress={() => setWipeStep(1)} />
+      <Body dim>{t('settings.wipeAsksTwice')}</Body>
 
       <Confirm
         visible={wipeStep === 1}
-        title="정말 지울까요? (1/2)"
-        message="넣어 둔 아이디와 비밀번호가 모두 사라집니다. 되돌릴 수 없습니다."
-        confirmLabel="계속"
+        title={t('settings.wipe1Title')}
+        message={t('settings.wipe1Message')}
+        confirmLabel={t('settings.wipe1Confirm')}
         tone="danger"
         onCancel={() => setWipeStep(0)}
         onConfirm={() => setWipeStep(2)}
       />
       <Confirm
         visible={wipeStep === 2}
-        title="마지막 확인입니다 (2/2)"
-        message="백업 파일이 없다면 지금 지운 내용은 어떤 방법으로도 되살릴 수 없습니다."
-        confirmLabel="지우겠습니다"
+        title={t('settings.wipe2Title')}
+        message={t('settings.wipe2Message')}
+        confirmLabel={t('settings.wipe2Confirm')}
         tone="danger"
         onCancel={() => setWipeStep(0)}
         onConfirm={async () => {
@@ -202,7 +204,7 @@ export function SettingsScreen() {
           setWipeStep(0);
           const done = await run(() => vault.destroy());
           if (done.ok) {
-            showToast('금고를 지웠습니다.');
+            showToast(t('settings.wiped'));
             reset({ name: 'setup' });
           }
         }}

@@ -59,17 +59,17 @@ export function SetupScreen() {
     const value = step === 'pin' ? pin : pinAgain;
     const setValue = step === 'pin' ? setPin : setPinAgain;
     return (
-      <Screen title={step === 'pin' ? 'PIN(핀) 만들기' : '한 번 더 눌러 주세요'}>
+      <Screen title={t(step === 'pin' ? 'setup.pinTitle' : 'setup.pinAgainTitle')}>
         <Body dim>
           {step === 'pin'
-            ? '금고를 열 때 쓸 숫자를 정합니다. 4자리 이상이면 됩니다.'
-            : '방금 정한 PIN(핀)을 한 번 더 눌러 주세요.'}
+            ? t('setup.pinHelp')
+            : t('setup.pinAgainHelp')}
         </Body>
         <PinDots length={value.length} />
         <PinPad value={value} onChange={setValue} />
         <View style={{ height: space.md }} />
         <BigButton
-          label="다음"
+          label={t('setup.next')}
           disabled={value.length < MIN_PIN}
           onPress={() => {
             if (step === 'pin') {
@@ -77,7 +77,7 @@ export function SetupScreen() {
               return;
             }
             if (pin !== pinAgain) {
-              showToast('두 번 누른 PIN(핀)이 다릅니다. 처음부터 다시 정해 주세요.', 'bad');
+              showToast(t('setup.pinMismatch'), 'bad');
               setPin('');
               setPinAgain('');
               setStep('pin');
@@ -110,7 +110,7 @@ export function SetupScreen() {
           />
         ) : null}
         <BigButton
-          label="숫자로만 열기"
+          label={t('setup.pinOnly')}
           tone="plain"
           busy={busy}
           onPress={() => {
@@ -124,45 +124,43 @@ export function SetupScreen() {
 
   if (step === 'code-show') {
     return (
-      <Screen title="복구 코드를 적어 두세요">
+      <Screen title={t('setup.codeTitle')}>
         <Notice>
-          PIN(핀)을 잊었을 때 금고를 열 수 있는 유일한 방법입니다. 종이에 적어 폰과 다른 곳에 두세요.
-          화면을 캡처하지 마세요.
+          {t('setup.codeWarn')}
         </Notice>
         <View style={{ height: space.md }} />
         <RecoveryCodeView code={recoveryCode} />
-        <Body dim>다음 화면에서 이 코드를 직접 입력해 확인합니다.</Body>
+        <Body dim>{t('setup.codeNext')}</Body>
         <View style={{ height: space.md }} />
-        <BigButton label="적었습니다. 다음" onPress={() => setStep('code-check')} />
+        <BigButton label={t('setup.codeWrote')} onPress={() => setStep('code-check')} />
       </Screen>
     );
   }
 
   return (
-    <Screen title="적어 둔 복구 코드를 입력해 주세요" onBack={() => setStep('code-show')}>
-      <Body dim>대문자·소문자, 띄어쓰기는 신경 쓰지 않아도 됩니다.</Body>
+    <Screen title={t('setup.codeCheckTitle')} onBack={() => setStep('code-show')}>
+      <Body dim>{t('setup.codeCheckHelp')}</Body>
       <Field
-        label="복구 코드"
+        label={t('lock.recoveryLabel')}
         value={typedCode}
         onChangeText={setTypedCode}
         autoCapitalize="characters"
         autoCorrect={false}
-        placeholder="예: WZC7-1W7M-KHRP-DNEN"
+        placeholder={t('lock.recoveryPlaceholder')}
       />
       <Notice tone="plain">
-        {useBiometric ? '지문·얼굴로도 열 수 있게 해 두었습니다. ' : ''}
-        PIN(핀)·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다.
+        {useBiometric ? t('setup.lastWarnWithBiometric', { how: how(biometricKind) }) : t('setup.lastWarn')}
       </Notice>
       <View style={{ height: space.md }} />
       <BigButton
-        label="확인하고 시작하기"
+        label={t('setup.finish')}
         onPress={async () => {
           if (normalizeRecoveryCode(typedCode) !== recoveryCode) {
-            showToast('복구 코드가 다릅니다. 적어 둔 것을 다시 보세요.', 'bad');
+            showToast(t('setup.codeMismatch'), 'bad');
             return;
           }
           await refresh();
-          showToast('금고를 만들었습니다.');
+          showToast(t('setup.done'));
           reset({ name: 'list' });
         }}
       />

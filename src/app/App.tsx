@@ -11,10 +11,11 @@ import { ExpoMetaStore } from '../data/adapters/expoMetaStore.ts';
 import { ExpoSecureKeyStore } from '../data/adapters/expoSecureKeyStore.ts';
 import { ExpoSqliteRecordStore } from '../data/adapters/expoSqliteRecordStore.ts';
 import { clearIfDue as clearClipboardIfDue } from './platform/clipboard.ts';
-import { enableScreenGuard } from './platform/screenGuard.ts';
+import { enableScreenGuard, guardFailureMessage } from './platform/screenGuard.ts';
 import { PrivacyShield } from './components/PrivacyShield.tsx';
 import { ToastHost } from './components/Toast.tsx';
-import { useVaultStore } from './state/vaultStore.ts';
+import { useT } from './i18n/index.ts';
+import { setStoreTranslator, useVaultStore } from './state/vaultStore.ts';
 import { FALLBACK_AUTO_LOCK_MS, shouldLockForIdle, shouldLockOnBackground } from './lockPolicy.ts';
 import { BackupScreen } from './screens/BackupScreen.tsx';
 import { DetailScreen } from './screens/DetailScreen.tsx';
@@ -63,12 +64,18 @@ function Router() {
 export default function App() {
   const styles = useStyles();
   const colors = useColors();
+  const t = useT();
   const { attach, reset, lock, refreshLockState, loadSettings } = useVaultStore();
   const [ready, setReady] = useState(false);
   const lastActivityAt = useVaultStore((s) => s.lastActivityAt);
   const settings = useVaultStore((s) => s.settings);
   const activityRef = useRef(lastActivityAt);
   activityRef.current = lastActivityAt;
+
+  // 저장소는 화면 밖이라 훅을 쓸 수 없다. 번역기를 넘겨 준다.
+  useEffect(() => {
+    setStoreTranslator(t);
+  }, [t]);
 
   // 시작: 암호 모듈과 저장소를 붙이고, 금고가 있는지 확인한다.
   useEffect(() => {
@@ -110,15 +117,15 @@ export default function App() {
     let cancelled = false;
     const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
     const apply = async () => {
-      let last = '알 수 없는 이유';
+      let last: ReturnType<typeof guardFailureMessage> | null = null;
       for (let attempt = 0; attempt < 3 && !cancelled; attempt += 1) {
         if (attempt > 0) await wait(400);
         const result = await enableScreenGuard();
         if (result.ok) return;
-        last = result.reason;
+        last = guardFailureMessage(result);
       }
-      if (!cancelled) {
-        useVaultStore.getState().showToast(`화면 가리기를 걸지 못했습니다. (${last})`, 'bad');
+      if (!cancelled && last) {
+        useVaultStore.getState().showToast(t(last.key, last.params), 'bad');
       }
     };
     void apply();

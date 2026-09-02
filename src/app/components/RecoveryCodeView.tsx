@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { recoveryCodeGroups } from '../../core/recoveryCode.ts';
 import { font, radius, space, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
+import { useT } from '../i18n/index.ts';
 
 /**
  * 복구 코드 보여 주기.
@@ -12,9 +13,10 @@ import { createStyles } from '../theme/useStyles.ts';
  */
 export function RecoveryCodeView({ code }: { code: string }) {
   const styles = useStyles();
+  const t = useT();
   const groups = recoveryCodeGroups(code);
   return (
-    <View style={styles.box} accessibilityLabel={`복구 코드 ${groups.join(', ')}`}>
+    <View style={styles.box} accessibilityLabel={t('common.recoveryCodeLabel', { code: groups.join(', ') })}>
       {groups.map((group, index) => (
         <View key={group + index} style={styles.row}>
           <Text style={styles.index}>{index + 1}</Text>

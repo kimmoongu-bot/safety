@@ -15,11 +15,12 @@ export async function writeBackupToCache(fileName: string, contents: string): Pr
   return file.uri;
 }
 
-export async function shareBackup(path: string): Promise<void> {
+/** 보내기 창 제목은 부르는 쪽이 넘긴다. 이 모듈은 말을 갖지 않는다. */
+export async function shareBackup(path: string, shareTitle: string): Promise<void> {
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(path, {
       mimeType: 'application/octet-stream',
-      dialogTitle: '백업 파일 보내기',
+      dialogTitle: shareTitle,
       UTI: 'public.data',
     });
   }

@@ -23,17 +23,40 @@ import * as ScreenCapture from 'expo-screen-capture';
  */
 const GUARD_KEY = 'jamgim';
 
-export type GuardResult = { ok: true } | { ok: false; reason: string };
+/**
+ * 실패한 까닭.
+ *
+ * **말을 만들지 않는다.** 무엇이 잘못됐는지만 돌려주고, 화면에 뭐라고 쓸지는
+ * 문장 목록이 정한다. `detail` 은 안드로이드가 뱉은 원문이라 번역 대상이 아니다 —
+ * 기기에서만 나는 오류를 쫓을 때 유일한 단서다.
+ */
+export type GuardResult =
+  | { ok: true }
+  | { ok: false; why: 'unsupported' }
+  | { ok: false; why: 'failed'; detail: string };
 
 function describe(e: unknown): string {
   const detail = e instanceof Error ? e.message : String(e ?? '');
-  return detail.replace(/\s+/g, ' ').trim().slice(0, 90) || '알 수 없는 이유';
+  return detail.replace(/\s+/g, ' ').trim().slice(0, 90);
+}
+
+/**
+ * 실패한 까닭을 문장 열쇠와 값으로 바꾼다.
+ *
+ * 화면 두 곳(앱이 뜰 때, 설정 스위치)에서 같은 문장을 써야 해서 여기 모아 둔다.
+ */
+export function guardFailureMessage(
+  result: Extract<GuardResult, { ok: false }>,
+): { key: 'system.guardUnsupported' | 'settings.screenGuardFailed'; params?: { reason: string } } {
+  return result.why === 'unsupported'
+    ? { key: 'system.guardUnsupported' }
+    : { key: 'settings.screenGuardFailed', params: { reason: result.detail } };
 }
 
 export async function enableScreenGuard(): Promise<GuardResult> {
   try {
     if (!(await ScreenCapture.isAvailableAsync())) {
-      return { ok: false, reason: '이 기기에서는 화면 가리기를 쓸 수 없습니다' };
+      return { ok: false, why: 'unsupported' };
     }
     // 남아 있을지 모를 이름표부터 뗀다. 위 1) 참고.
     try {
@@ -48,7 +71,7 @@ export async function enableScreenGuard(): Promise<GuardResult> {
     }
     return { ok: true };
   } catch (e) {
-    return { ok: false, reason: describe(e) };
+    return { ok: false, why: 'failed', detail: describe(e) };
   }
 }
 

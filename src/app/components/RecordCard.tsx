@@ -1,5 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { categoryLabel } from '../i18n/categories.ts';
+import { useT } from '../i18n/index.ts';
 import type { OpenRecord } from '../../core/schema.ts';
 import { font, type Palette, radius, space, TOUCH, useColors, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
@@ -43,12 +45,13 @@ export function RecordCard({
 }) {
   const styles = useStyles();
   const colors = useColors();
+  const t = useT();
   const stale = isPasswordStale(record, now);
   return (
     <View style={styles.wrap}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${record.service}, 아이디 ${record.username || '없음'}`}
+        accessibilityLabel={t('card.label', { service: record.service, username: record.username || t('card.none') })}
         onPress={onPress}
         style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       >
@@ -61,15 +64,17 @@ export function RecordCard({
         </View>
         <View style={styles.cardText}>
           <Text style={styles.service} numberOfLines={2}>
-            {record.service || '이름 없음'}
+            {record.service || t('card.noName')}
           </Text>
           <Text style={styles.username} numberOfLines={1}>
-            {record.username || '아이디 없음'}
+            {record.username || t('card.noUsername')}
           </Text>
           {record.category || stale ? (
             <View style={styles.badges}>
-              {record.category ? <Text style={styles.badge}>{record.category}</Text> : null}
-              {stale ? <Text style={[styles.badge, styles.badgeWarn]}>1년 넘게 안 바꿈</Text> : null}
+              {record.category ? (
+                <Text style={styles.badge}>{categoryLabel(record.category, t)}</Text>
+              ) : null}
+              {stale ? <Text style={[styles.badge, styles.badgeWarn]}>{t('card.stale')}</Text> : null}
             </View>
           ) : null}
         </View>
@@ -77,7 +82,7 @@ export function RecordCard({
       {onToggleFavorite ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={record.favorite ? '자주 쓰는 것에서 빼기' : '자주 쓰는 것으로 두기'}
+          accessibilityLabel={t(record.favorite ? 'card.favoriteRemove' : 'card.favoriteAdd')}
           accessibilityState={{ selected: record.favorite }}
           onPress={onToggleFavorite}
           style={({ pressed }) => [styles.star, pressed && styles.pressed]}

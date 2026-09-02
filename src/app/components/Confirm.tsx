@@ -3,6 +3,7 @@ import { Modal, StyleSheet, Text, View } from 'react-native';
 import { BigButton } from './Basics.tsx';
 import { font, radius, space, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
+import { useT } from '../i18n/index.ts';
 
 /**
  * 되돌릴 수 없는 일에 쓰는 확인창.
@@ -26,6 +27,7 @@ export function Confirm({
   tone?: 'primary' | 'danger';
 }) {
   const styles = useStyles();
+  const t = useT();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>
@@ -33,7 +35,7 @@ export function Confirm({
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
           <BigButton label={confirmLabel} tone={tone} onPress={onConfirm} />
-          <BigButton label="그만두기" tone="plain" onPress={onCancel} />
+          <BigButton label={t('common.cancel')} tone="plain" onPress={onCancel} />
         </View>
       </View>
     </Modal>

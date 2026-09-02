@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
 import { font, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
+import { useT } from '../i18n/index.ts';
 import { needsPrivacyShield } from '../platform/screenGuard.ts';
 
 /**
@@ -13,6 +14,7 @@ import { needsPrivacyShield } from '../platform/screenGuard.ts';
  */
 export function PrivacyShield() {
   const styles = useStyles();
+  const t = useT();
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export function PrivacyShield() {
   if (!needsPrivacyShield || !hidden) return null;
   return (
     <View style={styles.shield} pointerEvents="none">
-      <Text style={styles.logo}>잠김</Text>
+      <Text style={styles.logo}>{t('common.appName')}</Text>
     </View>
   );
 }

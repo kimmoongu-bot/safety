@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { font, radius, space, TOUCH, useColors, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
+import { useT } from '../i18n/index.ts';
 
 /** 아이콘과 같은 자물쇠. 앱 아이콘과 화면이 한 벌로 보이게 한다. */
 const LOCK_MARK = require('../../../assets/lock-mark.png');
@@ -160,12 +161,13 @@ export function Screen({
   mark?: boolean;
 }) {
   const styles = useStyles();
+  const t = useT();
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
         {onBack ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={styles.back}>
-            <Text style={styles.backText}>‹ 뒤로</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={t('common.backLabel')} onPress={onBack} style={styles.back}>
+            <Text style={styles.backText}>{t('common.back')}</Text>
           </Pressable>
         ) : null}
         <View style={styles.titleRow}>
@@ -209,6 +211,7 @@ export function Toggle({
   disabled?: boolean;
 }) {
   const styles = useStyles();
+  const t = useT();
   return (
     <Pressable
       accessibilityRole="switch"
@@ -223,7 +226,7 @@ export function Toggle({
         {description ? <Text style={styles.fieldHint}>{description}</Text> : null}
       </View>
       <View style={[styles.knobTrack, value && styles.knobTrackOn]}>
-        <Text style={[styles.knobLabel, value && styles.knobLabelOn]}>{value ? '켜짐' : '꺼짐'}</Text>
+        <Text style={[styles.knobLabel, value && styles.knobLabelOn]}>{t(value ? 'common.on' : 'common.off')}</Text>
       </View>
     </Pressable>
   );
