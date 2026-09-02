@@ -111,7 +111,7 @@ export function LockScreen() {
   }
 
   return (
-    <Screen title={t('lock.title')} mark>
+    <Screen title={t('lock.title')} subtitle={t('lock.tagline')} mark>
       {waiting ? (
         <Notice>{t('lock.failuresWithWait', { count: failures, wait: waitText(t, waitMs) })}</Notice>
       ) : failures > 0 ? (

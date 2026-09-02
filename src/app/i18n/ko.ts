@@ -20,6 +20,17 @@ import { type Catalog, fill } from './types.ts';
 export const ko = {
   // ── 잠금 화면 ──────────────────────────────────────────────
   'lock.title': '잠김',
+  /**
+   * 로고 밑 한 줄.
+   *
+   * 영어판은 "Your private vault." 다. 한국어 화면에는 한국어로 적는다 — 주 대상이
+   * 중장년층이라 로고 밑 영어를 못 읽고 지나칠 수 있다 (명세 3장).
+   *
+   * "vault" 를 "금고" 로 옮기지 않았다. 화면 곳곳에서 "금고" 는 **이 앱이 여는 그것**을
+   * 가리키는 말로 이미 쓰고 있다("금고 열기"). 로고 밑에서까지 같은 말을 쓰면
+   * 상표 문구인지 버튼 설명인지 헷갈린다.
+   */
+  'lock.tagline': '나만의 비밀번호 보관함',
   'lock.open': '금고 열기',
   'lock.openWithBiometric': ({ how }) => `${ro(String(how))} 열기`,
   'lock.forgotPin': 'PIN(핀)을 잊었어요 (복구 코드)',

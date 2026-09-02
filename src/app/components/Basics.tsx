@@ -148,12 +148,18 @@ export function FieldAction({ label, onPress }: { label: string; onPress: () => 
 
 export function Screen({
   title,
+  subtitle,
   onBack,
   children,
   footer,
   mark,
 }: {
   title: string;
+  /**
+   * 제목 **아래** 한 줄. 옆에 나란히 두지 않는다 — 글꼴을 200% 로 키우면
+   * 제목이 밀려 잘린다. 아래 줄이면 두 배로 키워도 안 깨진다.
+   */
+  subtitle?: string;
   onBack?: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
@@ -175,9 +181,12 @@ export function Screen({
             // 그림은 장식이다. 화면 낭독기에는 옆의 제목만 읽히면 된다.
             <Image source={LOCK_MARK} style={styles.mark} accessibilityElementsHidden importantForAccessibility="no" />
           ) : null}
-          <Text style={styles.headerTitle} numberOfLines={2}>
-            {title}
-          </Text>
+          <View style={styles.titleBlock}>
+            <Text style={styles.headerTitle} numberOfLines={2}>
+              {title}
+            </Text>
+            {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+          </View>
         </View>
       </View>
       <ScrollView
@@ -285,7 +294,11 @@ const useStyles = createStyles((colors) =>
      * flexShrink 를 줘서 글자가 길어지면 그림이 먼저 줄어든다.
      */
     mark: { width: 34, height: 34, flexShrink: 0 },
-    headerTitle: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, flexShrink: 1 },
+    /** 제목과 그 아래 한 줄. 자물쇠 표시 옆에 통째로 놓인다. */
+    titleBlock: { flexShrink: 1 },
+    headerTitle: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
+    /** 제목 아래 한 줄. 흐린 글자색도 대비 6.5:1 이라 명세 3장을 넘는다. */
+    headerSubtitle: { fontFamily: font.family, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.textDim, marginTop: 2 },
     back: { minHeight: TOUCH, justifyContent: 'center' },
     backText: { fontFamily: font.familyBold, fontSize: font.body, color: colors.accent, fontWeight: WEIGHT },
     scroll: { flex: 1 },
