@@ -3,38 +3,40 @@ import { View } from 'react-native';
 import { BigButton, Body, Field, Notice, Screen } from '../components/Basics.tsx';
 import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
-import { authenticate, checkBiometricSupport } from '../platform/biometrics.ts';
-import { ro } from '../josa.ts';
+import { authenticate, type BiometricKind, checkBiometricSupport } from '../platform/biometrics.ts';
+import { useT } from '../i18n/index.ts';
 import { space } from '../theme/index.ts';
 
 /**
  * 02 잠금 화면 — 생체인증 버튼, PIN 패드, 실패 횟수·대기 표시 (명세 3장)
  *
  * 한 화면에 담는다. 스크롤이 생기면 "몇 번 틀렸고 얼마나 기다려야 하는지"가
- * 위로 밀려나 보이지 않는다. 제목 줄의 "잠김"이 로고 노릇을 한다.
+ * 위로 밀려나 보이지 않는다. 제목 줄의 자물쇠 표시와 "잠김"이 로고 노릇을 한다.
  */
-function waitText(ms: number): string {
+/** 남은 시간을 문장으로. 분·초를 나누는 것은 언어와 무관한 판단이라 여기서 한다. */
+function waitText(t: (k: 'lock.waitSeconds' | 'lock.waitMinutes', p?: Record<string, string | number>) => string, ms: number): string {
   const total = Math.ceil(ms / 1000);
-  if (total >= 60) {
-    const minutes = Math.ceil(total / 60);
-    return `${minutes}분 뒤에 다시 해 주세요`;
-  }
-  return `${total}초 뒤에 다시 해 주세요`;
+  return total >= 60
+    ? t('lock.waitMinutes', { minutes: Math.ceil(total / 60) })
+    : t('lock.waitSeconds', { seconds: total });
 }
 
 export function LockScreen() {
   const { vault, run, reset, refresh, refreshLockState, loadSettings, waitMs, failures, settings } = useVaultStore();
+  const t = useT();
+  /** 기기가 지원하는 것에 맞는 말. "지문" / "얼굴" / "지문·얼굴" */
+  const how = (kind: BiometricKind) => t(`biometric.${kind}`);
   const [pin, setPin] = useState('');
   const [mode, setMode] = useState<'pin' | 'recovery'>('pin');
   const [code, setCode] = useState('');
-  const [biometricLabel, setBiometricLabel] = useState('지문·얼굴');
+  const [biometricKind, setBiometricKind] = useState<BiometricKind>('both');
   const [canUseBiometric, setCanUseBiometric] = useState(false);
 
   useEffect(() => {
     void refreshLockState();
     void loadSettings();
     void checkBiometricSupport().then((s) => {
-      setBiometricLabel(s.label);
+      setBiometricKind(s.kind);
       setCanUseBiometric(s.available && settings.biometricUnlock);
     });
   }, [refreshLockState, loadSettings, settings.biometricUnlock]);
@@ -68,7 +70,12 @@ export function LockScreen() {
 
   const tryBiometric = async () => {
     if (!vault) return;
-    if (!(await authenticate(`${ro(biometricLabel)} 금고를 엽니다`))) return;
+    const ok = await authenticate({
+      reason: t('lock.biometricPrompt', { how: how(biometricKind) }),
+      cancel: t('biometric.cancel'),
+      fallback: t('biometric.fallback'),
+    });
+    if (!ok) return;
     const done = await run(() => vault.unlockWithBiometrics());
     await refreshLockState();
     if (done.ok) await afterUnlock();
@@ -86,41 +93,44 @@ export function LockScreen() {
 
   if (mode === 'recovery') {
     return (
-      <Screen title="복구 코드로 열기" onBack={() => setMode('pin')}>
-        <Body dim>최초 설정 때 적어 둔 복구 코드를 입력해 주세요.</Body>
+      <Screen title={t('lock.recoveryTitle')} onBack={() => setMode('pin')}>
+        <Body dim>{t('lock.recoveryHelp')}</Body>
         <Field
-          label="복구 코드"
+          label={t('lock.recoveryLabel')}
           value={code}
           onChangeText={setCode}
           autoCapitalize="characters"
           autoCorrect={false}
-          placeholder="예: WZC7-1W7M-KHRP-DNEN"
+          placeholder={t('lock.recoveryPlaceholder')}
           editable={!waiting}
         />
-        {waiting ? <Notice>{waitText(waitMs)}</Notice> : null}
-        <BigButton label="금고 열기" onPress={tryRecovery} disabled={waiting || code.trim().length === 0} />
+        {waiting ? <Notice>{waitText(t, waitMs)}</Notice> : null}
+        <BigButton label={t('lock.open')} onPress={tryRecovery} disabled={waiting || code.trim().length === 0} />
       </Screen>
     );
   }
 
   return (
-    <Screen title="잠김">
+    <Screen title={t('lock.title')} mark>
       {waiting ? (
-        <Notice>
-          {`PIN(핀)을 ${failures}번 잘못 눌렀습니다. ${waitText(waitMs)}.`}
-        </Notice>
+        <Notice>{t('lock.failuresWithWait', { count: failures, wait: waitText(t, waitMs) })}</Notice>
       ) : failures > 0 ? (
-        <Notice>{`PIN(핀)을 ${failures}번 잘못 눌렀습니다.`}</Notice>
+        <Notice>{t('lock.failures', { count: failures })}</Notice>
       ) : null}
 
       <PinDots length={pin.length} />
       <PinPad value={pin} onChange={setPin} disabled={waiting} />
       <View style={{ height: space.sm }} />
-      <BigButton label="금고 열기" onPress={tryPin} disabled={waiting || pin.length < 4} />
+      <BigButton label={t('lock.open')} onPress={tryPin} disabled={waiting || pin.length < 4} />
       {canUseBiometric ? (
-        <BigButton label={`${ro(biometricLabel)} 열기`} tone="plain" onPress={tryBiometric} disabled={waiting} />
+        <BigButton
+          label={t('lock.openWithBiometric', { how: how(biometricKind) })}
+          tone="plain"
+          onPress={tryBiometric}
+          disabled={waiting}
+        />
       ) : null}
-      <BigButton label="PIN(핀)을 잊었어요 (복구 코드)" tone="plain" onPress={() => setMode('recovery')} />
+      <BigButton label={t('lock.forgotPin')} tone="plain" onPress={() => setMode('recovery')} />
     </Screen>
   );
 }

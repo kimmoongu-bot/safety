@@ -7,7 +7,10 @@ import { BACKUP_REMINDER_DAYS } from '../../core/backup.ts';
  */
 const REMINDER_ID = 'jamgim-backup-reminder';
 
-export async function scheduleBackupReminder(lastBackupAt: number): Promise<void> {
+/** 알림에 쓸 말. 이 모듈은 말을 갖지 않는다 — 부르는 쪽이 넘긴다. */
+export type ReminderText = { title: string; body: string };
+
+export async function scheduleBackupReminder(lastBackupAt: number, text: ReminderText): Promise<void> {
   try {
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') {
@@ -20,8 +23,8 @@ export async function scheduleBackupReminder(lastBackupAt: number): Promise<void
     await Notifications.scheduleNotificationAsync({
       identifier: REMINDER_ID,
       content: {
-        title: '잠김 — 백업할 때가 되었습니다',
-        body: '마지막 백업 후 90일이 지났습니다. 새 백업 파일을 만들어 두세요.',
+        title: text.title,
+        body: text.body,
       },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds, repeats: false },
     });

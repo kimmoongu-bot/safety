@@ -1,0 +1,155 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { ko } from '../src/app/i18n/ko.ts';
+import { makePseudo } from '../src/app/i18n/pseudo.ts';
+import { translate } from '../src/app/i18n/types.ts';
+
+function sourceFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) out.push(...sourceFiles(path));
+    else if (/\.(ts|tsx)$/.test(entry)) out.push(path);
+  }
+  return out;
+}
+
+const files = sourceFiles(join('src', 'app'));
+
+/**
+ * 옮기기가 끝난 파일.
+ *
+ * 여기 적힌 파일에는 화면에 보이는 한국어가 남아 있으면 안 된다.
+ * 파일을 하나 옮길 때마다 여기에 더한다. **줄어들기만 하고 늘어나지 않는 목록의 반대** —
+ * 늘어나기만 하는 목록이다. 한 번 옮긴 파일에 한국어가 다시 들어오면 검사가 잡는다.
+ */
+const MIGRATED = [
+  'src/app/screens/LockScreen.tsx',
+  'src/app/screens/VaultListScreen.tsx',
+  'src/app/screens/SearchResultsScreen.tsx',
+  'src/app/screens/EditScreen.tsx',
+  'src/app/screens/DetailScreen.tsx',
+  'src/app/components/RecordCard.tsx',
+  'src/app/platform/biometrics.ts',
+  'src/app/screens/SetupScreen.tsx',
+  'src/app/screens/SettingsScreen.tsx',
+  'src/app/screens/BackupScreen.tsx',
+  'src/app/components/PinPad.tsx',
+  'src/app/components/Basics.tsx',
+  'src/app/components/Confirm.tsx',
+  'src/app/components/PrivacyShield.tsx',
+  'src/app/components/RecoveryCodeView.tsx',
+  'src/app/App.tsx',
+  'src/app/state/vaultStore.ts',
+  'src/app/platform/screenGuard.ts',
+  'src/app/platform/reminders.ts',
+  'src/app/platform/backupFile.ts',
+].map((p) => join(...p.split('/')));
+
+/**
+ * 주석을 지운 소스.
+ *
+ * 주석의 한국어는 옮길 대상이 아니다 — 저와 다음 개발자가 읽는 글이다.
+ * 줄 끝에 붙은 주석(`code(); // 설명`)과 화면 코드 안의 주석(`{/* 설명 *​/}`)까지
+ * 지워야 한다. 줄 첫머리만 보면 그것들을 놓친다.
+ */
+function withoutComments(source: string): string[] {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, '') // 여러 줄 주석과 JSX 안 주석
+    .split('\n')
+    .map((line) => line.replace(/\/\/.*$/, '')); // 줄 끝 주석
+}
+
+test('문장 목록에 열쇠가 실제로 들어 있다', () => {
+  assert.ok(Object.keys(ko).length > 20, `열쇠 ${Object.keys(ko).length}개`);
+});
+
+test('화면이 부르는 열쇠는 모두 문장 목록에 있다', () => {
+  const missing: string[] = [];
+  for (const file of files) {
+    const source = readFileSync(file, 'utf8');
+    for (const m of source.matchAll(/\bt\(\s*'([\w.]+)'/g)) {
+      const key = m[1];
+      if (key && !(key in ko)) missing.push(`${file} → ${key}`);
+    }
+  }
+  assert.deepEqual(missing, [], `문장 목록에 없는 열쇠:\n  ${missing.join('\n  ')}`);
+});
+
+test('옮긴 파일에는 화면용 한국어가 남아 있지 않다', () => {
+  const offenders: string[] = [];
+  for (const file of MIGRATED) {
+    withoutComments(readFileSync(file, 'utf8')).forEach((line, i) => {
+      if (/[가-힣]/.test(line)) offenders.push(`${file}:${i + 1}  ${line.trim().slice(0, 60)}`);
+    });
+  }
+  assert.deepEqual(offenders, [], `옮기다 만 문장:\n  ${offenders.join('\n  ')}`);
+});
+
+test('자리 표시자가 들어가는 문장은 값을 받으면 자리가 사라진다', () => {
+  const withParams: [string, Record<string, string | number>][] = [
+    ['lock.failures', { count: 3 }],
+    ['lock.failuresWithWait', { count: 5, wait: '30초 뒤에 다시 해 주세요' }],
+    ['lock.waitSeconds', { seconds: 30 }],
+    ['lock.waitMinutes', { minutes: 5 }],
+    ['pinpad.digit', { digit: 7 }],
+    ['pinpad.entered', { count: 4 }],
+    ['list.unreadable', { count: 2 }],
+    ['list.noMatch', { query: '네이버' }],
+    ['search.found', { count: 2 }],
+    ['card.label', { service: '네이버', username: 'kim' }],
+    ['detail.autoHide', { seconds: 15 }],
+    ['detail.copied', { what: '비밀번호', seconds: 60 }],
+    ['detail.emptyField', { what: '아이디' }],
+    ['detail.deleteMessage', { service: '네이버' }],
+    ['backup.last', { when: '2026년 9월 2일' }],
+    ['backup.passwordHint', { min: 8 }],
+    ['backup.made', { count: 3 }],
+    ['backup.picked', { name: 'a.jamgim' }],
+    ['backup.pickedToast', { name: 'a.jamgim' }],
+    ['backup.previewCount', { count: 3 }],
+    ['backup.restored', { count: 3 }],
+    ['settings.clipboardAfter', { seconds: 60 }],
+    ['settings.screenGuardFailed', { reason: '알 수 없음' }],
+    ['common.recoveryCodeLabel', { code: 'ABCD' }],
+    ['common.failedWhy', { why: '무슨 일' }],
+  ];
+  for (const [key, params] of withParams) {
+    const made = translate(ko, key, params);
+    assert.ok(!made.includes('{'), `${key} 에 값이 안 들어갔다: ${made}`);
+  }
+});
+
+test('조사가 앞말에 따라 바뀐다', () => {
+  assert.equal(translate(ko, 'lock.openWithBiometric', { how: '지문' }), '지문으로 열기');
+  assert.equal(translate(ko, 'lock.openWithBiometric', { how: '얼굴' }), '얼굴로 열기');
+});
+
+test('가짜 언어에도 같은 열쇠가 모두 있다', () => {
+  const pseudo = makePseudo(ko);
+  assert.deepEqual(Object.keys(pseudo).sort(), Object.keys(ko).sort());
+});
+
+test('없는 열쇠는 빈칸이 아니라 열쇠 이름이 나온다', () => {
+  assert.equal(translate(ko, 'nope.missing'), 'nope.missing');
+});
+
+test('옛 항목의 갈래는 번역하지 않고 그대로 보여 준다', async () => {
+  /**
+   * 갈래 코드를 쓰기 전에 저장된 항목에는 한국어가 그대로 들어 있다("은행").
+   * 그런 값을 번역하려 들면 못 찾아서 빈칸이 되거나 열쇠 이름이 나온다.
+   * 옛 항목이 갑자기 이상해지면 안 된다.
+   */
+  const { categoryLabel, CATEGORY_CODES } = await import('../src/app/i18n/categories.ts');
+  const t = ((key: string) => translate(ko, key)) as never;
+
+  assert.equal(categoryLabel('은행', t), '은행', '옛 값은 그대로');
+  assert.equal(categoryLabel('내가 만든 갈래', t), '내가 만든 갈래');
+  for (const code of CATEGORY_CODES) {
+    const shown = categoryLabel(code, t);
+    assert.notEqual(shown, code, `${code} 가 번역되지 않았다`);
+    assert.ok(!shown.includes('.'), `${code} → ${shown} 처럼 열쇠 이름이 나오면 안 된다`);
+  }
+});

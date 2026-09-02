@@ -1,6 +1,8 @@
 import React from 'react';
+import { useT } from '../i18n/index.ts';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
+import { font, space, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /**
  * 큰 숫자 패드 (명세 3장: 터치 타깃 48dp 이상, 한 화면의 핵심 행동 1~2개).
@@ -8,9 +10,22 @@ import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
  */
 export const PIN_MAX_LENGTH = 12;
 
+/**
+ * 지우기 칸을 가리키는 표시.
+ *
+ * 화면에 나오는 말이 아니라 **어느 칸인지 구분하는 이름**이다. 예전에는 '지움' 이라는
+ * 한국어를 값으로 썼는데, 그러면 다른 언어로 바꿀 때 이 비교문까지 깨진다.
+ */
+const ERASE = 'erase';
+
+/** 숫자 하나의 지름. 최소 터치 크기(48dp)보다 넉넉하다. */
+const KEY = 66;
+
 export function PinDots({ length }: { length: number }) {
+  const styles = useStyles();
+  const t = useT();
   return (
-    <View style={styles.dots} accessibilityLabel={`${length}자리 입력함`}>
+    <View style={styles.dots} accessibilityLabel={t('pinpad.entered', { count: length })}>
       {Array.from({ length: Math.max(6, length) }).map((_, i) => (
         <View key={i} style={[styles.dot, i < length && styles.dotOn]} />
       ))}
@@ -27,13 +42,15 @@ export function PinPad({
   onChange: (next: string) => void;
   disabled?: boolean;
 }) {
+  const styles = useStyles();
+  const t = useT();
   const press = (key: string) => {
     if (disabled) return;
-    if (key === '지움') onChange(value.slice(0, -1));
+    if (key === ERASE) onChange(value.slice(0, -1));
     else if (value.length < PIN_MAX_LENGTH) onChange(value + key);
   };
 
-  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '지움'];
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ERASE];
   return (
     <View style={styles.pad}>
       {keys.map((key, index) =>
@@ -43,12 +60,14 @@ export function PinPad({
           <Pressable
             key={key}
             accessibilityRole="button"
-            accessibilityLabel={key === '지움' ? '한 글자 지우기' : `숫자 ${key}`}
+            accessibilityLabel={key === ERASE ? t('pinpad.eraseOne') : t('pinpad.digit', { digit: key })}
             disabled={disabled}
             onPress={() => press(key)}
             style={({ pressed }) => [styles.key, styles.keyBox, pressed && styles.pressed, disabled && styles.off]}
           >
-            <Text style={key === '지움' ? styles.keyTextSmall : styles.keyText}>{key}</Text>
+            <Text style={key === ERASE ? styles.keyTextSmall : styles.keyText}>
+              {key === ERASE ? t('pinpad.erase') : key}
+            </Text>
           </Pressable>
         ),
       )}
@@ -56,17 +75,43 @@ export function PinPad({
   );
 }
 
-const styles = StyleSheet.create({
-  dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.sm },
-  dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
-  dotOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  pad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.sm },
-  // 높이는 손가락이 닿는 최소 크기(48dp)보다 넉넉하되, 숫자판 네 줄에 버튼 세 개까지
-  // 한 화면에 들어가야 한다. 스크롤이 생기면 실패 안내나 아래 버튼이 밀려난다.
-  key: { width: '30%', minWidth: TOUCH * 1.6, minHeight: TOUCH + 10, alignItems: 'center', justifyContent: 'center' },
-  keyBox: { borderRadius: radius.md, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.bg },
-  pressed: { opacity: 0.7, backgroundColor: colors.surface },
-  off: { opacity: 0.5 },
-  keyText: { fontSize: font.huge, fontWeight: '700', color: colors.text },
-  keyTextSmall: { fontSize: font.body, fontWeight: '700', color: colors.primary },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.sm },
+    dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
+    dotOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+    /**
+     * 숫자판은 **한 줄에 셋**이다.
+     *
+     * 칸 너비를 비율(%)에서 고정값으로 바꾸면서(동그라미를 만들려면 가로세로가 같아야
+     * 한다) 줄 너비를 안 묶어 뒀더니, 넓은 화면에서 한 줄에 넷이 들어가
+     * 1234 / 5678 / 9 0 지움 으로 흐트러졌다. 실기기에서 그렇게 나왔다.
+     *
+     * 그래서 판 자체의 너비를 '셋 + 사이 둘' 로 못박는다. 화면이 아무리 넓어도
+     * 넷째는 자리가 없어 다음 줄로 내려간다.
+     */
+    pad: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: space.sm,
+      width: KEY * 3 + space.sm * 2,
+      alignSelf: 'center',
+    },
+    /**
+     * 동그란 숫자판.
+     *
+     * 지름을 고정한다. 폭을 비율(%)로 주면 동그라미를 만들 수 없다 — 높이를 폭에
+     * 맞춰야 하는데 비율은 실행할 때 정해지기 때문이다.
+     *
+     * 66 은 손가락이 닿는 최소 크기(48dp)보다 넉넉하면서, 네 줄에 아래 버튼 세 개까지
+     * 한 화면에 들어가는 크기다. 더 키우면 스크롤이 생겨 실패 안내가 밀려난다.
+     */
+    key: { width: KEY, height: KEY, alignItems: 'center', justifyContent: 'center' },
+    keyBox: { borderRadius: KEY / 2, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
+    pressed: { opacity: 0.7, backgroundColor: colors.surface },
+    off: { opacity: 0.5 },
+    keyText: { fontFamily: font.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.text },
+    keyTextSmall: { fontFamily: font.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.accent },
+  }),
+);

@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { BigButton, Body, Choice, Field, Screen } from '../components/Basics.tsx';
+import { BigButton, Body, Choice, Field, FieldAction, Screen } from '../components/Basics.tsx';
+import { CATEGORY_CODES, DEFAULT_CATEGORY } from '../i18n/categories.ts';
+import { useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 import type { VaultPayload } from '../../core/schema.ts';
-import { space } from '../theme/index.ts';
 
 /**
  * 04 새 정보 추가 / 수정 — 서비스명 / 아이디 / 비밀번호 / 메모 / 카테고리
  */
-const CATEGORIES = ['은행', '카드', '쇼핑', '관공서', '통신', '기타'];
+
 
 export function EditScreen({ id }: { id?: string }) {
   const { records, back, addRecord, updateRecord, showToast, run } = useVaultStore();
   const existing = id ? records.find((r) => r.id === id) : undefined;
 
+  const t = useT();
   const [service, setService] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [memo, setMemo] = useState('');
-  const [category, setCategory] = useState('기타');
+  const [category, setCategory] = useState<string>(DEFAULT_CATEGORY);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -27,12 +28,12 @@ export function EditScreen({ id }: { id?: string }) {
     setUsername(existing.username);
     setPassword(existing.password);
     setMemo(existing.memo);
-    setCategory(existing.category || '기타');
+    setCategory(existing.category || DEFAULT_CATEGORY);
   }, [existing]);
 
   const save = async () => {
     if (!service.trim()) {
-      showToast('어디에서 쓰는 것인지 이름을 적어 주세요.', 'bad');
+      showToast(t('edit.needService'), 'bad');
       return;
     }
     const payload: VaultPayload = {
@@ -48,53 +49,54 @@ export function EditScreen({ id }: { id?: string }) {
       else await addRecord(payload);
     });
     if (done.ok) {
-      showToast(existing ? '고쳤습니다.' : '넣었습니다.');
+      showToast(t(existing ? 'edit.updated' : 'edit.saved'));
       back();
     }
   };
 
   return (
     <Screen
-      title={existing ? '고치기' : '새로 넣기'}
+      title={t(existing ? 'edit.titleEdit' : 'edit.titleNew')}
       onBack={back}
-      footer={<BigButton label="저장하기" onPress={save} />}
+      footer={<BigButton label={t('edit.save')} onPress={save} />}
     >
       <Field
-        label="어디에서 쓰나요?"
-        hint="예: 국민은행, 현대카드, 쿠팡"
+        label={t('edit.service')}
+        hint={t('edit.serviceHint')}
         value={service}
         onChangeText={setService}
         autoCorrect={false}
       />
       <Field
-        label="아이디"
+        label={t('edit.username')}
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
         autoCorrect={false}
       />
       <Field
-        label="비밀번호"
+        label={t('edit.password')}
         value={password}
         onChangeText={setPassword}
         autoCapitalize="none"
         autoCorrect={false}
         secureTextEntry={!showPassword}
+        // 보기/숨김을 입력창 안으로 넣었다 (시안). 큰 버튼 하나가 줄어 화면이 그만큼 여유롭다.
+        trailing={
+          <FieldAction
+            label={t(showPassword ? 'edit.hide' : 'edit.show')}
+            onPress={() => setShowPassword((v) => !v)}
+          />
+        }
       />
-      <BigButton
-        label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-        tone="plain"
-        onPress={() => setShowPassword((v) => !v)}
-      />
-      <View style={{ height: space.sm }} />
       <Choice
-        label="갈래"
+        label={t('edit.category')}
         value={category}
-        options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+        options={CATEGORY_CODES.map((c) => ({ value: c as string, label: t(`category.${c}`) }))}
         onChange={setCategory}
       />
-      <Field label="메모" value={memo} onChangeText={setMemo} multiline numberOfLines={3} />
-      {existing ? <Body dim>비밀번호를 바꾸면 바꾼 날짜가 함께 기록됩니다.</Body> : null}
+      <Field label={t('edit.memo')} value={memo} onChangeText={setMemo} multiline numberOfLines={3} />
+      {existing ? <Body dim>{t('edit.pwDateNote')}</Body> : null}
     </Screen>
   );
 }

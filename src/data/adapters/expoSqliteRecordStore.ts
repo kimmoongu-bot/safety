@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import type { RecordStore } from '../../core/ports.ts';
 import type { VaultRecord } from '../../core/schema.ts';
+import { openOnce } from '../openOnce.ts';
 
 /**
  * 레코드 저장소.
@@ -13,6 +14,19 @@ import type { VaultRecord } from '../../core/schema.ts';
  * 저장되는 값이 이미 전부 암호문이라 평문이 새지 않는다.
  */
 const DB_NAME = 'jamgim.db';
+
+const CREATE_TABLE = `
+  CREATE TABLE IF NOT EXISTS records (
+    id TEXT PRIMARY KEY NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    favorite INTEGER NOT NULL DEFAULT 0,
+    schema_version INTEGER NOT NULL,
+    nonce TEXT NOT NULL,
+    ciphertext TEXT NOT NULL,
+    tag TEXT NOT NULL
+  );
+`;
 
 type Row = {
   id: string;
@@ -36,27 +50,24 @@ function toRecord(row: Row): VaultRecord {
   };
 }
 
-export class ExpoSqliteRecordStore implements RecordStore {
-  private db: SQLite.SQLiteDatabase | null = null;
+/** 열기만 갈아 끼울 수 있게 해 둔다. 테스트에서 진짜 SQLite 없이 확인하기 위한 것이다. */
+export type DbOpener = (name: string) => Promise<SQLite.SQLiteDatabase>;
 
-  private async open(): Promise<SQLite.SQLiteDatabase> {
-    if (this.db) return this.db;
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
-    await db.execAsync(`
-      PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS records (
-        id TEXT PRIMARY KEY NOT NULL,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        favorite INTEGER NOT NULL DEFAULT 0,
-        schema_version INTEGER NOT NULL,
-        nonce TEXT NOT NULL,
-        ciphertext TEXT NOT NULL,
-        tag TEXT NOT NULL
-      );
-    `);
-    this.db = db;
-    return db;
+export class ExpoSqliteRecordStore implements RecordStore {
+  /**
+   * 한 번만 연다. 왜 이렇게 해야 하는지는 `src/data/openOnce.ts` 에 적었다 —
+   * 실기기에서 데이터베이스가 두 번 열려 질의가 죽은 적이 있다.
+   */
+  private readonly open: () => Promise<SQLite.SQLiteDatabase>;
+
+  constructor(opener: DbOpener = (name) => SQLite.openDatabaseAsync(name)) {
+    this.open = openOnce(async () => {
+      const db = await opener(DB_NAME);
+      // WAL 을 쓰지 않는다. 쓰는 곳이 한 군데뿐이고 쓰는 양도 적어서 얻을 것이 없는데,
+      // -wal 과 -shm 파일이 더 생기고 앱을 갱신할 때 깨질 구석만 는다.
+      await db.execAsync(CREATE_TABLE);
+      return db;
+    });
   }
 
   async list(): Promise<VaultRecord[]> {

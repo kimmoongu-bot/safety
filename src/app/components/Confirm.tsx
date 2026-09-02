@@ -1,7 +1,9 @@
 import React from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import { BigButton } from './Basics.tsx';
-import { colors, font, radius, space } from '../theme/index.ts';
+import { font, radius, space, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
+import { useT } from '../i18n/index.ts';
 
 /**
  * 되돌릴 수 없는 일에 쓰는 확인창.
@@ -24,6 +26,8 @@ export function Confirm({
   onCancel: () => void;
   tone?: 'primary' | 'danger';
 }) {
+  const styles = useStyles();
+  const t = useT();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>
@@ -31,16 +35,18 @@ export function Confirm({
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
           <BigButton label={confirmLabel} tone={tone} onPress={onConfirm} />
-          <BigButton label="그만두기" tone="plain" onPress={onCancel} />
+          <BigButton label={t('common.cancel')} tone="plain" onPress={onCancel} />
         </View>
       </View>
     </Modal>
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: space.md },
-  card: { backgroundColor: colors.bg, borderRadius: radius.lg, padding: space.lg, gap: space.sm },
-  title: { fontSize: font.title, fontWeight: '700', color: colors.text },
-  message: { fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5, marginBottom: space.sm },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: space.md },
+    card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.lg, gap: space.sm },
+    title: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
+    message: { fontFamily: font.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5, marginBottom: space.sm },
+  }),
+);

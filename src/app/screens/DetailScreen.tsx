@@ -3,9 +3,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { BigButton, Body, Notice, Screen } from '../components/Basics.tsx';
 import { Confirm } from '../components/Confirm.tsx';
 import { isPasswordStale } from '../components/RecordCard.tsx';
+import { useLocale, useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { copySensitive } from '../platform/clipboard.ts';
-import { colors, font, radius, space } from '../theme/index.ts';
+import { font, radius, space, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /**
  * 05 계정 상세 — 아이디·비밀번호(숨김)·메모, 복사/보기/수정/삭제, 마지막 변경일
@@ -14,13 +16,21 @@ import { colors, font, radius, space } from '../theme/index.ts';
  */
 const AUTO_HIDE_SECONDS = 15;
 
-function formatDate(ms: number): string {
-  if (!ms) return '기록 없음';
+function formatDate(ms: number, locale: string, t: (k: 'detail.noDate') => string): string {
+  if (!ms) return t('detail.noDate');
   const d = new Date(ms);
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+  // 날짜 모양은 나라마다 다르다. Intl 이 그 나라 방식으로 써 준다.
+  try {
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(d);
+  } catch {
+    return d.toISOString().slice(0, 10);
+  }
 }
 
 export function DetailScreen({ id }: { id: string }) {
+  const styles = useStyles();
+  const t = useT();
+  const { locale } = useLocale();
   const { records, back, go, removeRecord, showToast, settings } = useVaultStore();
   const record = records.find((r) => r.id === id);
   const [visible, setVisible] = useState(false);
@@ -35,91 +45,91 @@ export function DetailScreen({ id }: { id: string }) {
 
   if (!record) {
     return (
-      <Screen title="항목" onBack={back}>
-        <Body dim>항목을 찾지 못했습니다.</Body>
+      <Screen title={t('detail.title')} onBack={back}>
+        <Body dim>{t('detail.notFound')}</Body>
       </Screen>
     );
   }
 
   const copy = async (label: string, value: string) => {
     if (!value) {
-      showToast(`${label}이(가) 비어 있습니다.`, 'bad');
+      showToast(t('detail.emptyField', { what: label }), 'bad');
       return;
     }
     await copySensitive(value, settings.clipboardClearSeconds);
-    showToast(`${label}을(를) 복사했습니다. ${settings.clipboardClearSeconds}초 뒤에 지웁니다.`);
+    showToast(t('detail.copied', { what: label, seconds: settings.clipboardClearSeconds }));
   };
 
   return (
     <Screen
-      title={record.service || '이름 없음'}
+      title={record.service || t('card.noName')}
       onBack={back}
       footer={
         <>
-          <BigButton label="고치기" onPress={() => go({ name: 'edit', id: record.id })} />
-          <BigButton label="지우기" tone="danger" onPress={() => setConfirmDelete(true)} />
+          <BigButton label={t('detail.edit')} onPress={() => go({ name: 'edit', id: record.id })} />
+          <BigButton label={t('detail.delete')} tone="danger" onPress={() => setConfirmDelete(true)} />
         </>
       }
     >
       <View style={styles.block}>
-        <Text style={styles.label}>아이디</Text>
+        <Text style={styles.label}>{t('detail.username')}</Text>
         <Text style={styles.value} selectable={false}>
-          {record.username || '없음'}
+          {record.username || t('detail.none')}
         </Text>
-        <BigButton label="아이디 복사" tone="plain" onPress={() => copy('아이디', record.username)} />
+        <BigButton label={t('detail.copyUsername')} tone="plain" onPress={() => copy(t('detail.username'), record.username)} />
       </View>
 
       <View style={styles.block}>
-        <Text style={styles.label}>비밀번호</Text>
-        <Text style={styles.value}>{visible ? record.password : '●●●●●●●●'}</Text>
+        <Text style={styles.label}>{t('detail.password')}</Text>
+        <Text style={styles.value}>{visible ? record.password : t('detail.hidden')}</Text>
         <BigButton
-          label={visible ? '숨기기' : '보기'}
+          label={t(visible ? 'detail.conceal' : 'detail.reveal')}
           tone="plain"
           onPress={() => setVisible((v) => !v)}
         />
-        <BigButton label="비밀번호 복사" tone="plain" onPress={() => copy('비밀번호', record.password)} />
-        {visible ? <Body dim>{`${AUTO_HIDE_SECONDS}초 뒤에 저절로 숨깁니다.`}</Body> : null}
+        <BigButton label={t('detail.copyPassword')} tone="plain" onPress={() => copy(t('detail.password'), record.password)} />
+        {visible ? <Body dim>{t('detail.autoHide', { seconds: AUTO_HIDE_SECONDS })}</Body> : null}
       </View>
 
       {record.memo ? (
         <View style={styles.block}>
-          <Text style={styles.label}>메모</Text>
+          <Text style={styles.label}>{t('detail.memo')}</Text>
           <Text style={styles.value}>{record.memo}</Text>
         </View>
       ) : null}
 
       <View style={styles.block}>
-        <Text style={styles.label}>비밀번호 바꾼 날</Text>
-        <Text style={styles.value}>{formatDate(record.pwChangedAt)}</Text>
+        <Text style={styles.label}>{t('detail.pwChangedAt')}</Text>
+        <Text style={styles.value}>{formatDate(record.pwChangedAt, locale, t)}</Text>
         {isPasswordStale(record, Date.now()) ? (
-          <Notice>1년 넘게 바꾸지 않았습니다. 한 번 바꿔 두면 좋습니다.</Notice>
+          <Notice>{t('detail.staleNotice')}</Notice>
         ) : null}
       </View>
 
       {record.prevPassword ? (
         <View style={styles.block}>
-          <Text style={styles.label}>바꾸기 전 비밀번호</Text>
-          <Text style={styles.value}>{showPrev ? record.prevPassword : '●●●●●●●●'}</Text>
+          <Text style={styles.label}>{t('detail.prevPassword')}</Text>
+          <Text style={styles.value}>{showPrev ? record.prevPassword : t('detail.hidden')}</Text>
           <BigButton
-            label={showPrev ? '숨기기' : '보기'}
+            label={t(showPrev ? 'detail.conceal' : 'detail.reveal')}
             tone="plain"
             onPress={() => setShowPrev((v) => !v)}
           />
-          <Body dim>새 비밀번호가 안 될 때 되돌리라고 하나만 남겨 둡니다.</Body>
+          <Body dim>{t('detail.prevWhy')}</Body>
         </View>
       ) : null}
 
       <Confirm
         visible={confirmDelete}
-        title="이 항목을 지울까요?"
-        message={`“${record.service}”을(를) 지우면 되돌릴 수 없습니다.`}
-        confirmLabel="지우기"
+        title={t('detail.deleteTitle')}
+        message={t('detail.deleteMessage', { service: record.service })}
+        confirmLabel={t('detail.delete')}
         tone="danger"
         onCancel={() => setConfirmDelete(false)}
         onConfirm={async () => {
           setConfirmDelete(false);
           await removeRecord(record.id);
-          showToast('지웠습니다.');
+          showToast(t('detail.deleted'));
           back();
         }}
       />
@@ -127,15 +137,17 @@ export function DetailScreen({ id }: { id: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  block: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: space.md,
-    gap: space.sm,
-    marginBottom: space.sm,
-  },
-  label: { fontSize: font.label, fontWeight: '700', color: colors.textDim },
-  value: { fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    block: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: space.md,
+      gap: space.sm,
+      marginBottom: space.sm,
+    },
+    label: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.textDim },
+    value: { fontFamily: font.family, fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
+  }),
+);

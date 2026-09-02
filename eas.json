@@ -13,6 +13,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "JAMGIM_DEV_BUILD": "1"
+      },
       "android": {
         "buildType": "apk"
       }

@@ -86,3 +86,41 @@ test('안드로이드 OS 자동 백업에서 금고를 제외한다 (명세 5.5)
   assert.ok(plugin.includes('dataExtractionRules'));
   assert.ok(plugin.includes('device-transfer'));
 });
+
+test('글자에 굵기 숫자를 직접 주지 않는다 (가짜 굵기 방지)', () => {
+  /**
+   * 굵기는 글꼴 이름으로 고른다 (theme 의 font.family / font.familyBold).
+   * 여기에 fontWeight: '700' 같은 값을 같이 주면, 안드로이드가 이미 굵은 글꼴을
+   * **한 번 더** 굵게 그린다(가짜 굵기). 획이 뭉개지고 글자가 지저분해진다.
+   *
+   * theme 파일만 예외다 — 거기서 WEIGHT 를 정의한다.
+   */
+  const offenders: string[] = [];
+  for (const file of files) {
+    if (file.endsWith(join('theme', 'index.ts'))) continue;
+    readFileSync(file, 'utf8')
+      .split('\n')
+      .forEach((line, i) => {
+        if (/fontWeight\s*:\s*['"]/.test(line)) offenders.push(`${file}:${i + 1}`);
+      });
+  }
+  assert.deepEqual(offenders, [], `굵기를 숫자로 준 곳: ${offenders.join(', ')}`);
+});
+
+test('글자 크기를 정하는 곳은 글꼴도 함께 정한다', () => {
+  /**
+   * fontSize 만 주고 fontFamily 를 빠뜨리면 그 글자만 시스템 기본 글꼴로 나온다.
+   * 한 화면에 두 글꼴이 섞여 보이는데, 눈에 잘 안 띄어서 놓치기 쉽다.
+   */
+  const offenders: string[] = [];
+  for (const file of files) {
+    const lines = readFileSync(file, 'utf8').split('\n');
+    lines.forEach((line, i) => {
+      if (!/fontSize\s*:/.test(line)) return;
+      // 같은 줄이나 바로 위 줄에 글꼴이 있어야 한다 (한 줄짜리·여러 줄짜리 둘 다)
+      const near = [lines[i - 1] ?? '', line].join(' ');
+      if (!/fontFamily\s*:/.test(near)) offenders.push(`${file}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [], `글꼴을 안 정한 곳: ${offenders.join(', ')}`);
+});

@@ -11,10 +11,11 @@ import { ExpoMetaStore } from '../data/adapters/expoMetaStore.ts';
 import { ExpoSecureKeyStore } from '../data/adapters/expoSecureKeyStore.ts';
 import { ExpoSqliteRecordStore } from '../data/adapters/expoSqliteRecordStore.ts';
 import { clearIfDue as clearClipboardIfDue } from './platform/clipboard.ts';
-import { enableScreenGuard } from './platform/screenGuard.ts';
+import { enableScreenGuard, guardFailureMessage } from './platform/screenGuard.ts';
 import { PrivacyShield } from './components/PrivacyShield.tsx';
 import { ToastHost } from './components/Toast.tsx';
-import { useVaultStore } from './state/vaultStore.ts';
+import { useT } from './i18n/index.ts';
+import { setStoreTranslator, useVaultStore } from './state/vaultStore.ts';
 import { FALLBACK_AUTO_LOCK_MS, shouldLockForIdle, shouldLockOnBackground } from './lockPolicy.ts';
 import { BackupScreen } from './screens/BackupScreen.tsx';
 import { DetailScreen } from './screens/DetailScreen.tsx';
@@ -24,10 +25,13 @@ import { SearchResultsScreen } from './screens/SearchResultsScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import { SetupScreen } from './screens/SetupScreen.tsx';
 import { VaultListScreen } from './screens/VaultListScreen.tsx';
-import { colors } from './theme/index.ts';
+import { frame, useColors } from './theme/index.ts';
+import { createStyles } from './theme/useStyles.ts';
 
 /** 화면 하나만 고른다. 화면 수가 8개뿐이라 별도 네비게이션 라이브러리를 두지 않는다. */
 function Router() {
+  const styles = useStyles();
+  const colors = useColors();
   const route = useVaultStore((s) => s.stack[s.stack.length - 1]);
   switch (route?.name) {
     case 'setup':
@@ -58,12 +62,20 @@ function Router() {
 }
 
 export default function App() {
+  const styles = useStyles();
+  const colors = useColors();
+  const t = useT();
   const { attach, reset, lock, refreshLockState, loadSettings } = useVaultStore();
   const [ready, setReady] = useState(false);
   const lastActivityAt = useVaultStore((s) => s.lastActivityAt);
   const settings = useVaultStore((s) => s.settings);
   const activityRef = useRef(lastActivityAt);
   activityRef.current = lastActivityAt;
+
+  // 저장소는 화면 밖이라 훅을 쓸 수 없다. 번역기를 넘겨 준다.
+  useEffect(() => {
+    setStoreTranslator(t);
+  }, [t]);
 
   // 시작: 암호 모듈과 저장소를 붙이고, 금고가 있는지 확인한다.
   useEffect(() => {
@@ -105,15 +117,15 @@ export default function App() {
     let cancelled = false;
     const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
     const apply = async () => {
-      let last = '알 수 없는 이유';
+      let last: ReturnType<typeof guardFailureMessage> | null = null;
       for (let attempt = 0; attempt < 3 && !cancelled; attempt += 1) {
         if (attempt > 0) await wait(400);
         const result = await enableScreenGuard();
         if (result.ok) return;
-        last = result.reason;
+        last = guardFailureMessage(result);
       }
-      if (!cancelled) {
-        useVaultStore.getState().showToast(`화면 가리기를 걸지 못했습니다. (${last})`, 'bad');
+      if (!cancelled && last) {
+        useVaultStore.getState().showToast(t(last.key, last.params), 'bad');
       }
     };
     void apply();
@@ -188,15 +200,18 @@ export default function App() {
         안 그러면 위치를 정하는 곳이 두 군데(SafeAreaView 의 여백 + 상자의 top)가 되어
         기기마다 시계·배터리를 가리거나 너무 내려간다. 지금은 상자가 스스로 한 번만 계산한다.
       */}
-      <View style={styles.root}>
-        <SafeAreaView style={styles.root} onTouchStart={() => useVaultStore.getState().touch()}>
-          <StatusBar style="dark" />
-          {ready ? <Router /> : (
-            <View style={styles.center}>
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-          )}
-          <PrivacyShield />
+      <View style={styles.outer}>
+        <SafeAreaView style={styles.safe} onTouchStart={() => useVaultStore.getState().touch()}>
+          {/* 액자 바깥 색에 맞춰 시계·배터리를 밝게/어둡게 그린다. */}
+          <StatusBar style={colors.statusBar} />
+          <View style={styles.card}>
+            {ready ? <Router /> : (
+              <View style={styles.center}>
+                <ActivityIndicator size="large" color={colors.primary} />
+              </View>
+            )}
+            <PrivacyShield />
+          </View>
         </SafeAreaView>
         <ToastHost />
       </View>
@@ -204,7 +219,22 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    /** 상자 바깥. 화면 끝까지 채운다. */
+    outer: { flex: 1, backgroundColor: colors.frame },
+    safe: { flex: 1 },
+    /**
+     * 앱 상자. 둘레에 여백을 두고 모서리를 둥글린다.
+     * overflow: 'hidden' 이 있어야 안쪽 화면이 둥근 모서리 밖으로 삐져나오지 않는다.
+     */
+    card: {
+      flex: 1,
+      margin: frame.inset,
+      borderRadius: frame.radius,
+      backgroundColor: colors.bg,
+      overflow: 'hidden',
+    },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  }),
+);
