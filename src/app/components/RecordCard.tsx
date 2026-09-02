@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { OpenRecord } from '../../core/schema.ts';
-import { colors, font, radius, space, TOUCH, WEIGHT } from '../theme/index.ts';
+import { font, type Palette, radius, space, TOUCH, useColors, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /**
  * 카드 왼쪽의 네모 표시.
@@ -14,12 +15,11 @@ import { colors, font, radius, space, TOUCH, WEIGHT } from '../theme/index.ts';
  * 색은 이름에서 정한다. 같은 서비스는 늘 같은 색이라 눈이 자리를 기억한다.
  * 무작위로 하면 앱을 열 때마다 색이 바뀌어 오히려 못 알아본다.
  */
-const MARK_COLORS = [colors.secondary, colors.accent, colors.primary] as const;
-
-export function markColor(service: string): string {
+export function markColor(service: string, colors: Palette): string {
+  const choices = [colors.secondary, colors.accent, colors.primary];
   let sum = 0;
   for (let i = 0; i < service.length; i += 1) sum = (sum + service.charCodeAt(i)) % 4096;
-  return MARK_COLORS[sum % MARK_COLORS.length];
+  return choices[sum % choices.length];
 }
 
 /** 1년 넘게 안 바꾼 비밀번호에 배지를 붙인다 (명세 7장). */
@@ -41,6 +41,8 @@ export function RecordCard({
   onToggleFavorite?: () => void;
   now: number;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   const stale = isPasswordStale(record, now);
   return (
     <View style={styles.wrap}>
@@ -51,7 +53,7 @@ export function RecordCard({
         style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       >
         <View
-          style={[styles.mark, { backgroundColor: markColor(record.service) }]}
+          style={[styles.mark, { backgroundColor: markColor(record.service, colors) }]}
           accessibilityElementsHidden
           importantForAccessibility="no"
         >
@@ -87,57 +89,59 @@ export function RecordCard({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', alignItems: 'stretch', gap: space.sm },
-  card: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    minHeight: TOUCH + 24,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: space.md,
-    // 크림 바탕 위의 흰 카드. 바탕과 같은 색이면 카드 경계가 사라진다.
-    backgroundColor: colors.surface,
-  },
-  pressed: { opacity: 0.75, backgroundColor: colors.bg },
-  /** 글꼴을 키워도 네모가 같이 커지지 않게 크기를 고정한다. */
-  mark: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  markText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText },
-  cardText: { flex: 1, gap: 2 },
-  service: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text },
-  username: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
-  badge: {
-    fontFamily: font.family,
-    fontSize: font.caption,
-    color: colors.text,
-    // 흰 카드 위에 얹히므로 크림색이어야 보인다.
-    backgroundColor: colors.bg,
-    borderRadius: radius.sm,
-    paddingHorizontal: space.sm,
-    paddingVertical: 2,
-    overflow: 'hidden',
-  },
-  badgeWarn: { backgroundColor: colors.warnBg, color: colors.warnText },
-  star: {
-    minWidth: TOUCH,
-    minHeight: TOUCH,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.md,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  starText: { fontFamily: font.family, fontSize: font.title, color: colors.textDim },
-  starOn: { color: colors.favorite },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    wrap: { flexDirection: 'row', alignItems: 'stretch', gap: space.sm },
+    card: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.md,
+      minHeight: TOUCH + 24,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: space.md,
+      // 크림 바탕 위의 흰 카드. 바탕과 같은 색이면 카드 경계가 사라진다.
+      backgroundColor: colors.surface,
+    },
+    pressed: { opacity: 0.75, backgroundColor: colors.bg },
+    /** 글꼴을 키워도 네모가 같이 커지지 않게 크기를 고정한다. */
+    mark: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    markText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText },
+    cardText: { flex: 1, gap: 2 },
+    service: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text },
+    username: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim },
+    badges: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
+    badge: {
+      fontFamily: font.family,
+      fontSize: font.caption,
+      color: colors.text,
+      // 흰 카드 위에 얹히므로 크림색이어야 보인다.
+      backgroundColor: colors.bg,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.sm,
+      paddingVertical: 2,
+      overflow: 'hidden',
+    },
+    badgeWarn: { backgroundColor: colors.warnBg, color: colors.warnText },
+    star: {
+      minWidth: TOUCH,
+      minHeight: TOUCH,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    starText: { fontFamily: font.family, fontSize: font.title, color: colors.textDim },
+    starOn: { color: colors.favorite },
+  }),
+);

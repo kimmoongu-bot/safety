@@ -24,10 +24,13 @@ import { SearchResultsScreen } from './screens/SearchResultsScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import { SetupScreen } from './screens/SetupScreen.tsx';
 import { VaultListScreen } from './screens/VaultListScreen.tsx';
-import { colors, frame } from './theme/index.ts';
+import { frame, useColors } from './theme/index.ts';
+import { createStyles } from './theme/useStyles.ts';
 
 /** 화면 하나만 고른다. 화면 수가 8개뿐이라 별도 네비게이션 라이브러리를 두지 않는다. */
 function Router() {
+  const styles = useStyles();
+  const colors = useColors();
   const route = useVaultStore((s) => s.stack[s.stack.length - 1]);
   switch (route?.name) {
     case 'setup':
@@ -58,6 +61,8 @@ function Router() {
 }
 
 export default function App() {
+  const styles = useStyles();
+  const colors = useColors();
   const { attach, reset, lock, refreshLockState, loadSettings } = useVaultStore();
   const [ready, setReady] = useState(false);
   const lastActivityAt = useVaultStore((s) => s.lastActivityAt);
@@ -190,8 +195,8 @@ export default function App() {
       */}
       <View style={styles.outer}>
         <SafeAreaView style={styles.safe} onTouchStart={() => useVaultStore.getState().touch()}>
-          {/* 바깥 바탕이 어두우므로 시계·배터리는 밝게 그려야 보인다. */}
-          <StatusBar style="light" />
+          {/* 액자 바깥 색에 맞춰 시계·배터리를 밝게/어둡게 그린다. */}
+          <StatusBar style={colors.statusBar} />
           <View style={styles.card}>
             {ready ? <Router /> : (
               <View style={styles.center}>
@@ -207,20 +212,22 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  /** 상자 바깥. 화면 끝까지 채운다. */
-  outer: { flex: 1, backgroundColor: colors.frame },
-  safe: { flex: 1 },
-  /**
-   * 앱 상자. 둘레에 여백을 두고 모서리를 둥글린다.
-   * overflow: 'hidden' 이 있어야 안쪽 화면이 둥근 모서리 밖으로 삐져나오지 않는다.
-   */
-  card: {
-    flex: 1,
-    margin: frame.inset,
-    borderRadius: frame.radius,
-    backgroundColor: colors.bg,
-    overflow: 'hidden',
-  },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    /** 상자 바깥. 화면 끝까지 채운다. */
+    outer: { flex: 1, backgroundColor: colors.frame },
+    safe: { flex: 1 },
+    /**
+     * 앱 상자. 둘레에 여백을 두고 모서리를 둥글린다.
+     * overflow: 'hidden' 이 있어야 안쪽 화면이 둥근 모서리 밖으로 삐져나오지 않는다.
+     */
+    card: {
+      flex: 1,
+      margin: frame.inset,
+      borderRadius: frame.radius,
+      backgroundColor: colors.bg,
+      overflow: 'hidden',
+    },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  }),
+);

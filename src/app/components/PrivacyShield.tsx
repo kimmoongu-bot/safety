@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
-import { colors, font, WEIGHT } from '../theme/index.ts';
+import { font, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 import { needsPrivacyShield } from '../platform/screenGuard.ts';
 
 /**
@@ -11,6 +12,7 @@ import { needsPrivacyShield } from '../platform/screenGuard.ts';
  * 로고 화면으로 덮는다.
  */
 export function PrivacyShield() {
+  const styles = useStyles();
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -28,17 +30,19 @@ export function PrivacyShield() {
   );
 }
 
-const styles = StyleSheet.create({
-  shield: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 999,
-  },
-  logo: { fontFamily: font.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.primary, letterSpacing: 4 },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    shield: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.bg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 999,
+    },
+    logo: { fontFamily: font.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.primary, letterSpacing: 4 },
+  }),
+);

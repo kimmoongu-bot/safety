@@ -3,12 +3,15 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { BigButton, Body, Screen } from '../components/Basics.tsx';
 import { RecordCard } from '../components/RecordCard.tsx';
 import { filterRecords, useVaultStore } from '../state/vaultStore.ts';
-import { colors, font, radius, space, TOUCH } from '../theme/index.ts';
+import { font, radius, space, TOUCH, useColors } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /**
  * 06 검색 결과 — 큰 카드 리스트, 1탭 상세 이동, 결과 없음 시 추가 유도 (명세 3장)
  */
 export function SearchResultsScreen({ query }: { query: string }) {
+  const styles = useStyles();
+  const colors = useColors();
   const { records, go, back } = useVaultStore();
   const [text, setText] = useState(query);
   const now = Date.now();
@@ -40,16 +43,18 @@ export function SearchResultsScreen({ query }: { query: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  search: {
-    minHeight: TOUCH + 12,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderRadius: radius.md,
-    paddingHorizontal: space.md,
-    fontFamily: font.family,
-    fontSize: font.big,
-    color: colors.text,
-  },
-  empty: { paddingVertical: space.lg, gap: space.md },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    search: {
+      minHeight: TOUCH + 12,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      borderRadius: radius.md,
+      paddingHorizontal: space.md,
+      fontFamily: font.family,
+      fontSize: font.big,
+      color: colors.text,
+    },
+    empty: { paddingVertical: space.lg, gap: space.md },
+  }),
+);

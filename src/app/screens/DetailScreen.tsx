@@ -5,7 +5,8 @@ import { Confirm } from '../components/Confirm.tsx';
 import { isPasswordStale } from '../components/RecordCard.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { copySensitive } from '../platform/clipboard.ts';
-import { colors, font, radius, space, WEIGHT } from '../theme/index.ts';
+import { font, radius, space, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /**
  * 05 계정 상세 — 아이디·비밀번호(숨김)·메모, 복사/보기/수정/삭제, 마지막 변경일
@@ -21,6 +22,7 @@ function formatDate(ms: number): string {
 }
 
 export function DetailScreen({ id }: { id: string }) {
+  const styles = useStyles();
   const { records, back, go, removeRecord, showToast, settings } = useVaultStore();
   const record = records.find((r) => r.id === id);
   const [visible, setVisible] = useState(false);
@@ -127,15 +129,17 @@ export function DetailScreen({ id }: { id: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  block: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: space.md,
-    gap: space.sm,
-    marginBottom: space.sm,
-  },
-  label: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.textDim },
-  value: { fontFamily: font.family, fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    block: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: space.md,
+      gap: space.sm,
+      marginBottom: space.sm,
+    },
+    label: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.textDim },
+    value: { fontFamily: font.family, fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
+  }),
+);

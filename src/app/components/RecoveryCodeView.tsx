@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { recoveryCodeGroups } from '../../core/recoveryCode.ts';
-import { colors, font, radius, space, WEIGHT } from '../theme/index.ts';
+import { font, radius, space, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /**
  * 복구 코드 보여 주기.
@@ -10,6 +11,7 @@ import { colors, font, radius, space, WEIGHT } from '../theme/index.ts';
  * 그 글자를 놓치기 쉽다. 묶음마다 한 줄씩, 번호를 붙여 크게 보여 준다.
  */
 export function RecoveryCodeView({ code }: { code: string }) {
+  const styles = useStyles();
   const groups = recoveryCodeGroups(code);
   return (
     <View style={styles.box} accessibilityLabel={`복구 코드 ${groups.join(', ')}`}>
@@ -25,30 +27,32 @@ export function RecoveryCodeView({ code }: { code: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  box: {
-    backgroundColor: colors.warnBg,
-    borderWidth: 2,
-    borderColor: '#D8C08A',
-    borderRadius: radius.md,
-    padding: space.md,
-    gap: space.sm,
-  },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  index: {
-    fontFamily: font.familyBold,
-    fontSize: font.body,
-    fontWeight: WEIGHT,
-    color: colors.warnText,
-    minWidth: 24,
-    textAlign: 'center',
-  },
-  group: {
-    flex: 1,
-    fontFamily: font.familyBold,
-    fontSize: font.huge,
-    fontWeight: WEIGHT,
-    color: colors.text,
-    letterSpacing: 4,
-  },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    box: {
+      backgroundColor: colors.warnBg,
+      borderWidth: 2,
+      borderColor: colors.warnBorder,
+      borderRadius: radius.md,
+      padding: space.md,
+      gap: space.sm,
+    },
+    row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+    index: {
+      fontFamily: font.familyBold,
+      fontSize: font.body,
+      fontWeight: WEIGHT,
+      color: colors.warnText,
+      minWidth: 24,
+      textAlign: 'center',
+    },
+    group: {
+      flex: 1,
+      fontFamily: font.familyBold,
+      fontSize: font.huge,
+      fontWeight: WEIGHT,
+      color: colors.text,
+      letterSpacing: 4,
+    },
+  }),
+);

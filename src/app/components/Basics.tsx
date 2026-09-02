@@ -11,7 +11,8 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
-import { colors, font, radius, space, TOUCH, WEIGHT } from '../theme/index.ts';
+import { font, radius, space, TOUCH, useColors, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /** 아이콘과 같은 자물쇠. 앱 아이콘과 화면이 한 벌로 보이게 한다. */
 const LOCK_MARK = require('../../../assets/lock-mark.png');
@@ -23,14 +24,17 @@ const LOCK_MARK = require('../../../assets/lock-mark.png');
  */
 
 export function Title({ children }: { children: React.ReactNode }) {
+  const styles = useStyles();
   return <Text style={styles.title}>{children}</Text>;
 }
 
 export function Body({ children, dim, style }: { children: React.ReactNode; dim?: boolean; style?: ViewStyle }) {
+  const styles = useStyles();
   return <Text style={[styles.body, dim && styles.bodyDim, style as never]}>{children}</Text>;
 }
 
 export function Notice({ children, tone = 'warn' }: { children: React.ReactNode; tone?: 'warn' | 'plain' }) {
+  const styles = useStyles();
   return (
     <View style={[styles.notice, tone === 'plain' && styles.noticePlain]}>
       <Text style={[styles.noticeText, tone === 'plain' && styles.noticeTextPlain]}>{children}</Text>
@@ -62,6 +66,7 @@ export function BigButton({
   disabled?: boolean;
   busy?: boolean;
 }) {
+  const styles = useStyles();
   const box = {
     primary: styles.btnPrimary,
     plain: styles.btnPlain,
@@ -76,6 +81,7 @@ export function BigButton({
     danger: styles.btnLabelDanger,
     text: styles.btnLabelText,
   }[tone];
+  const colors = useColors();
   const spinner = tone === 'primary' || tone === 'accent' ? colors.primaryText : colors.text;
   return (
     <Pressable
@@ -105,6 +111,8 @@ export function Field({
   trailing,
   ...props
 }: TextInputProps & { label: string; hint?: string; trailing?: React.ReactNode }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -124,6 +132,7 @@ export function Field({
 
 /** 입력창 안에 넣는 작은 글자 단추. 터치 크기는 48dp 를 지킨다. */
 export function FieldAction({ label, onPress }: { label: string; onPress: () => void }) {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -150,6 +159,7 @@ export function Screen({
   /** 제목 앞에 자물쇠 표시를 넣는다. 잠금 화면처럼 앱 얼굴이 되는 화면에서만 쓴다. */
   mark?: boolean;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -181,6 +191,7 @@ export function Screen({
 }
 
 export function Row({ children }: { children: React.ReactNode }) {
+  const styles = useStyles();
   return <View style={styles.row}>{children}</View>;
 }
 
@@ -197,6 +208,7 @@ export function Toggle({
   onChange: (next: boolean) => void;
   disabled?: boolean;
 }) {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="switch"
@@ -228,6 +240,7 @@ export function Choice<T extends string | number>({
   value: T;
   onChange: (next: T) => void;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -252,145 +265,147 @@ export function Choice<T extends string | number>({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    paddingHorizontal: space.md,
-    paddingTop: space.lg,
-    paddingBottom: space.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.bg,
-  },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  /**
-   * 자물쇠 표시. 글꼴을 키워도 제목 줄이 무너지지 않게 크기를 고정한다.
-   * flexShrink 를 줘서 글자가 길어지면 그림이 먼저 줄어든다.
-   */
-  mark: { width: 34, height: 34, flexShrink: 0 },
-  headerTitle: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, flexShrink: 1 },
-  back: { minHeight: TOUCH, justifyContent: 'center' },
-  backText: { fontFamily: font.familyBold, fontSize: font.body, color: colors.accent, fontWeight: WEIGHT },
-  scroll: { flex: 1 },
-  scrollContent: { padding: space.md, paddingBottom: space.xl, gap: space.sm },
-  footer: { padding: space.md, borderTopWidth: 1, borderTopColor: colors.border, gap: space.sm },
-  title: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, marginBottom: space.sm },
-  body: { fontFamily: font.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5 },
-  bodyDim: { color: colors.textDim },
-  notice: {
-    backgroundColor: colors.warnBg,
-    borderRadius: radius.md,
-    padding: space.md,
-    borderWidth: 1,
-    borderColor: '#D8C08A',
-  },
-  noticePlain: { backgroundColor: colors.surface, borderColor: colors.border },
-  noticeText: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.warnText, lineHeight: font.bodySmall * 1.5 },
-  noticeTextPlain: { color: colors.text },
-  btn: {
-    minHeight: TOUCH + 8,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: space.sm,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-  },
-  btnPrimary: { backgroundColor: colors.primary },
-  btnPlain: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border },
-  btnAccent: { backgroundColor: colors.accent },
-  btnDanger: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.danger },
-  /** 글자만 있는 버튼. 테두리도 바탕도 없다. */
-  btnText_: { backgroundColor: 'transparent' },
-  btnPressed: { opacity: 0.75 },
-  btnDisabled: { opacity: 0.5 },
-  btnLabelOnFill: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText, textAlign: 'center' },
-  btnLabelPlain: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text, textAlign: 'center' },
-  btnLabelDanger: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.danger, textAlign: 'center' },
-  btnLabelText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.accent, textAlign: 'center' },
-  field: { gap: space.xs, marginBottom: space.sm },
-  fieldLabel: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.text },
-  fieldHint: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },
-  /**
-   * 테두리는 글자칸이 아니라 바깥 상자가 갖는다. 그래야 오른쪽에 "보기" 같은
-   * 조작을 넣어도 테두리 안에 들어간다.
-   */
-  inputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: TOUCH + 4,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    // 크림 바탕 위의 흰 입력창. 같은 색이면 입력하는 자리가 어디인지 안 보인다.
-    backgroundColor: colors.surface,
-    overflow: 'hidden',
-  },
-  inputBoxMultiline: { alignItems: 'stretch' },
-  input: {
-    flex: 1,
-    minHeight: TOUCH,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    fontFamily: font.family,
-    fontSize: font.body,
-    color: colors.text,
-  },
-  inputMultiline: { minHeight: TOUCH * 2, textAlignVertical: 'top' },
-  /** 입력창 안 오른쪽 글자 단추. 손가락이 닿는 크기(48dp)를 지킨다. */
-  fieldAction: {
-    minWidth: TOUCH + 8,
-    minHeight: TOUCH,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: space.sm,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.border,
-  },
-  fieldActionText: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.accent },
-  row: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
-  toggle: {
-    minHeight: TOUCH + 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: space.md,
-    paddingVertical: space.sm,
-    paddingHorizontal: space.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  toggleText: { flex: 1, gap: 2 },
-  knobTrack: {
-    minWidth: 76,
-    minHeight: TOUCH - 8,
-    borderRadius: radius.lg,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: space.sm,
-    backgroundColor: colors.surface,
-  },
-  knobTrackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  knobLabel: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.text },
-  knobLabelOn: { color: colors.primaryText },
-  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  choice: {
-    minHeight: TOUCH,
-    justifyContent: 'center',
-    paddingHorizontal: space.md,
-    borderRadius: radius.md,
-    borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  choiceOn: { borderColor: colors.primary, backgroundColor: colors.primary },
-  choiceText: { fontFamily: font.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.text },
-  choiceTextOn: { color: colors.primaryText },
-});
+const useStyles = createStyles((colors) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg },
+    header: {
+      paddingHorizontal: space.md,
+      paddingTop: space.lg,
+      paddingBottom: space.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.bg,
+    },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+    /**
+     * 자물쇠 표시. 글꼴을 키워도 제목 줄이 무너지지 않게 크기를 고정한다.
+     * flexShrink 를 줘서 글자가 길어지면 그림이 먼저 줄어든다.
+     */
+    mark: { width: 34, height: 34, flexShrink: 0 },
+    headerTitle: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, flexShrink: 1 },
+    back: { minHeight: TOUCH, justifyContent: 'center' },
+    backText: { fontFamily: font.familyBold, fontSize: font.body, color: colors.accent, fontWeight: WEIGHT },
+    scroll: { flex: 1 },
+    scrollContent: { padding: space.md, paddingBottom: space.xl, gap: space.sm },
+    footer: { padding: space.md, borderTopWidth: 1, borderTopColor: colors.border, gap: space.sm },
+    title: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, marginBottom: space.sm },
+    body: { fontFamily: font.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5 },
+    bodyDim: { color: colors.textDim },
+    notice: {
+      backgroundColor: colors.warnBg,
+      borderRadius: radius.md,
+      padding: space.md,
+      borderWidth: 1,
+      borderColor: colors.warnBorder,
+    },
+    noticePlain: { backgroundColor: colors.surface, borderColor: colors.border },
+    noticeText: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.warnText, lineHeight: font.bodySmall * 1.5 },
+    noticeTextPlain: { color: colors.text },
+    btn: {
+      minHeight: TOUCH + 8,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: space.sm,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
+    },
+    btnPrimary: { backgroundColor: colors.primary },
+    btnPlain: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border },
+    btnAccent: { backgroundColor: colors.accent },
+    btnDanger: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.danger },
+    /** 글자만 있는 버튼. 테두리도 바탕도 없다. */
+    btnText_: { backgroundColor: 'transparent' },
+    btnPressed: { opacity: 0.75 },
+    btnDisabled: { opacity: 0.5 },
+    btnLabelOnFill: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText, textAlign: 'center' },
+    btnLabelPlain: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text, textAlign: 'center' },
+    btnLabelDanger: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.danger, textAlign: 'center' },
+    btnLabelText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.accent, textAlign: 'center' },
+    field: { gap: space.xs, marginBottom: space.sm },
+    fieldLabel: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.text },
+    fieldHint: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },
+    /**
+     * 테두리는 글자칸이 아니라 바깥 상자가 갖는다. 그래야 오른쪽에 "보기" 같은
+     * 조작을 넣어도 테두리 안에 들어간다.
+     */
+    inputBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: TOUCH + 4,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      // 크림 바탕 위의 흰 입력창. 같은 색이면 입력하는 자리가 어디인지 안 보인다.
+      backgroundColor: colors.surface,
+      overflow: 'hidden',
+    },
+    inputBoxMultiline: { alignItems: 'stretch' },
+    input: {
+      flex: 1,
+      minHeight: TOUCH,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
+      fontFamily: font.family,
+      fontSize: font.body,
+      color: colors.text,
+    },
+    inputMultiline: { minHeight: TOUCH * 2, textAlignVertical: 'top' },
+    /** 입력창 안 오른쪽 글자 단추. 손가락이 닿는 크기(48dp)를 지킨다. */
+    fieldAction: {
+      minWidth: TOUCH + 8,
+      minHeight: TOUCH,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: space.sm,
+      borderLeftWidth: 2,
+      borderLeftColor: colors.border,
+    },
+    fieldActionText: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.accent },
+    row: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
+    toggle: {
+      minHeight: TOUCH + 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: space.md,
+      paddingVertical: space.sm,
+      paddingHorizontal: space.md,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    toggleText: { flex: 1, gap: 2 },
+    knobTrack: {
+      minWidth: 76,
+      minHeight: TOUCH - 8,
+      borderRadius: radius.lg,
+      borderWidth: 2,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: space.sm,
+      backgroundColor: colors.surface,
+    },
+    knobTrackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+    knobLabel: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.text },
+    knobLabelOn: { color: colors.primaryText },
+    choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+    choice: {
+      minHeight: TOUCH,
+      justifyContent: 'center',
+      paddingHorizontal: space.md,
+      borderRadius: radius.md,
+      borderWidth: 2,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    choiceOn: { borderColor: colors.primary, backgroundColor: colors.primary },
+    choiceText: { fontFamily: font.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.text },
+    choiceTextOn: { color: colors.primaryText },
+  }),
+);
 
-export { styles as basicStyles };
+export { useStyles as useBasicStyles };

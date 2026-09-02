@@ -11,7 +11,8 @@
  * 기기에서 실제로 읽히는지 확인해야 한다. 안 읽히면 되돌린다.
  */
 
-import { Platform } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
+import { darkColors, lightColors, type Palette } from './palette.ts';
 
 /**
  * 글꼴 — Pretendard (SIL OFL 1.1)
@@ -38,25 +39,7 @@ const FAMILY = Platform.select({
  * 옆에 적은 비율은 크림 바탕(#F6F3EC) 위에서 잰 값이다. 명세는 4.5:1 이상을 요구한다.
  * 시안의 강조색 #8A6A45 는 4.48:1 로 아슬하게 미달이라 조금 어둡게 했다.
  */
-export const colors = {
-  bg: '#F6F3EC', // 크림 — 화면 바탕
-  surface: '#FFFFFF', // 입력창·카드
-  border: '#D6D0C4', // 따뜻한 회색 테두리 (글자가 아니라 대비 규칙 밖)
-  text: '#202124', // 14.5:1
-  textDim: '#5A5750', // 6.5:1
-  primary: '#202124', // 기본 버튼 바탕. 그 위 흰 글자 16.1:1
-  primaryText: '#FFFFFF',
-  secondary: '#3C4A3B', // 짙은 초록 8.5:1
-  accent: '#7D5F3C', // 시안 #8A6A45 를 4.5:1 넘도록 조정 → 5.3:1
-  accentText: '#FFFFFF',
-  danger: '#9B2226', // 7.2:1
-  ok: '#2E5E3E', // 6.8:1
-  warnBg: '#F6EEDC',
-  warnText: '#5C4718',
-  favorite: '#7D5F3C',
-  /** 앱 상자 바깥 바탕. 앱이 액자 안에 담긴 것처럼 보이게 한다. 아이콘 바탕과 같은 색. */
-  frame: '#202124',
-} as const;
+export { type Palette, lightColors, darkColors, colors } from './palette.ts';
 
 /**
  * 글자 크기 — 시안의 단계를 따른다 (제목 20 · 본문 16 · 설명 13).
@@ -99,6 +82,17 @@ export const radius = { sm: 8, md: 12, lg: 18 } as const;
  * 획이 뭉개진다.
  */
 export const WEIGHT = 'normal' as const;
+
+/**
+ * 지금 기기가 어두운 모드인지 보고 색 한 벌을 돌려준다.
+ *
+ * 아직 앱 안에 "밝게/어둡게" 설정은 없다. 기기 설정을 따라간다.
+ * 설정을 두려면 잠금 화면에서도 읽을 수 있어야 하는데, 지금 설정은 금고 안에
+ * 암호로 들어 있어 금고를 열기 전에는 못 읽는다. 그 저장 자리를 따로 만들어야 한다.
+ */
+export function useColors(): Palette {
+  return useColorScheme() === 'dark' ? darkColors : lightColors;
+}
 
 /**
  * 앱 상자 (액자)
