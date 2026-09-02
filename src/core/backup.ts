@@ -66,7 +66,7 @@ function headerAad(header: BackupHeader): Uint8Array {
 
 export function assertBackupPassword(password: string): void {
   if (password.trim().length < MIN_BACKUP_PASSWORD_LENGTH) {
-    throw new VaultError('INVALID_INPUT', `백업 비밀번호는 ${MIN_BACKUP_PASSWORD_LENGTH}자 이상으로 정해 주세요.`);
+    throw new VaultError('INVALID_INPUT', 'BACKUP_PASSWORD_TOO_SHORT', { count: MIN_BACKUP_PASSWORD_LENGTH });
   }
 }
 
@@ -74,10 +74,18 @@ function two(n: number): string {
   return n < 10 ? `0${n}` : String(n);
 }
 
-/** 잠김_백업_삭제금지_YYYYMMDD.jamgim */
-export function backupFileName(at: number): string {
+/**
+ * 백업 파일 이름 — `<앞말>_YYYYMMDD.jamgim`
+ *
+ * 앞말은 부르는 쪽이 넘긴다. 한국어에서는 "잠김_백업_삭제금지" 다. 사용자가 파일
+ * 앱에서 보게 될 글자라 화면 문장과 같은 규칙을 따른다 — 코어는 말을 갖지 않는다.
+ *
+ * 날짜를 이름에 넣는 것은 `Intl` 에 맡기지 않는다. 나라마다 순서가 달라지면
+ * 파일 목록이 날짜순으로 정렬되지 않는다. 이름은 정렬용이고, 읽는 날짜는 아니다.
+ */
+export function backupFileName(at: number, prefix: string): string {
   const d = new Date(at);
-  return `잠김_백업_삭제금지_${d.getFullYear()}${two(d.getMonth() + 1)}${two(d.getDate())}${BACKUP_FILE_EXTENSION}`;
+  return `${prefix}_${d.getFullYear()}${two(d.getMonth() + 1)}${two(d.getDate())}${BACKUP_FILE_EXTENSION}`;
 }
 
 export function backupIsStale(lastBackupAt: number | undefined, now: number): boolean {

@@ -243,7 +243,7 @@ export class Vault {
     const next = await this.guard.recordFailure(deviceKey);
     if (next.settings.wipeAfterTenFailures && next.lockout.failures >= WIPE_FAILURE_THRESHOLD) {
       await this.destroy();
-      throw new VaultError('VAULT_NOT_FOUND', '실패가 10번 넘어 금고를 지웠습니다.');
+      throw new VaultError('VAULT_NOT_FOUND', 'WIPED_AFTER_FAILURES');
     }
     throw error;
   }
@@ -307,13 +307,13 @@ export class Vault {
   async unlockWithBiometrics(): Promise<void> {
     const meta = await this.readMeta();
     const wrap = findWrap(meta, 'biometric');
-    if (!wrap) throw new VaultError('VAULT_LOCKED', '이 기기에서는 지문·얼굴로 열 수 없습니다. PIN을 입력해 주세요.');
+    if (!wrap) throw new VaultError('VAULT_LOCKED', 'BIOMETRIC_NOT_SET_UP');
     const deviceKey = await this.requireDeviceKey();
     await this.guardBeforeAttempt(deviceKey);
     const biometricKey = await this.keyStore.getBiometricKey();
     if (!biometricKey) {
       // 생체정보가 새로 등록되어 키가 무효화된 경우다. PIN 으로는 여전히 열린다.
-      throw new VaultError('VAULT_LOCKED', '지문·얼굴 정보가 바뀌었습니다. PIN으로 열어 주세요.');
+      throw new VaultError('VAULT_LOCKED', 'BIOMETRIC_CHANGED');
     }
     try {
       this.dek = await unwrapWithBiometricKey(this.provider, meta, wrap, biometricKey, deviceKey);
@@ -361,7 +361,7 @@ export class Vault {
   async getOpenRecord(id: string): Promise<OpenRecord> {
     const dek = this.requireDek();
     const record = await this.recordStore.get(id);
-    if (!record) throw new VaultError('VAULT_NOT_FOUND', '항목을 찾지 못했습니다.');
+    if (!record) throw new VaultError('VAULT_NOT_FOUND', 'RECORD_NOT_FOUND');
     return toOpenRecord(record, await decryptRecord(this.provider, dek, record));
   }
 
@@ -394,7 +394,7 @@ export class Vault {
   ): Promise<OpenRecord> {
     const dek = this.requireDek();
     const existing = await this.recordStore.get(id);
-    if (!existing) throw new VaultError('VAULT_NOT_FOUND', '항목을 찾지 못했습니다.');
+    if (!existing) throw new VaultError('VAULT_NOT_FOUND', 'RECORD_NOT_FOUND');
     const current = await decryptRecord(this.provider, dek, existing);
     const now = this.clock.now();
 
@@ -440,7 +440,7 @@ export class Vault {
     const dek = this.requireDek();
     const meta = await this.readMeta();
     if (!meta.recoveryCodeCopy) {
-      throw new VaultError('DATA_DAMAGED', '복구 코드 사본이 없습니다. 새 복구 코드를 만들어 주세요.');
+      throw new VaultError('DATA_DAMAGED', 'NO_RECOVERY_CODE_COPY');
     }
     const bytes = await open(this.provider, dek, meta.recoveryCodeCopy, context('recovery-code', 1, meta.vaultId));
     try {

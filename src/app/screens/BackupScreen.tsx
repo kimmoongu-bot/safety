@@ -51,7 +51,7 @@ export function BackupScreen() {
       showToast(t('backup.mismatch'), 'bad');
       return;
     }
-    const result = await run(() => exportBackup(vault, password, Date.now()));
+    const result = await run(() => exportBackup(vault, password, Date.now(), t('backup.fileNamePrefix')));
     if (!result.ok) return;
     const { fileName, contents, recordCount } = result.value;
     const path = await writeBackupToCache(fileName, contents);
