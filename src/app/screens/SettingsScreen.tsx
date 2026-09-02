@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { BigButton, Body, Choice, Field, Notice, Screen, Title, Toggle } from '../components/Basics.tsx';
 import { Confirm } from '../components/Confirm.tsx';
+import { useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { authenticate, checkBiometricSupport } from '../platform/biometrics.ts';
 import { disableScreenGuard, enableScreenGuard } from '../platform/screenGuard.ts';
@@ -15,6 +16,7 @@ import { space } from '../theme/index.ts';
 export function SettingsScreen() {
   const { vault, settings, saveSettings, go, back, showToast, run, reset, beginSystemDialog, endSystemDialog } =
     useVaultStore();
+  const t = useT();
   const [revealed, setRevealed] = useState('');
   const [changing, setChanging] = useState(false);
   const [currentPin, setCurrentPin] = useState('');
@@ -27,7 +29,11 @@ export function SettingsScreen() {
     beginSystemDialog();
     let passed = false;
     try {
-      passed = await authenticate('복구 코드를 보려면 확인이 필요합니다');
+      passed = await authenticate({
+        reason: t('settings.recoveryReason'),
+        cancel: t('biometric.cancel'),
+        fallback: t('biometric.fallback'),
+      });
     } finally {
       endSystemDialog();
     }

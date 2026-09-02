@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { BigButton, Body, Field, Notice, Screen, Title } from '../components/Basics.tsx';
 import { PinDots, PinPad } from '../components/PinPad.tsx';
+import { useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
-import { checkBiometricSupport } from '../platform/biometrics.ts';
+import { type BiometricKind, checkBiometricSupport } from '../platform/biometrics.ts';
 import { normalizeRecoveryCode } from '../../core/recoveryCode.ts';
 import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
-import { eul, ro } from '../josa.ts';
 import { space } from '../theme/index.ts';
 
 /**
@@ -21,11 +21,13 @@ const MIN_PIN = 4;
 
 export function SetupScreen() {
   const { vault, run, reset, showToast, refresh } = useVaultStore();
+  const t = useT();
+  const how = (kind: BiometricKind) => t(`biometric.${kind}`);
   const [step, setStep] = useState<Step>('pin');
   const [pin, setPin] = useState('');
   const [pinAgain, setPinAgain] = useState('');
   const [useBiometric, setUseBiometric] = useState(false);
-  const [biometricLabel, setBiometricLabel] = useState('지문·얼굴');
+  const [biometricKind, setBiometricKind] = useState<BiometricKind>('both');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [recoveryCode, setRecoveryCode] = useState('');
   const [typedCode, setTypedCode] = useState('');
@@ -34,7 +36,7 @@ export function SetupScreen() {
   useEffect(() => {
     void checkBiometricSupport().then((s) => {
       setBiometricAvailable(s.available);
-      setBiometricLabel(s.label);
+      setBiometricKind(s.kind);
     });
   }, []);
 
@@ -90,16 +92,16 @@ export function SetupScreen() {
 
   if (step === 'biometric') {
     return (
-      <Screen title={`${ro(biometricLabel)}도 열까요?`}>
+      <Screen title={t('setup.biometricTitle', { how: how(biometricKind) })}>
         <Body dim>
           {biometricAvailable
-            ? `${eul(biometricLabel)} 쓰면 매번 PIN(핀)을 누르지 않아도 됩니다. 나중에 설정에서 바꿀 수 있습니다.`
-            : `이 기기에는 ${biometricLabel} 확인이 준비되어 있지 않습니다. 숫자로만 열 수 있습니다.`}
+            ? t('setup.biometricWhy', { how: how(biometricKind) })
+            : t('setup.biometricUnavailable', { how: how(biometricKind) })}
         </Body>
         <View style={{ height: space.md }} />
         {biometricAvailable ? (
           <BigButton
-            label={`${ro(biometricLabel)}도 열기`}
+            label={t('setup.biometricYes', { how: how(biometricKind) })}
             busy={busy}
             onPress={() => {
               setUseBiometric(true);
