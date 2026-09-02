@@ -13,19 +13,31 @@
  * 스토어 권한 화면에 그대로 드러나고, 홍보 문구가 거짓말이 된다.
  *
  * 그래서 규칙을 이렇게 잡았다.
- *   - 기본값은 **막는 쪽**이다. EAS_BUILD_PROFILE 이 없거나 무엇이든,
- *     'development' 가 **아니면** app.json 그대로 (인터넷 막힘).
- *   - 'development' 일 때만 푼다. 이 빌드는 폰에 개발용으로만 깔고 배포하지 않는다.
+ *   - 기본값은 **막는 쪽**이다. 표시가 없으면 app.json 그대로 (인터넷 막힘).
+ *   - 개발용 표시가 있을 때만 푼다. 이 빌드는 폰에 개발용으로만 깔고 배포하지 않는다.
  *
  * `tests/appConfig.test.ts` 가 이 규칙을 지킨다. preview·production·빈 값에서
  * 인터넷이 막혀 있는지 검사한다.
  */
-const DEV_PROFILE = 'development';
 const INTERNET = 'android.permission.INTERNET';
 
-/** 빌드 프로필 이름을 받아 설정을 돌려준다. 테스트가 이 함수를 직접 부른다. */
-function resolve(config, profile) {
-  if (profile !== DEV_PROFILE) return config;
+/**
+ * 개발용 빌드인지 판단한다.
+ *
+ * `JAMGIM_DEV_BUILD` 는 eas.json 의 development 프로필에만 적어 둔 우리 표시다.
+ * EAS 가 넣어 주는 값에 기대지 않고 우리가 직접 지정한다 — 그쪽이 안 오면
+ * 20분 기다린 빌드가 폰에 붙지 않는데, 빌드가 끝나야 알 수 있다.
+ *
+ * `EAS_BUILD_PROFILE` 도 함께 받는다. 피시에서 `expo run:android` 로 직접 만들 때는
+ * eas.json 을 거치지 않기 때문이다.
+ */
+function isDevBuild(env) {
+  return env.JAMGIM_DEV_BUILD === '1' || env.EAS_BUILD_PROFILE === 'development';
+}
+
+/** 환경 값을 받아 설정을 돌려준다. 테스트가 이 함수를 직접 부른다. */
+function resolve(config, env = {}) {
+  if (!isDevBuild(env)) return config;
   return {
     ...config,
     android: {
@@ -37,5 +49,6 @@ function resolve(config, profile) {
   };
 }
 
-module.exports = ({ config }) => resolve(config, process.env.EAS_BUILD_PROFILE);
+module.exports = ({ config }) => resolve(config, process.env);
 module.exports.resolve = resolve;
+module.exports.isDevBuild = isDevBuild;

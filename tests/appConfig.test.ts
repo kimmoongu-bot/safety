@@ -13,30 +13,56 @@ import { createRequire } from 'node:module';
  */
 const require_ = createRequire(import.meta.url);
 const appJson = require_('../app.json') as { expo: Record<string, unknown> };
+const easJson = require_('../eas.json') as {
+  build: Record<string, { env?: Record<string, string> }>;
+};
 const { resolve } = require_('../app.config.js') as {
-  resolve: (config: Record<string, unknown>, profile?: string) => {
-    android?: { permissions?: string[]; blockedPermissions?: string[] };
-  };
+  resolve: (
+    config: Record<string, unknown>,
+    env?: Record<string, string | undefined>,
+  ) => { android?: { permissions?: string[]; blockedPermissions?: string[] } };
 };
 
 const INTERNET = 'android.permission.INTERNET';
 
-function internetAllowed(profile?: string): boolean {
-  const out = resolve(appJson.expo, profile);
+function internetAllowed(env: Record<string, string | undefined>): boolean {
+  const out = resolve(appJson.expo, env);
   const asked = out.android?.permissions ?? [];
   const blocked = out.android?.blockedPermissions ?? [];
   return asked.includes(INTERNET) || !blocked.includes(INTERNET);
 }
 
-test('개발용 빌드에서만 인터넷 권한이 열린다', () => {
-  assert.equal(internetAllowed('development'), true, '개발용은 열려야 화면 서버에 붙는다');
+test('개발용 표시가 있으면 인터넷 권한이 열린다', () => {
+  assert.equal(internetAllowed({ JAMGIM_DEV_BUILD: '1' }), true, '개발용은 열려야 화면 서버에 붙는다');
 });
 
-for (const profile of ['preview', 'production', 'Development', 'dev', '', undefined]) {
-  test(`배포용에서는 인터넷 권한이 막힌다 — 프로필 ${JSON.stringify(profile)}`, () => {
-    assert.equal(internetAllowed(profile), false, `${String(profile)} 에서 인터넷이 열렸다`);
+test('피시에서 직접 만들 때도 열린다 (eas.json 을 안 거치는 경로)', () => {
+  assert.equal(internetAllowed({ EAS_BUILD_PROFILE: 'development' }), true);
+});
+
+const closed: Record<string, string | undefined>[] = [
+  {},
+  { EAS_BUILD_PROFILE: 'preview' },
+  { EAS_BUILD_PROFILE: 'production' },
+  { EAS_BUILD_PROFILE: 'Development' }, // 대소문자가 다르면 안 열린다
+  { EAS_BUILD_PROFILE: '' },
+  { JAMGIM_DEV_BUILD: '0' },
+  { JAMGIM_DEV_BUILD: 'true' }, // '1' 이 아니면 안 열린다
+  { JAMGIM_DEV_BUILD: '' },
+];
+for (const env of closed) {
+  test(`배포용에서는 인터넷 권한이 막힌다 — ${JSON.stringify(env)}`, () => {
+    assert.equal(internetAllowed(env), false, `${JSON.stringify(env)} 에서 인터넷이 열렸다`);
   });
 }
+
+test('개발용 표시는 eas.json 의 development 프로필에만 있다', () => {
+  const offenders = Object.entries(easJson.build)
+    .filter(([name, profile]) => name !== 'development' && profile.env?.JAMGIM_DEV_BUILD !== undefined)
+    .map(([name]) => name);
+  assert.deepEqual(offenders, [], `개발용 표시가 붙은 배포 프로필: ${offenders.join(', ')}`);
+  assert.equal(easJson.build.development?.env?.JAMGIM_DEV_BUILD, '1', 'development 프로필에는 표시가 있어야 한다');
+});
 
 test('app.json 자체는 언제나 인터넷을 막아 둔다', () => {
   const android = appJson.expo.android as { blockedPermissions?: string[]; permissions?: string[] };
