@@ -12,6 +12,7 @@
  */
 
 import { Platform, useColorScheme } from 'react-native';
+import { usePrefsStore } from '../state/prefsStore.ts';
 import { darkColors, lightColors, type Palette } from './palette.ts';
 
 /**
@@ -84,14 +85,19 @@ export const radius = { sm: 8, md: 12, lg: 18 } as const;
 export const WEIGHT = 'normal' as const;
 
 /**
- * 지금 기기가 어두운 모드인지 보고 색 한 벌을 돌려준다.
+ * 지금 쓸 색 한 벌.
  *
- * 아직 앱 안에 "밝게/어둡게" 설정은 없다. 기기 설정을 따라간다.
- * 설정을 두려면 잠금 화면에서도 읽을 수 있어야 하는데, 지금 설정은 금고 안에
- * 암호로 들어 있어 금고를 열기 전에는 못 읽는다. 그 저장 자리를 따로 만들어야 한다.
+ * 설정에서 고른 값이 먼저다. '자동'이면 폰 설정을 따라간다.
+ *
+ * 고른 값은 잠금 화면에서도 읽혀야 해서 금고 밖에 따로 보관한다 — core/prefs.ts.
+ * 금고 안에 두면 금고를 열기 전에는 못 읽어서, 잠금 화면만 폰 설정을 따르고
+ * 금고를 여는 순간 색이 바뀐다.
  */
 export function useColors(): Palette {
-  return useColorScheme() === 'dark' ? darkColors : lightColors;
+  const choice = usePrefsStore((s) => s.prefs.theme);
+  const system = useColorScheme();
+  const dark = choice === 'system' ? system === 'dark' : choice === 'dark';
+  return dark ? darkColors : lightColors;
 }
 
 /**

@@ -4,17 +4,21 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { setCryptoProvider } from '../core/crypto/registry.ts';
+import { NonceSource } from '../core/crypto/nonce.ts';
 import { Vault } from '../core/vault.ts';
 import { AUTO_LOCK_MS } from '../core/settings.ts';
+import { DisplayPrefsStore } from '../core/prefs.ts';
 import { createDeviceCryptoProvider } from './platform/deviceCryptoProvider.ts';
 import { ExpoMetaStore } from '../data/adapters/expoMetaStore.ts';
+import { ExpoPrefsStore } from '../data/adapters/expoPrefsStore.ts';
 import { ExpoSecureKeyStore } from '../data/adapters/expoSecureKeyStore.ts';
 import { ExpoSqliteRecordStore } from '../data/adapters/expoSqliteRecordStore.ts';
 import { clearIfDue as clearClipboardIfDue } from './platform/clipboard.ts';
 import { enableScreenGuard, guardFailureMessage } from './platform/screenGuard.ts';
 import { PrivacyShield } from './components/PrivacyShield.tsx';
 import { ToastHost } from './components/Toast.tsx';
-import { useT } from './i18n/index.ts';
+import { AVAILABLE, useT } from './i18n/index.ts';
+import { usePrefsStore } from './state/prefsStore.ts';
 import { setStoreTranslator, useVaultStore } from './state/vaultStore.ts';
 import { FALLBACK_AUTO_LOCK_MS, shouldLockForIdle, shouldLockOnBackground } from './lockPolicy.ts';
 import { BackupScreen } from './screens/BackupScreen.tsx';
@@ -67,6 +71,7 @@ export default function App() {
   const t = useT();
   const { attach, reset, lock, refreshLockState, loadSettings } = useVaultStore();
   const [ready, setReady] = useState(false);
+  const prefsLoaded = usePrefsStore((s) => s.loaded);
   const lastActivityAt = useVaultStore((s) => s.lastActivityAt);
   const settings = useVaultStore((s) => s.settings);
   const activityRef = useRef(lastActivityAt);
@@ -84,9 +89,29 @@ export default function App() {
       const provider = createDeviceCryptoProvider();
       setCryptoProvider(provider);
       const keyStore = new ExpoSecureKeyStore(provider);
+      // 금고와 화면 설정이 같은 기기 키를 쓰므로 nonce 생성기도 하나만 둔다.
+      const nonces = new NonceSource(provider);
+
+      /*
+        화면 설정(밝기·언어)을 제일 먼저 읽는다. 금고보다 먼저다.
+        금고를 여는 것과 상관없이 화면을 그리는 데 쓰는 값이고, 이것을 모르는 채로
+        한 번 그리면 색이 번쩍인다.
+      */
+      await usePrefsStore.getState().load(
+        new DisplayPrefsStore({
+          provider,
+          nonces,
+          store: new ExpoPrefsStore(),
+          keyStore,
+          available: AVAILABLE,
+        }),
+      );
+      if (cancelled) return;
+
       const vault = new Vault({
         provider,
         keyStore,
+        nonces,
         metaStore: new ExpoMetaStore(),
         recordStore: new ExpoSqliteRecordStore(),
       });
@@ -193,6 +218,13 @@ export default function App() {
     return () => clearInterval(timer);
   }, [settings.autoLock]);
 
+  /*
+    밝기 설정을 읽기 전에는 아무것도 그리지 않는다.
+    한 번 그리고 나서 색을 바꾸면 앱을 열 때마다 화면이 번쩍인다. 읽는 데 걸리는
+    시간은 파일 하나를 여는 정도라 눈에 띄지 않는다.
+  */
+  if (!prefsLoaded) return <View style={styles.blank} />;
+
   return (
     <SafeAreaProvider>
       {/*
@@ -236,5 +268,7 @@ const useStyles = createStyles((colors) =>
       overflow: 'hidden',
     },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    /** 밝기 설정을 읽는 동안. 색을 칠하지 않아야 나중에 바뀌는 것이 안 보인다. */
+    blank: { flex: 1 },
   }),
 );

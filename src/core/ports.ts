@@ -28,6 +28,18 @@ export interface MetaStore {
   clear(): Promise<void>;
 }
 
+/**
+ * 화면 설정(밝기·언어) 보관 자리. 감싼 결과만 오간다.
+ *
+ * MetaStore 와 나눠 둔다. 저 쪽 파일은 명세 5.4 의 대기 시간 카운터라서, 밝기를
+ * 바꿀 때마다 같이 다시 쓰이는 일이 없어야 한다. 자세한 이유는 core/prefs.ts.
+ */
+export interface PrefsStore {
+  read(): Promise<SealedBlob | null>;
+  write(blob: SealedBlob): Promise<void>;
+  clear(): Promise<void>;
+}
+
 /** 레코드 저장소 (SQLCipher/SQLite). 암호문 블롭만 오간다. */
 export interface RecordStore {
   list(): Promise<VaultRecord[]>;

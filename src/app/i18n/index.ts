@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { SYSTEM_LOCALE } from '../../core/prefs.ts';
+import { usePrefsStore } from '../state/prefsStore.ts';
 import { ko, type MessageKey } from './ko.ts';
 import { makePseudo, PSEUDO_LOCALE } from './pseudo.ts';
 import { pickLocale } from './pickLocale.ts';
@@ -32,12 +34,21 @@ function deviceTags(): string[] {
   }
 }
 
-/** 지금 쓸 언어와 문장 목록. */
+/**
+ * 지금 쓸 언어와 문장 목록.
+ *
+ * 순서는 이렇다. 부르는 쪽이 직접 준 값 → 설정에서 고른 값 → 폰 언어 → 한국어.
+ *
+ * 고른 값은 잠금 화면에서도 읽혀야 해서 금고 밖에 따로 보관한다 — core/prefs.ts.
+ * `chosen` 을 직접 주는 길은 남겨 둔다. 화면 하나만 다른 언어로 그려 보는 데 쓴다.
+ */
 export function useLocale(chosen?: string): { locale: string; catalog: Catalog } {
+  const saved = usePrefsStore((s) => s.prefs.locale);
+  const want = chosen ?? (saved === SYSTEM_LOCALE ? undefined : saved);
   return useMemo(() => {
-    const locale = chosen === PSEUDO_LOCALE ? PSEUDO_LOCALE : pickLocale(AVAILABLE, deviceTags(), chosen);
+    const locale = want === PSEUDO_LOCALE ? PSEUDO_LOCALE : pickLocale(AVAILABLE, deviceTags(), want);
     return { locale, catalog: CATALOGS[locale] ?? ko };
-  }, [chosen]);
+  }, [want]);
 }
 
 /**
