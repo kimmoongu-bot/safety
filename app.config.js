@@ -20,6 +20,8 @@
  * 인터넷이 막혀 있는지 검사한다.
  */
 const INTERNET = 'android.permission.INTERNET';
+/** 개발용 앱은 꾸러미 이름을 달리해 진짜 앱과 따로 깔리게 한다. */
+const DEV_SUFFIX = '.dev';
 
 /**
  * 개발용 빌드인지 판단한다.
@@ -40,8 +42,21 @@ function resolve(config, env = {}) {
   if (!isDevBuild(env)) return config;
   return {
     ...config,
+    // 홈 화면에서 둘을 구분할 수 있어야 한다.
+    name: `${config.name} (개발)`,
     android: {
       ...config.android,
+      /**
+       * 꾸러미 이름을 달리한다.
+       *
+       * 같은 이름이면 안드로이드가 '같은 앱' 으로 보고 기존 앱을 덮어쓰려 한다.
+       * 그러면 **금고에 넣어 둔 것이 다 지워진다.** 이름을 나누면 개발용과 진짜 앱이
+       * 나란히 깔리고, 진짜 앱의 금고는 손대지 않는다.
+       *
+       * 배포용 이름 app.jamgim.vault 는 한 번 스토어에 올리면 영영 못 바꾼다.
+       * 개발용에만 꼬리를 붙이는 이유다.
+       */
+      package: `${config.android?.package}${DEV_SUFFIX}`,
       // 개발용 빌드만. 피시의 화면 서버에 접속해야 한다.
       permissions: [INTERNET],
       blockedPermissions: (config.android?.blockedPermissions ?? []).filter((p) => p !== INTERNET),

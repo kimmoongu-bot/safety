@@ -20,7 +20,7 @@ const { resolve } = require_('../app.config.js') as {
   resolve: (
     config: Record<string, unknown>,
     env?: Record<string, string | undefined>,
-  ) => { android?: { permissions?: string[]; blockedPermissions?: string[] } };
+  ) => { name?: string; android?: { package?: string; permissions?: string[]; blockedPermissions?: string[] } };
 };
 
 const INTERNET = 'android.permission.INTERNET';
@@ -62,6 +62,25 @@ test('개발용 표시는 eas.json 의 development 프로필에만 있다', () =
     .map(([name]) => name);
   assert.deepEqual(offenders, [], `개발용 표시가 붙은 배포 프로필: ${offenders.join(', ')}`);
   assert.equal(easJson.build.development?.env?.JAMGIM_DEV_BUILD, '1', 'development 프로필에는 표시가 있어야 한다');
+});
+
+test('개발용 앱은 꾸러미 이름이 달라 진짜 앱과 따로 깔린다', () => {
+  /**
+   * 같은 이름이면 안드로이드가 '같은 앱' 으로 보고 기존 앱을 덮어쓰려 한다.
+   * 그러면 금고에 넣어 둔 것이 다 지워진다.
+   */
+  const real = (appJson.expo.android as { package: string }).package;
+  const dev = resolve(appJson.expo, { JAMGIM_DEV_BUILD: '1' });
+  assert.notEqual(dev.android?.package, real, '개발용이 진짜 앱을 덮어쓴다');
+  assert.equal(dev.android?.package, `${real}.dev`);
+  assert.ok(dev.name?.includes('개발'), '홈 화면에서 구분할 수 있어야 한다');
+});
+
+test('배포용 꾸러미 이름은 그대로다 — 한 번 올리면 못 바꾼다', () => {
+  const real = (appJson.expo.android as { package: string }).package;
+  for (const env of [{}, { EAS_BUILD_PROFILE: 'preview' }, { EAS_BUILD_PROFILE: 'production' }]) {
+    assert.equal(resolve(appJson.expo, env).android?.package, real, `${JSON.stringify(env)} 에서 이름이 바뀌었다`);
+  }
 });
 
 test('app.json 자체는 언제나 인터넷을 막아 둔다', () => {
