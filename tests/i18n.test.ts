@@ -72,7 +72,7 @@ test('화면이 부르는 열쇠는 모두 문장 목록에 있다', () => {
     const source = readFileSync(file, 'utf8');
     for (const m of source.matchAll(/\bt\(\s*'([\w.]+)'/g)) {
       const key = m[1];
-      if (!(key in ko)) missing.push(`${file} → ${key}`);
+      if (key && !(key in ko)) missing.push(`${file} → ${key}`);
     }
   }
   assert.deepEqual(missing, [], `문장 목록에 없는 열쇠:\n  ${missing.join('\n  ')}`);

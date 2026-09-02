@@ -18,12 +18,15 @@ function channel(v: number): number {
 function luminance(hex: string): number {
   const h = hex.replace('#', '');
   assert.equal(h.length, 6, `색 형식이 이상하다: ${hex}`);
-  const [r, g, b] = [0, 2, 4].map((i) => channel(parseInt(h.slice(i, i + 2), 16)));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const at = (i: number) => channel(parseInt(h.slice(i, i + 2), 16));
+  return 0.2126 * at(0) + 0.7152 * at(2) + 0.0722 * at(4);
 }
 
 export function contrast(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  const x = luminance(a);
+  const y = luminance(b);
+  const hi = Math.max(x, y);
+  const lo = Math.min(x, y);
   return (hi + 0.05) / (lo + 0.05);
 }
 
