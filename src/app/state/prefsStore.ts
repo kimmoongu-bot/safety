@@ -26,6 +26,16 @@ type State = {
   loaded: boolean;
 };
 
+/**
+ * 저장해 둔 값을 이만큼 기다린다. 파일 하나와 OS 키 저장소 한 번이라 보통은
+ * 훨씬 빨리 끝난다. 넘어가면 기본값으로 먼저 그린다.
+ */
+const READ_TIMEOUT_MS = 1_500;
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 type Actions = {
   /** 앱이 뜰 때 한 번. 저장해 둔 값을 읽어 온다. */
   load(store: DisplayPrefsStore): Promise<void>;
@@ -48,8 +58,22 @@ export const usePrefsStore = create<State & Actions>((set, get) => ({
 
   async load(store) {
     set({ store });
+    /*
+      읽기를 기다리되 **무한정 기다리지는 않는다.**
+
+      이 값을 읽기 전에는 화면을 안 그린다. 그래서 읽기가 안 끝나면 앱이 빈 화면에
+      멈춘다 — 사용자에게는 앱이 죽은 것으로 보이고, 무엇이 잘못됐는지 알 길이 없다.
+      화면 밝기 하나 때문에 금고에 못 들어가는 것은 말이 안 된다.
+
+      시간이 지나면 기본값으로 먼저 그리고, 읽기가 나중에 끝나면 그때 반영한다.
+      늦게 오면 색이 한 번 바뀌지만, 안 뜨는 것보다는 낫다.
+    */
     // 여기서 던지지 않는다 (core/prefs.ts). 못 읽으면 기본값이 온다.
-    set({ prefs: await store.read(), loaded: true });
+    const reading = store.read().then((prefs) => {
+      set({ prefs, loaded: true });
+    });
+    await Promise.race([reading, wait(READ_TIMEOUT_MS)]);
+    set({ loaded: true });
   },
 
   setTheme(theme) {
