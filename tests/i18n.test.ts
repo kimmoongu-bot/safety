@@ -4,6 +4,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { en } from '../src/app/i18n/en.ts';
 import { ja } from '../src/app/i18n/ja.ts';
+import { ru } from '../src/app/i18n/ru.ts';
 import { ko } from '../src/app/i18n/ko.ts';
 import { makePseudo } from '../src/app/i18n/pseudo.ts';
 import { translate } from '../src/app/i18n/types.ts';
@@ -164,7 +165,7 @@ test('옛 항목의 갈래는 번역하지 않고 그대로 보여 준다', asyn
  * 언어를 더할 때 이 줄에만 더하면 아래 검사가 전부 그 언어에도 걸린다.
  * 여기 안 적으면 그 언어는 아무도 안 본 채로 배포된다.
  */
-const OTHERS: Record<string, Record<string, unknown>> = { en, ja };
+const OTHERS: Record<string, Record<string, unknown>> = { en, ja, ru };
 
 /**
  * 이 문장이 받는 값 이름들.
