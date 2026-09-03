@@ -7,11 +7,13 @@
  *   최소값(minHeight)만 준다
  *
  * **본문 크기는 명세를 벗어난다.** 명세 3장은 본문 최소 17sp 이지만 시안이 16 이고,
- * 사용자가 16 으로 가기로 정했다. 중장년층이 주 대상이라 정했던 숫자이므로,
- * 기기에서 실제로 읽히는지 확인해야 한다. 안 읽히면 되돌린다.
+ * 기기에서 읽히는 것을 확인한 뒤 16 으로 확정했다 (2026-09-02).
+ * 중장년층이 주 대상이라 정했던 숫자이므로, 나중에 실제 사용자에게서 "작다" 는 말이
+ * 나오면 아래 `body` 한 줄만 고치면 된다.
  */
 
 import { Platform, useColorScheme } from 'react-native';
+import { usePrefsStore } from '../state/prefsStore.ts';
 import { darkColors, lightColors, type Palette } from './palette.ts';
 
 /**
@@ -53,6 +55,15 @@ export const font = {
   /** 제목·버튼·이름표에 쓰는 굵은 것 (시안의 SemiBold) */
   familyBold: FAMILY.bold,
   title: 20,
+  /**
+   * 앱 얼굴이 되는 화면의 제목 ("잠김"). 보통 제목보다 크다.
+   *
+   * 여기서 더 키우지 않는다. 이 크기는 글꼴 설정을 따라 커지므로, 200% 로 두면
+   * 48 이 된다. 잠금 화면은 스크롤 없이 한 화면에 들어와야 한다 — 스크롤이 생기면
+   * "몇 번 틀렸고 얼마나 기다려야 하는지" 가 위로 밀려 안 보인다.
+   * 더 커 보이게 하려면 옆의 자물쇠 그림을 키운다. 그림은 글꼴 설정을 안 따른다.
+   */
+  logo: 24,
   body: 16,
   bodySmall: 15,
   label: 16,
@@ -84,14 +95,19 @@ export const radius = { sm: 8, md: 12, lg: 18 } as const;
 export const WEIGHT = 'normal' as const;
 
 /**
- * 지금 기기가 어두운 모드인지 보고 색 한 벌을 돌려준다.
+ * 지금 쓸 색 한 벌.
  *
- * 아직 앱 안에 "밝게/어둡게" 설정은 없다. 기기 설정을 따라간다.
- * 설정을 두려면 잠금 화면에서도 읽을 수 있어야 하는데, 지금 설정은 금고 안에
- * 암호로 들어 있어 금고를 열기 전에는 못 읽는다. 그 저장 자리를 따로 만들어야 한다.
+ * 설정에서 고른 값이 먼저다. '자동'이면 폰 설정을 따라간다.
+ *
+ * 고른 값은 잠금 화면에서도 읽혀야 해서 금고 밖에 따로 보관한다 — core/prefs.ts.
+ * 금고 안에 두면 금고를 열기 전에는 못 읽어서, 잠금 화면만 폰 설정을 따르고
+ * 금고를 여는 순간 색이 바뀐다.
  */
 export function useColors(): Palette {
-  return useColorScheme() === 'dark' ? darkColors : lightColors;
+  const choice = usePrefsStore((s) => s.prefs.theme);
+  const system = useColorScheme();
+  const dark = choice === 'system' ? system === 'dark' : choice === 'dark';
+  return dark ? darkColors : lightColors;
 }
 
 /**

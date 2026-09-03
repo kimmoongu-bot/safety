@@ -18,15 +18,17 @@ export async function exportBackup(
   vault: Vault,
   backupPassword: string,
   now: number,
+  /** 파일 이름 앞말. 사용자가 파일 앱에서 볼 글자라 화면 쪽에서 넘긴다. */
+  fileNamePrefix: string,
 ): Promise<{ fileName: string; contents: string; recordCount: number }> {
   const { provider, nonces } = vault.internals();
   if (await backupPasswordEqualsPin(vault, backupPassword)) {
-    throw new VaultError('INVALID_INPUT', '백업 비밀번호는 앱 PIN과 다르게 정해 주세요.');
+    throw new VaultError('INVALID_INPUT', 'BACKUP_PASSWORD_SAME_AS_PIN');
   }
   const entries = (await vault.listOpenRecords()).map(toBackupEntry);
   const file = await buildBackupFile(provider, nonces, entries, backupPassword, now);
   await vault.markBackedUp(now);
-  return { fileName: backupFileName(now), contents: serializeBackup(file), recordCount: entries.length };
+  return { fileName: backupFileName(now, fileNamePrefix), contents: serializeBackup(file), recordCount: entries.length };
 }
 
 /** 파일 훑어보기 — 비밀번호를 확인하고 몇 건인지만 알려 준다. */

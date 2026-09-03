@@ -2,17 +2,35 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { BigButton, Body, Choice, Field, Notice, Screen, Title, Toggle } from '../components/Basics.tsx';
 import { Confirm } from '../components/Confirm.tsx';
-import { useT } from '../i18n/index.ts';
+import { AVAILABLE, useT } from '../i18n/index.ts';
+import { usePrefsStore } from '../state/prefsStore.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { authenticate, checkBiometricSupport } from '../platform/biometrics.ts';
 import { disableScreenGuard, enableScreenGuard, guardFailureMessage } from '../platform/screenGuard.ts';
 import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
 import { CLIPBOARD_CHOICES } from '../../core/settings.ts';
+import { SYSTEM_LOCALE, THEME_CHOICES, type ThemeChoice } from '../../core/prefs.ts';
 import { space } from '../theme/index.ts';
 
 /**
- * 07 설정 — 자동 잠금 시간, 생체인증, 클립보드 삭제 시간, 캡처 차단, 백업, 금고 초기화
+ * 07 설정 — 화면 밝기, 자동 잠금 시간, 생체인증, 클립보드 삭제 시간, 캡처 차단,
+ * 백업, 금고 초기화
+ *
+ * 화면 밝기와 언어만 저장 자리가 다르다. 이 둘은 잠금 화면에서도 필요해서 금고
+ * 밖에 둔다 (core/prefs.ts). 나머지는 금고를 열어야 의미가 있다.
  */
+/**
+ * 언어 이름은 그 언어로 적는다. 한국어를 못 읽는 사람이 한국어 화면에서
+ * 자기 언어를 찾아야 하기 때문이다. Intl 이 막히면 태그를 그대로 보여 준다.
+ */
+function languageName(tag: string): string {
+  try {
+    return new Intl.DisplayNames([tag], { type: 'language' }).of(tag) ?? tag;
+  } catch {
+    return tag;
+  }
+}
+
 export function SettingsScreen() {
   const { vault, settings, saveSettings, go, back, showToast, run, reset, beginSystemDialog, endSystemDialog } =
     useVaultStore();
@@ -22,6 +40,23 @@ export function SettingsScreen() {
   const [currentPin, setCurrentPin] = useState('');
   const [nextPin, setNextPin] = useState('');
   const [wipeStep, setWipeStep] = useState<0 | 1 | 2>(0);
+  const prefs = usePrefsStore((s) => s.prefs);
+  const setTheme = usePrefsStore((s) => s.setTheme);
+  const setLocale = usePrefsStore((s) => s.setLocale);
+
+  const themeLabel: Record<ThemeChoice, string> = {
+    system: t('settings.themeSystem'),
+    light: t('settings.themeLight'),
+    dark: t('settings.themeDark'),
+  };
+
+  /**
+   * 저장에 실패하면 알린다. 화면은 누른 대로 두고 되돌리지 않는다 — 눌렀는데
+   * 되돌아가면 사용자는 자기가 잘못 눌렀다고 생각한다.
+   */
+  const savePref = async (run: () => Promise<boolean>) => {
+    if (!(await run())) showToast(t('settings.saveFailed'), 'bad');
+  };
 
   const revealRecoveryCode = async () => {
     if (!vault) return;
@@ -47,6 +82,30 @@ export function SettingsScreen() {
 
   return (
     <Screen title={t('settings.title')} onBack={back}>
+      <Choice
+        label={t('settings.theme')}
+        value={prefs.theme}
+        options={THEME_CHOICES.map((value) => ({ value, label: themeLabel[value] }))}
+        onChange={(v) => void savePref(() => setTheme(v))}
+      />
+      <Body dim>{t('settings.themeWhy')}</Body>
+
+      {/*
+        언어는 고를 것이 둘 이상일 때만 보여 준다. 지금은 한국어뿐이라 안 나온다.
+        고를 것이 하나뿐인 선택지는 화면만 길게 만든다 (명세 3장).
+      */}
+      {AVAILABLE.length > 1 && (
+        <Choice
+          label={t('settings.language')}
+          value={prefs.locale}
+          options={[
+            { value: SYSTEM_LOCALE, label: t('settings.languageSystem') },
+            ...AVAILABLE.map((tag) => ({ value: tag as string, label: languageName(tag) })),
+          ]}
+          onChange={(v) => void savePref(() => setLocale(v))}
+        />
+      )}
+
       <Choice
         label={t('settings.autoLock')}
         value={settings.autoLock}
@@ -204,6 +263,9 @@ export function SettingsScreen() {
           setWipeStep(0);
           const done = await run(() => vault.destroy());
           if (done.ok) {
+            // 초기화는 기기 키를 지운다. 화면 설정을 새 키로 다시 써 두지 않으면
+            // 다음에 켤 때 밝기와 언어가 폰 설정으로 돌아가 있다.
+            await usePrefsStore.getState().resave();
             showToast(t('settings.wiped'));
             reset({ name: 'setup' });
           }

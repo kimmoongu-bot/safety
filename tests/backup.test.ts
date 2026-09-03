@@ -12,6 +12,9 @@ import { exportBackup, previewBackup, restoreBackup } from '../src/core/backupSe
 import { isVaultError } from '../src/core/errors.ts';
 import { makeHarness, provider, SAMPLE, TEST_KDF } from './helpers.ts';
 
+/** 백업 파일 이름 앞말. 이제 코어가 아니라 부르는 쪽이 정한다. */
+const NAME_PREFIX = '잠김_백업_삭제금지';
+
 const PIN = '481207';
 const BACKUP_PW = '우리집-금고-2026';
 
@@ -24,13 +27,13 @@ async function vaultWithData() {
 }
 
 test('백업 파일 이름은 잠김_백업_삭제금지_YYYYMMDD.jamgim 이다 (명세 6.2)', () => {
-  const name = backupFileName(new Date('2026-03-07T10:00:00').getTime());
+  const name = backupFileName(new Date('2026-03-07T10:00:00').getTime(), '잠김_백업_삭제금지');
   assert.equal(name, `잠김_백업_삭제금지_20260307${BACKUP_FILE_EXTENSION}`);
 });
 
 test('내보낸 파일에 평문이 남지 않는다', async () => {
   const h = await vaultWithData();
-  const { contents, recordCount } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents, recordCount } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
   assert.equal(recordCount, 2);
   for (const secret of [SAMPLE.service, SAMPLE.password, SAMPLE.username, '국민은행', 'p@ss', PIN, BACKUP_PW]) {
     assert.ok(!contents.includes(secret), `백업 파일에 "${secret}" 이(가) 그대로 남아 있다`);
@@ -43,7 +46,7 @@ test('내보낸 파일에 평문이 남지 않는다', async () => {
 
 test('기기를 초기화해도 백업 파일 + 백업 비밀번호로 되살아난다 (명세 8장 DoD)', async () => {
   const h = await vaultWithData();
-  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
 
   // 앱 삭제 후 재설치 = 저장소도 키 저장소도 전부 새것.
   const fresh = makeHarness();
@@ -66,7 +69,7 @@ test('기기를 초기화해도 백업 파일 + 백업 비밀번호로 되살아
 
 test('백업 비밀번호가 틀리면 실패하되 앱이 죽지 않는다 (명세 8장 DoD)', async () => {
   const h = await vaultWithData();
-  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
   const fresh = makeHarness();
   await fresh.vault.create({ pin: '999999' });
 
@@ -87,7 +90,7 @@ test('백업 비밀번호가 틀리면 실패하되 앱이 죽지 않는다 (명
 
 test('앞뒤 공백은 눈감아 준다 — 옮겨 적을 때 흔한 실수', async () => {
   const h = await vaultWithData();
-  const { contents } = await exportBackup(h.vault, `  ${BACKUP_PW}  `, h.clock.now());
+  const { contents } = await exportBackup(h.vault, `  ${BACKUP_PW}  `, h.clock.now(), NAME_PREFIX);
   const fresh = makeHarness();
   await fresh.vault.create({ pin: '999999' });
   const { restored } = await restoreBackup(fresh.vault, contents, ` ${BACKUP_PW} `);
@@ -96,7 +99,7 @@ test('앞뒤 공백은 눈감아 준다 — 옮겨 적을 때 흔한 실수', as
 
 test('백업 파일을 손대면 열리지 않는다', async () => {
   const h = await vaultWithData();
-  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
   const file = parseBackup(contents);
 
   // (1) KDF 파라미터를 몰래 낮춘 경우 — 헤더가 AAD 로 묶여 있어 통과하지 못한다.
@@ -133,7 +136,7 @@ test('잠김 백업 파일이 아니면 형식 오류로 알려 준다', async (
 
 test('더 새로운 버전의 백업 파일은 열지 않는다', async () => {
   const h = await vaultWithData();
-  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
   const future = serializeBackup({ ...parseBackup(contents), version: 99 });
   await assert.rejects(
     () => readBackupFile(provider, future, BACKUP_PW),
@@ -144,7 +147,7 @@ test('더 새로운 버전의 백업 파일은 열지 않는다', async () => {
 test('백업 비밀번호는 8자 이상이어야 한다 (명세 6.2)', async () => {
   const h = await vaultWithData();
   await assert.rejects(
-    () => exportBackup(h.vault, '짧다', h.clock.now()),
+    () => exportBackup(h.vault, '짧다', h.clock.now(), NAME_PREFIX),
     (e: unknown) => isVaultError(e, 'INVALID_INPUT'),
   );
 });
@@ -153,17 +156,17 @@ test('백업 비밀번호로 앱 PIN 을 그대로 쓰지 못한다 (명세 6.2)
   const h = makeHarness();
   await h.vault.create({ pin: '12345678' });
   await assert.rejects(
-    () => exportBackup(h.vault, '12345678', h.clock.now()),
+    () => exportBackup(h.vault, '12345678', h.clock.now(), NAME_PREFIX),
     (e: unknown) => isVaultError(e, 'INVALID_INPUT'),
   );
   // 다른 값이면 통과한다.
-  const ok = await exportBackup(h.vault, '87654321', h.clock.now());
+  const ok = await exportBackup(h.vault, '87654321', h.clock.now(), NAME_PREFIX);
   assert.ok(ok.contents.length > 0);
 });
 
 test('먼저 열어 보고(건수 확인) 나중에 되살릴 수 있다', async () => {
   const h = await vaultWithData();
-  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
   const fresh = makeHarness();
   await fresh.vault.create({ pin: '999999' });
 
@@ -175,7 +178,7 @@ test('먼저 열어 보고(건수 확인) 나중에 되살릴 수 있다', async
 
 test('합치기 모드는 이미 있는 항목을 건너뛴다', async () => {
   const h = await vaultWithData();
-  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
   await h.vault.addRecord({ ...SAMPLE, service: '나중에 넣은 것' });
 
   const { restored, skipped } = await restoreBackup(h.vault, contents, BACKUP_PW, { mode: 'merge' });
@@ -189,7 +192,7 @@ test('되살린 항목은 새 금고의 키로 다시 감싸진다', async () =>
   const original = (await h.vault.listOpenRecords())[0];
   assert.ok(original);
   const originalRow = await h.recordStore.get(original.id);
-  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
 
   const fresh = makeHarness();
   await fresh.vault.create({ pin: '999999' });
@@ -204,7 +207,7 @@ test('되살린 항목은 새 금고의 키로 다시 감싸진다', async () =>
 test('내보내면 마지막 백업 시각이 기록되고 90일 알림 기준이 된다 (명세 6.3)', async () => {
   const h = await vaultWithData();
   assert.ok(backupIsStale(undefined, h.clock.now())); // 한 번도 안 했으면 권한다
-  await exportBackup(h.vault, BACKUP_PW, h.clock.now());
+  await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
 
   const meta = await h.vault.readMeta();
   assert.equal(meta.lastBackupAt, h.clock.now());
@@ -220,7 +223,7 @@ test('잠긴 금고는 내보낼 수 없다', async () => {
   const h = await vaultWithData();
   h.vault.lock();
   await assert.rejects(
-    () => exportBackup(h.vault, BACKUP_PW, h.clock.now()),
+    () => exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX),
     (e: unknown) => isVaultError(e, 'VAULT_LOCKED'),
   );
 });

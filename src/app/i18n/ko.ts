@@ -20,6 +20,17 @@ import { type Catalog, fill } from './types.ts';
 export const ko = {
   // ── 잠금 화면 ──────────────────────────────────────────────
   'lock.title': '잠김',
+  /**
+   * 로고 밑 한 줄.
+   *
+   * 영어판은 "Your private vault." 다. 한국어 화면에는 한국어로 적는다 — 주 대상이
+   * 중장년층이라 로고 밑 영어를 못 읽고 지나칠 수 있다 (명세 3장).
+   *
+   * "vault" 를 "금고" 로 옮기지 않았다. 화면 곳곳에서 "금고" 는 **이 앱이 여는 그것**을
+   * 가리키는 말로 이미 쓰고 있다("금고 열기"). 로고 밑에서까지 같은 말을 쓰면
+   * 상표 문구인지 버튼 설명인지 헷갈린다.
+   */
+  'lock.tagline': '나만의 비밀번호 보관함',
   'lock.open': '금고 열기',
   'lock.openWithBiometric': ({ how }) => `${ro(String(how))} 열기`,
   'lock.forgotPin': 'PIN(핀)을 잊었어요 (복구 코드)',
@@ -161,9 +172,47 @@ export const ko = {
     `${eul(String(what))} 복사했습니다. ${seconds}초 뒤에 지웁니다.`,
 
   // ── 설정 ──────────────────────────────────────────────────
+  /**
+   * 백업 파일 이름의 앞말. 뒤에 `_20260307.jamgim` 이 붙는다.
+   * 파일 앱에서 보이는 이름이다. "삭제금지" 는 실수로 지우는 것을 막으려고 넣었다.
+   * 옮길 때 파일 이름에 못 쓰는 글자(\ / : * ? " < > |)를 넣지 않는다.
+   */
+  'backup.fileNamePrefix': '잠김_백업_삭제금지',
+
+  // ── 금고 오류 ──────────────────────────────────────────────────────────
+  // 코어(src/core)가 코드만 던지고, 말은 여기서 정한다. 열쇠 이름은 코드 그대로다.
+  'error.WRONG_PIN': 'PIN(핀)이 맞지 않습니다.',
+  'error.WRONG_RECOVERY_CODE': '복구 코드가 맞지 않습니다.',
+  'error.WRONG_BACKUP_PASSWORD': '백업 비밀번호가 맞지 않습니다.',
+  'error.LOCKED_OUT': '여러 번 틀렸습니다. 잠시 뒤에 다시 해 주세요.',
+  'error.VAULT_NOT_FOUND': '금고가 아직 없습니다.',
+  'error.VAULT_ALREADY_EXISTS': '이미 금고가 있습니다.',
+  'error.DATA_DAMAGED': '저장된 내용이 손상되었습니다.',
+  'error.UNSUPPORTED_FORMAT': '이 파일은 잠김 백업 파일이 아니거나 버전이 다릅니다.',
+  'error.CRYPTO_UNAVAILABLE': '이 기기에서는 금고를 안전하게 쓸 수 없습니다.',
+  'error.VAULT_LOCKED': '금고가 잠겨 있습니다.',
+  'error.INVALID_INPUT': '입력한 내용을 확인해 주세요.',
+
+  // 같은 종류 안에서 해야 할 일이 다른 경우들.
+  'error.BACKUP_PASSWORD_SAME_AS_PIN': '백업 비밀번호는 앱 PIN(핀)과 다르게 정해 주세요.',
+  'error.BACKUP_PASSWORD_TOO_SHORT': '백업 비밀번호는 {count}자 이상으로 정해 주세요.',
+  'error.WIPED_AFTER_FAILURES': '실패가 10번 넘어 금고를 지웠습니다.',
+  'error.BIOMETRIC_NOT_SET_UP': '이 기기에서는 지문·얼굴로 열 수 없습니다. PIN(핀)을 입력해 주세요.',
+  'error.BIOMETRIC_CHANGED': '지문·얼굴 정보가 바뀌었습니다. PIN(핀)으로 열어 주세요.',
+  'error.RECORD_NOT_FOUND': '항목을 찾지 못했습니다.',
+  'error.NO_RECOVERY_CODE_COPY': '복구 코드 사본이 없습니다. 새 복구 코드를 만들어 주세요.',
+
   'settings.recoveryReason': '복구 코드를 보려면 확인이 필요합니다',
   'settings.title': '설정',
   'settings.checkFailed': '확인하지 못했습니다.',
+  'settings.theme': '화면 밝기',
+  'settings.themeSystem': '폰 설정대로',
+  'settings.themeLight': '밝게',
+  'settings.themeDark': '어둡게',
+  'settings.themeWhy': '어둡게 하면 밤에 눈이 덜 부십니다.',
+  'settings.language': '언어',
+  'settings.languageSystem': '폰 설정대로',
+  'settings.saveFailed': '설정을 저장하지 못했습니다. 앱을 껐다 켜면 되돌아갑니다.',
   'settings.autoLock': '얼마 뒤에 저절로 잠글까요?',
   'settings.autoLockNow': '바로',
   'settings.autoLock1m': '1분',
