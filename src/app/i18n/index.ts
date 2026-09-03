@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { SYSTEM_LOCALE } from '../../core/prefs.ts';
 import { usePrefsStore } from '../state/prefsStore.ts';
 import { en } from './en.ts';
+import { ja } from './ja.ts';
 import { ko, type MessageKey } from './ko.ts';
 import { makePseudo, PSEUDO_LOCALE } from './pseudo.ts';
 import { pickLocale } from './pickLocale.ts';
@@ -13,7 +14,7 @@ export { PSEUDO_LOCALE };
 /**
  * 가진 언어.
  *
- * 한국어와 영어. 일본어를 넣을 때 여기에 한 줄 더한다 (`docs/국제화.md` 6장).
+ * 한국어·영어·일본어. 언어를 더할 때 여기에 한 줄 더한다 (`docs/국제화.md` 6장).
  *
  * 순서가 뜻을 갖는다. `pickLocale` 은 기기 언어에 맞는 것을 먼저 찾고, 못 찾으면
  * 영어로 떨어진다 — 태국어 폰에서 한국어가 뜨면 한 글자도 못 읽지만 영어면
@@ -25,10 +26,11 @@ export { PSEUDO_LOCALE };
 const CATALOGS: Record<string, Catalog> = {
   ko,
   en,
+  ja,
   [PSEUDO_LOCALE]: makePseudo(ko),
 };
 
-export const AVAILABLE = ['ko', 'en'] as const;
+export const AVAILABLE = ['ko', 'en', 'ja'] as const;
 
 /** 기기가 원하는 언어. Intl 이 없거나 막히면 빈 목록으로 둔다. */
 function deviceTags(): string[] {
