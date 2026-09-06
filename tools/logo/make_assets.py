@@ -85,18 +85,40 @@ def app_mark(size=192):
 
 
 def store_graphic(w=1024, h=500):
-    """구글 플레이 대표 그래픽. 자물쇠와 이름을 가로로 놓는다."""
+    """
+    구글 플레이 대표 그래픽. 자물쇠와 이름을 가로로 놓는다.
+
+    **자리를 비율로 박지 않는다.** 예전에는 자물쇠를 `W*0.245`, 글자를 `W*0.40` 에
+    두었는데, 자물쇠가 실제로 얼마나 넓은지 재지 않아서 글자 시작점이 자물쇠
+    오른쪽 끝보다 앞에 왔다. 둘이 겹쳐 뭉개졌다.
+
+    이제 자물쇠를 먼저 그려 **잉크가 닿은 넓이를 재고**, 그 뒤에 사이를 두고
+    글자를 놓는다. 그리고 둘을 묶어 가운데 맞춘다. 아이콘에서 `fit()` 을 만든
+    것과 같은 이유다 — 눈대중한 좌표는 그림이 바뀌는 순간 어긋난다.
+    """
     W, H = w * 2, h * 2
     img = Image.new("RGB", (W, H), INK)
-    d = ImageDraw.Draw(img)
+
+    # 자물쇠를 따로 그려 실제 크기를 잰다.
     lock = Image.new("RGBA", (int(H * 0.72), int(H * 0.72)), (0, 0, 0, 0))
-    ld = ImageDraw.Draw(lock)
     LS = lock.size[0]
-    padlock(ld, LS / 2, 0.12 * LS, 0.62 * LS, 0.72 * LS, WHITE, INK)
+    padlock(ImageDraw.Draw(lock), LS / 2, 0.12 * LS, 0.62 * LS, 0.72 * LS, WHITE, INK)
     lock = lock.crop(lock.getbbox())
-    img.paste(lock, (int(W * 0.245), (H - lock.height) // 2), lock)
-    gw = H * 0.30
-    draw_wordmark(img, W * 0.40, (H - gw) / 2, gw, H * 0.045, WHITE, stroke=0.14)
+
+    # 글자 넓이. draw_wordmark 는 '잠' 을 x 에, '김' 을 x + size + gap 에 그린다.
+    glyph = H * 0.30
+    gap = H * 0.045
+    word_w = glyph * 2 + gap
+
+    # 자물쇠와 글자 사이. 글자 하나의 절반쯤 띄우면 붙어 보이지 않는다.
+    between = glyph * 0.55
+
+    total = lock.width + between + word_w
+    left = (W - total) / 2
+
+    img.paste(lock, (int(left), (H - lock.height) // 2), lock)
+    draw_wordmark(img, left + lock.width + between, (H - glyph) / 2, glyph, gap,
+                  WHITE, stroke=0.14)
     return img.resize((w, h), Image.LANCZOS)
 
 
