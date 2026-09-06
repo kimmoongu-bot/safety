@@ -1,240 +1,247 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { openOnce, releaseHandle, withReopen } from '../src/data/openOnce.ts';
+import { openOnce } from '../src/data/openOnce.ts';
 
 /**
- * 실기기에서 이런 오류가 났다.
+ * 실기기에서 이 오류가 세 번 났다.
  *   Call to function 'NativeDatabase.prepareAsync' has been rejected.
  *   → Caused by: java.lang.NullPointerException
  *
- * 원인은 데이터베이스를 두 번 연 것이었다. 예전 코드는 다 열린 값만 보고 판단해서,
- * 두 곳에서 동시에 부르면 둘 다 "아직 안 열렸네" 하고 각자 열었다.
+ * 원인은 **한 파일에 손잡이가 두 개 생기는 것**이다. 자세한 것은 `src/data/openOnce.ts`
+ * 맨 위에 적었다. 여기서는 그 조건이 다시 생기지 않는 것을 지킨다.
+ *
+ * 진짜 저장소(`ExpoSqliteRecordStore`)는 `expo-sqlite` 를 불러오는데 노드에서는
+ * 불러올 수 없다. 그래서 저장소가 쓰는 함수를 그대로 확인한다 — 베껴 적은 사본이 아니라
+ * 앱에서 실제로 도는 그 함수다.
  */
 
-function slowOpener(ms = 5) {
-  let calls = 0;
-  const open = async () => {
-    calls += 1;
-    await new Promise((r) => setTimeout(r, ms));
-    return { id: calls };
-  };
-  return { open, calls: () => calls };
-}
-
-test('동시에 여러 번 불러도 한 번만 연다', async () => {
-  const o = slowOpener();
-  const get = openOnce(o.open);
-
-  const got = await Promise.all([get(), get(), get(), get()]);
-
-  assert.equal(o.calls(), 1, '동시에 불러도 한 번만 열려야 한다');
-  for (const g of got) assert.equal(g.id, 1, '모두 같은 것을 받아야 한다');
-});
-
-test('한 번 연 뒤에는 다시 열지 않는다', async () => {
-  const o = slowOpener();
-  const get = openOnce(o.open);
-
-  await get();
-  await get();
-  await get();
-
-  assert.equal(o.calls(), 1);
-});
-
-test('여는 데 실패하면 다음에 다시 시도할 수 있다', async () => {
-  let attempts = 0;
-  const get = openOnce(async () => {
-    attempts += 1;
-    if (attempts === 1) throw new Error('첫 시도는 실패');
-    return { ok: true };
-  });
-
-  // 실패한 약속을 들고 있으면 여기서도 같은 오류가 난다. 그러면 앱이 영영 못 쓰게 된다.
-  await assert.rejects(() => get(), /첫 시도는 실패/);
-  assert.deepEqual(await get(), { ok: true });
-  assert.equal(attempts, 2);
-});
-
-test('동시에 불렀는데 실패하면 모두 같은 오류를 받는다', async () => {
-  let attempts = 0;
-  const get = openOnce(async () => {
-    attempts += 1;
-    await new Promise((r) => setTimeout(r, 5));
-    throw new Error('열 수 없음');
-  });
-
-  const results = await Promise.allSettled([get(), get(), get()]);
-
-  assert.equal(attempts, 1, '실패할 때도 한 번만 시도해야 한다');
-  for (const r of results) assert.equal(r.status, 'rejected');
-});
-
-// ── 열린 뒤에 죽는 경우 ──────────────────────────────────────────────────────
-//
-// 위의 고침은 '여는 데 실패했을 때' 만 손잡이를 버렸다. 열기는 성공했는데 그 뒤에
-// 죽으면 — 안드로이드가 앱을 뒤로 보내면서 정리하는 경우가 있다 — 죽은 것을 계속
-// 붙들고 있어서 앱을 껐다 켜기 전까지 영영 안 된다.
-
-test('버리면 다음에 다시 연다', async () => {
-  const o = slowOpener();
-  const get = openOnce(o.open);
-
-  const first = await get();
-  await get();
-  assert.equal(o.calls(), 1, '버리기 전에는 한 번만 열려야 한다');
-
-  get.reset();
-  const second = await get();
-
-  assert.equal(o.calls(), 2, '버린 뒤에는 다시 열려야 한다');
-  assert.notEqual(first.id, second.id, '새로 연 것이어야 한다');
-});
-
-test('버려도 동시에 부르면 한 번만 다시 연다', async () => {
-  const o = slowOpener();
-  const get = openOnce(o.open);
-  await get();
-
-  get.reset();
-  const got = await Promise.all([get(), get(), get()]);
-
-  assert.equal(o.calls(), 2, '다시 여는 것도 한 번뿐이어야 한다');
-  assert.equal(new Set(got.map((g) => g.id)).size, 1, '셋 다 같은 것을 받아야 한다');
-});
-
-/**
- * 실기기에서 난 그대로를 흉내 낸다. 열기는 되는데, 한 번 연 손잡이가 죽어서
- * 질의가 죽는다. 다시 열면 살아난다.
- */
-function dyingDatabase() {
+/** 열고 닫는 것을 세는 가짜. 닫힌 것을 또 쓰면 실기기처럼 죽는다. */
+function fake() {
   let opened = 0;
+  let closed = 0;
   const open = async () => {
     opened += 1;
-    const generation = opened;
+    const id = opened;
+    let dead = false;
     return {
-      generation,
-      // 첫 번째로 연 것은 죽어 있다. 두 번째부터는 멀쩡하다.
+      id,
+      kill: () => { dead = true; },
       run: async () => {
-        if (generation === 1) {
+        if (dead) {
           throw new Error(
             "Call to function 'NativeDatabase.prepareAsync' has been rejected. " +
               '→ Caused by: java.lang.NullPointerException',
           );
         }
-        return '됐다';
+        return id;
       },
     };
   };
-  return { open, opened: () => opened };
+  const close = async (v: { id: number }) => {
+    closed += 1;
+    void v;
+  };
+  return { open, close, opened: () => opened, closed: () => closed };
 }
 
-test('열린 뒤 죽은 손잡이는 버리고 다시 열어 살아난다', async () => {
-  const d = dyingDatabase();
-  const get = openOnce(d.open);
+// ── 한 번만 열기 ────────────────────────────────────────────────────────────
 
-  const got = await withReopen(get, (db) => db.run());
+test('동시에 여러 번 써도 한 번만 연다', async () => {
+  const f = fake();
+  const h = openOnce(f.open, f.close);
 
-  assert.equal(got, '됐다');
-  assert.equal(d.opened(), 2, '한 번 다시 열어야 한다');
+  const got = await Promise.all([h.use((v) => v.run()), h.use((v) => v.run()), h.use((v) => v.run())]);
+
+  // 두 번 열리면 진짜 데이터베이스는 하나인데 손잡이가 둘이 된다. 그것이 그 오류다.
+  assert.equal(f.opened(), 1, '동시에 써도 한 번만 열려야 한다');
+  assert.deepEqual(got, [1, 1, 1], '셋 다 같은 것을 써야 한다');
 });
 
-test('다시 열어도 안 되면 처음 오류를 그대로 던진다', async () => {
-  // 계속 죽는 경우. 진짜 고장을 감추면 안 된다.
+test('한 번 연 뒤에는 다시 열지 않는다', async () => {
+  const f = fake();
+  const h = openOnce(f.open, f.close);
+
+  await h.use((v) => v.run());
+  await h.use((v) => v.run());
+  await h.use((v) => v.run());
+
+  assert.equal(f.opened(), 1);
+  assert.equal(f.closed(), 0, '쓰는 동안 닫으면 안 된다');
+});
+
+test('여는 데 실패해도 한 번 더 열어 본다', async () => {
+  let attempts = 0;
+  let closed = 0;
+  const h = openOnce(
+    async () => {
+      attempts += 1;
+      if (attempts === 1) throw new Error('첫 시도는 실패');
+      return { ok: true };
+    },
+    async () => { closed += 1; },
+  );
+
+  assert.deepEqual(await h.use(async (v) => v), { ok: true });
+  assert.equal(attempts, 2);
+  // 열리지도 않은 것을 닫으려 들면 안 된다. 닫기가 뭘 받는지도 모르는 채로 불린다.
+  assert.equal(closed, 0);
+});
+
+test('두 번 다 못 열면 처음 오류를 던진다', async () => {
+  let attempts = 0;
+  const h = openOnce(
+    async () => { attempts += 1; throw new Error(`${attempts}번째 열기 실패`); },
+    async () => {},
+  );
+
+  await assert.rejects(() => h.use(async (v) => v), /1번째 열기 실패/);
+  assert.equal(attempts, 2, '계속 열려고 하면 화면만 멈춘다');
+});
+
+test('실패한 약속을 들고 있지 않는다', async () => {
+  // 들고 있으면 한 번 실패한 뒤로 영영 다시 시도할 수 없다. 앱이 못 쓰게 된다.
+  let attempts = 0;
+  const h = openOnce(
+    async () => {
+      attempts += 1;
+      if (attempts <= 2) throw new Error('아직 안 됨');
+      return { id: attempts };
+    },
+    async () => {},
+  );
+
+  await assert.rejects(() => h.use(async (v) => v));
+  assert.deepEqual(await h.use(async (v) => v), { id: 3 }, '다음에 부르면 또 시도해야 한다');
+});
+
+test('동시에 열다가 실패하면 열기를 나눠 쓴다', async () => {
+  let attempts = 0;
+  const h = openOnce(
+    async () => {
+      attempts += 1;
+      await new Promise((r) => setTimeout(r, 5));
+      throw new Error('열 수 없음');
+    },
+    async () => {},
+  );
+
+  const results = await Promise.allSettled([
+    h.use(async (v) => v), h.use(async (v) => v), h.use(async (v) => v),
+  ]);
+
+  for (const r of results) assert.equal(r.status, 'rejected');
+  // 셋이 각자 두 번씩 열면 여섯 번이다. 같은 약속을 나눠 쓰므로 두 번이어야 한다.
+  assert.equal(attempts, 2, '동시에 부른 것들이 열기를 나눠 써야 한다');
+});
+
+// ── 죽은 손잡이 살려 내기 ───────────────────────────────────────────────────
+
+test('죽은 손잡이는 닫고 다시 열어 살아난다', async () => {
+  const f = fake();
+  const h = openOnce(f.open, f.close);
+
+  const first = await h.use(async (v) => { v.kill(); return v.id; });
+  assert.equal(first, 1);
+
+  const got = await h.use((v) => v.run());
+
+  assert.equal(got, 2, '새로 연 것으로 해내야 한다');
+  assert.equal(f.opened(), 2, '한 번 다시 열어야 한다');
+});
+
+test('다시 열기 전에 **반드시 닫는다**', async () => {
+  // 이것이 이번 고침의 핵심이다.
+  // 그냥 버리면, 버려진 손잡이가 쓰레기 수집될 때 새로 연 손잡이가 쓰는
+  // 데이터베이스를 닫아 버린다. 지난번 고침이 바로 그 조건을 만들었다.
+  const order: string[] = [];
   let opened = 0;
-  const get = openOnce(async () => {
-    opened += 1;
-    return { run: async () => { throw new Error(`${opened}번째도 죽음`); } };
+  const h = openOnce(
+    async () => {
+      opened += 1;
+      order.push(`열기${opened}`);
+      const id = opened;
+      return { id };
+    },
+    async (v) => { order.push(`닫기${v.id}`); },
+  );
+
+  await h.use(async (v) => {
+    if (v.id === 1) throw new Error('죽음');
+    return v.id;
   });
 
+  assert.deepEqual(order, ['열기1', '닫기1', '열기2'], '닫기가 다시 열기보다 앞이어야 한다');
+});
+
+test('다시 해도 안 되면 처음 오류를 그대로 던진다', async () => {
+  const f = fake();
+  const h = openOnce(f.open, f.close);
+
   await assert.rejects(
-    () => withReopen(get, (db) => db.run()),
+    () => h.use(async (v) => { throw new Error(`${v.id}번째도 죽음`); }),
     /1번째도 죽음/,
     '처음 오류가 진짜 원인이다',
   );
-  assert.equal(opened, 2, '다시 여는 것은 한 번뿐이어야 한다 — 계속 하면 화면만 멈춘다');
+  assert.equal(f.opened(), 2, '다시 여는 것은 한 번뿐이어야 한다 — 계속 하면 화면만 멈춘다');
 });
 
 // ── 뒤로 갈 때 먼저 놓기 ────────────────────────────────────────────────────
-//
-// 다시 열기는 죽은 손잡이를 살려 내지만, 살려 내기 전에 화면 하나가 이미 비어 보인다.
-// 그래서 앱이 뒤로 가는 순간 우리가 먼저 놓는다.
-
-function closable() {
-  let opened = 0;
-  let closed = 0;
-  const open = async () => {
-    opened += 1;
-    return { id: opened, close: async () => { closed += 1; } };
-  };
-  return { open, opened: () => opened, closed: () => closed };
-}
 
 test('놓으면 닫고, 다음에 쓸 때 새로 연다', async () => {
-  const c = closable();
-  const get = openOnce(c.open);
-  const first = await get();
+  const f = fake();
+  const h = openOnce(f.open, f.close);
+  await h.use((v) => v.run());
 
-  await releaseHandle(get, (v) => v.close());
+  await h.release();
 
-  assert.equal(c.closed(), 1, '닫아야 한다');
-  assert.equal(get.opened(), false, '놓은 뒤에는 들고 있는 것이 없어야 한다');
-
-  const second = await get();
-  assert.equal(c.opened(), 2, '다음에 쓸 때 새로 열려야 한다');
-  assert.notEqual(first.id, second.id);
+  assert.equal(f.closed(), 1, '닫아야 한다');
+  assert.equal(h.opened(), false, '놓은 뒤에는 들고 있는 것이 없어야 한다');
+  assert.equal(await h.use((v) => v.run()), 2, '다음에 쓸 때 새로 열려야 한다');
 });
 
 test('연 적이 없으면 놓겠다고 열지 않는다', async () => {
-  const c = closable();
-  const get = openOnce(c.open);
+  const f = fake();
+  const h = openOnce(f.open, f.close);
 
-  await releaseHandle(get, (v) => v.close());
+  await h.release();
 
-  // 여기서 열어 버리면 앱이 뒤로 갈 때마다 쓰지도 않을 데이터베이스가 하나씩 열린다.
-  assert.equal(c.opened(), 0, '열지 않아야 한다');
-  assert.equal(c.closed(), 0);
+  // 여기서 열면 앱이 뒤로 갈 때마다 쓰지도 않을 데이터베이스가 하나씩 열린다.
+  assert.equal(f.opened(), 0, '열지 않아야 한다');
+  assert.equal(f.closed(), 0);
 });
 
 test('두 번 놓아도 한 번만 닫는다', async () => {
-  const c = closable();
-  const get = openOnce(c.open);
-  await get();
+  const f = fake();
+  const h = openOnce(f.open, f.close);
+  await h.use((v) => v.run());
 
-  await releaseHandle(get, (v) => v.close());
-  await releaseHandle(get, (v) => v.close());
+  await h.release();
+  await h.release();
 
-  assert.equal(c.closed(), 1);
-  assert.equal(c.opened(), 1, '놓은 것을 또 놓겠다고 새로 열면 안 된다');
+  assert.equal(f.closed(), 1);
+  assert.equal(f.opened(), 1, '놓은 것을 또 놓겠다고 새로 열면 안 된다');
 });
 
 test('닫다가 실패해도 놓은 것은 놓은 것이다', async () => {
   // 이미 죽어서 못 닫는 경우가 바로 우리가 고치려는 그 경우다.
   let opened = 0;
-  const get = openOnce(async () => {
-    opened += 1;
-    return { id: opened };
-  });
-  await get();
+  const h = openOnce(
+    async () => { opened += 1; return { id: opened }; },
+    async () => { throw new Error("Call to function 'NativeDatabase.closeAsync' has been rejected."); },
+  );
+  await h.use(async (v) => v.id);
 
-  await releaseHandle(get, async () => {
-    throw new Error("Call to function 'NativeDatabase.closeAsync' has been rejected.");
-  });
+  await h.release();
 
-  assert.equal(get.opened(), false, '닫기가 실패해도 들고 있으면 안 된다');
-  await get();
-  assert.equal(opened, 2, '다음에 쓸 때 새로 열려야 한다');
+  assert.equal(h.opened(), false, '닫기가 실패해도 들고 있으면 안 된다');
+  assert.equal(await h.use(async (v) => v.id), 2, '다음에 쓸 때 새로 열려야 한다');
 });
 
-test('놓은 뒤에도 질의는 그냥 된다', async () => {
-  // 뒤로 갔다 돌아온 뒤 목록을 여는 것이 이 모양이다.
-  const c = closable();
-  const get = openOnce(c.open);
-  await withReopen(get, async (v) => v.id);
+test('그냥 버리는 길은 아예 없다', async () => {
+  // 손잡이를 닫지 않고 버릴 수 있으면 언젠가 누가 그렇게 쓴다. 그리고 그것이
+  // 우리를 세 번 물었다. 그래서 내주는 것에 그런 길을 두지 않는다.
+  const f = fake();
+  const h = openOnce(f.open, f.close);
 
-  await releaseHandle(get, (v) => v.close());
-  const got = await withReopen(get, async (v) => v.id);
-
-  assert.equal(got, 2, '새로 연 것으로 해야 한다');
-  assert.equal(c.opened(), 2, '다시 열기까지 갈 필요 없이 한 번만 열려야 한다');
+  assert.deepEqual(Object.keys(h).sort(), ['opened', 'release', 'use']);
 });

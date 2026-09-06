@@ -146,3 +146,25 @@ test('src/core 에는 사람이 읽을 한국어 문장이 없다 (국제화)', 
   }
   assert.deepEqual(offenders, [], `코어에 박힌 한국어: ${offenders.join(', ')}`);
 });
+
+/**
+ * 데이터베이스를 **우리만 쓰는 연결**로 연다.
+ *
+ * 이것을 켜지 않으면 expo-sqlite 가 같은 파일에 이미 열려 있는 연결을 돌려준다.
+ * 그러면 자바스크립트 손잡이는 둘인데 진짜 데이터베이스는 하나가 되고, 먼저 버려진
+ * 손잡이가 쓰레기 수집될 때 남은 손잡이가 쓰는 데이터베이스를 닫아 버린다.
+ * 그 뒤 질의가 NullPointerException 으로 죽는다 — 실기기에서 세 번 났다.
+ *
+ * 코드에서만 지킬 수 있는 규칙이라 소스를 본다. 노드에서는 expo-sqlite 를
+ * 불러올 수 없어서 저장소를 실제로 돌려 볼 방법이 없다.
+ */
+test('SQLite 를 우리만 쓰는 연결로 연다', () => {
+  const path = 'src/data/adapters/expoSqliteRecordStore.ts';
+  const source = readFileSync(path, 'utf8');
+  assert.match(source, /useNewConnection:\s*true/, `${path} 가 연결을 남과 나눠 쓴다`);
+  assert.match(
+    source,
+    /SQLite\.openDatabaseAsync\(name,\s*OPEN_OPTIONS\)/,
+    `${path} 가 옵션 없이 열고 있다`,
+  );
+});
