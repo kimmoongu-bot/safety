@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import type { RecordStore } from '../../core/ports.ts';
 import type { VaultRecord } from '../../core/schema.ts';
-import { type Reopenable, openOnce } from '../openOnce.ts';
+import { type Reopenable, openOnce, releaseHandle, withReopen } from '../openOnce.ts';
 
 /**
  * 레코드 저장소.
@@ -71,33 +71,14 @@ export class ExpoSqliteRecordStore implements RecordStore {
   }
 
   /**
-   * 질의를 하되, 실패하면 **한 번만** 다시 열어 본다.
+   * 질의를 하되, 실패하면 **한 번만** 다시 열어 본다. 왜 그래야 하는지와 규칙은
+   * `withReopen` 에 적었다.
    *
-   * 안드로이드가 앱을 뒤로 보내면서 데이터베이스 손잡이를 정리하는 경우가 있다.
-   * 그러면 다음 질의가 이렇게 죽는다.
-   *   Call to function 'NativeDatabase.prepareAsync' has been rejected.
-   *   → Caused by: java.lang.NullPointerException
-   * 들고 있던 손잡이를 버리고 다시 열면 살아난다. 안 그러면 앱을 껐다 켜기 전까지
-   * 영영 안 되고, 사용자에게는 앱이 고장 난 것으로 보인다.
-   *
-   * **두 번 해도 안전하다.** 넣기는 같은 id 면 덮어쓰고(UPSERT), 지우기는 없으면
-   * 아무 일도 안 하며, 읽기는 바꾸는 것이 없다. 그래서 그냥 다시 해 볼 수 있다.
-   *
-   * 다시 열기는 한 번뿐이다. 계속 하면 진짜 고장난 것을 감추고 화면만 멈춘다.
-   * 두 번 다 실패하면 **처음 오류**를 던진다 — 그게 진짜 원인이고, 두 번째 것은
-   * 그 뒤에 따라온 것일 수 있다.
+   * **여기 있는 질의는 두 번 해도 안전하다.** 넣기는 같은 id 면 덮어쓰고(UPSERT),
+   * 지우기는 없으면 아무 일도 안 하며, 읽기는 바꾸는 것이 없다.
    */
-  private async query<R>(work: (db: SQLite.SQLiteDatabase) => Promise<R>): Promise<R> {
-    try {
-      return await work(await this.open());
-    } catch (first) {
-      this.open.reset();
-      try {
-        return await work(await this.open());
-      } catch {
-        throw first;
-      }
-    }
+  private query<R>(work: (db: SQLite.SQLiteDatabase) => Promise<R>): Promise<R> {
+    return withReopen(this.open, work);
   }
 
   async list(): Promise<VaultRecord[]> {
@@ -152,5 +133,24 @@ export class ExpoSqliteRecordStore implements RecordStore {
 
   async clear(): Promise<void> {
     await this.query((db) => db.execAsync('DELETE FROM records; VACUUM;'));
+  }
+
+  /**
+   * 손잡이를 놓는다. 앱이 뒤로 갈 때 부른다.
+   *
+   * **안드로이드가 화면을 정리할 때 expo-sqlite 가 열린 데이터베이스를 전부 닫는다**
+   * (`SQLiteModule.kt` 의 `OnDestroy`). 그런데 자바스크립트 쪽은 그대로 살아 있어서
+   * 죽은 손잡이를 계속 붙들고 있게 된다. 그 뒤 질의는 이렇게 죽는다.
+   *   Call to function 'NativeDatabase.prepareAsync' has been rejected.
+   *   → Caused by: java.lang.NullPointerException
+   *
+   * 위의 다시 열기가 그것을 살려 내지만, 살려 내기 전에 화면 하나가 이미 비어 보인다.
+   * 그래서 **뒤로 가는 순간 우리가 먼저 놓는다.** 다음에 쓸 때 새로 연다. 여는 데
+   * 드는 비용은 파일 하나 여는 정도라 사용자가 느끼지 못한다.
+   *
+   * 어차피 뒤로 갈 때 금고도 잠그므로(명세 5.5) 들고 있을 이유도 없다.
+   */
+  release(): Promise<void> {
+    return releaseHandle(this.open, (db) => db.closeAsync());
   }
 }

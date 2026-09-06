@@ -76,6 +76,8 @@ export default function App() {
   const settings = useVaultStore((s) => s.settings);
   const activityRef = useRef(lastActivityAt);
   activityRef.current = lastActivityAt;
+  // 뒤로 갈 때 데이터베이스 손잡이를 놓으려고 들고 있는다 (아래 AppState 참고).
+  const recordsRef = useRef<ExpoSqliteRecordStore | null>(null);
 
   // 저장소는 화면 밖이라 훅을 쓸 수 없다. 번역기를 넘겨 준다.
   useEffect(() => {
@@ -108,12 +110,14 @@ export default function App() {
       );
       if (cancelled) return;
 
+      const records = new ExpoSqliteRecordStore();
+      recordsRef.current = records;
       const vault = new Vault({
         provider,
         keyStore,
         nonces,
         metaStore: new ExpoMetaStore(),
-        recordStore: new ExpoSqliteRecordStore(),
+        recordStore: records,
       });
       const status = await vault.status();
       if (cancelled) return;
@@ -179,6 +183,16 @@ export default function App() {
         return;
       }
       if (next !== 'background') return;
+      /*
+        데이터베이스 손잡이를 먼저 놓는다.
+        안드로이드가 화면을 정리하면서 expo-sqlite 가 열린 것을 전부 닫아 버리는데,
+        자바스크립트 쪽은 죽은 손잡이를 그대로 들고 있게 된다. 그러면 돌아왔을 때
+        금고 목록이 열리지 않는다. 자세한 것은 expoSqliteRecordStore 의 release 에 적었다.
+
+        잠글지 말지와 상관없이 놓는다. 다음에 쓸 때 새로 열리므로 놓아서 손해 볼 것이 없고,
+        잠그지 않는 경우(지문 확인 창 등)에도 화면은 똑같이 정리될 수 있다.
+      */
+      void recordsRef.current?.release();
       const state = useVaultStore.getState();
       const route = state.stack[state.stack.length - 1];
       const shouldLock = shouldLockOnBackground({

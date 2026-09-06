@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { openOnce } from '../src/data/openOnce.ts';
+import { openOnce, releaseHandle, withReopen } from '../src/data/openOnce.ts';
 
 /**
  * 실기기에서 이런 오류가 났다.
@@ -129,28 +129,11 @@ function dyingDatabase() {
   return { open, opened: () => opened };
 }
 
-/** 저장소가 하는 것과 같은 모양. 실패하면 한 번만 다시 열어 본다. */
-async function queryWithRetry<T, R>(
-  get: ReturnType<typeof openOnce<T>>,
-  work: (db: T) => Promise<R>,
-): Promise<R> {
-  try {
-    return await work(await get());
-  } catch (first) {
-    get.reset();
-    try {
-      return await work(await get());
-    } catch {
-      throw first;
-    }
-  }
-}
-
 test('열린 뒤 죽은 손잡이는 버리고 다시 열어 살아난다', async () => {
   const d = dyingDatabase();
   const get = openOnce(d.open);
 
-  const got = await queryWithRetry(get, (db) => db.run());
+  const got = await withReopen(get, (db) => db.run());
 
   assert.equal(got, '됐다');
   assert.equal(d.opened(), 2, '한 번 다시 열어야 한다');
@@ -165,9 +148,93 @@ test('다시 열어도 안 되면 처음 오류를 그대로 던진다', async (
   });
 
   await assert.rejects(
-    () => queryWithRetry(get, (db) => db.run()),
+    () => withReopen(get, (db) => db.run()),
     /1번째도 죽음/,
     '처음 오류가 진짜 원인이다',
   );
   assert.equal(opened, 2, '다시 여는 것은 한 번뿐이어야 한다 — 계속 하면 화면만 멈춘다');
+});
+
+// ── 뒤로 갈 때 먼저 놓기 ────────────────────────────────────────────────────
+//
+// 다시 열기는 죽은 손잡이를 살려 내지만, 살려 내기 전에 화면 하나가 이미 비어 보인다.
+// 그래서 앱이 뒤로 가는 순간 우리가 먼저 놓는다.
+
+function closable() {
+  let opened = 0;
+  let closed = 0;
+  const open = async () => {
+    opened += 1;
+    return { id: opened, close: async () => { closed += 1; } };
+  };
+  return { open, opened: () => opened, closed: () => closed };
+}
+
+test('놓으면 닫고, 다음에 쓸 때 새로 연다', async () => {
+  const c = closable();
+  const get = openOnce(c.open);
+  const first = await get();
+
+  await releaseHandle(get, (v) => v.close());
+
+  assert.equal(c.closed(), 1, '닫아야 한다');
+  assert.equal(get.opened(), false, '놓은 뒤에는 들고 있는 것이 없어야 한다');
+
+  const second = await get();
+  assert.equal(c.opened(), 2, '다음에 쓸 때 새로 열려야 한다');
+  assert.notEqual(first.id, second.id);
+});
+
+test('연 적이 없으면 놓겠다고 열지 않는다', async () => {
+  const c = closable();
+  const get = openOnce(c.open);
+
+  await releaseHandle(get, (v) => v.close());
+
+  // 여기서 열어 버리면 앱이 뒤로 갈 때마다 쓰지도 않을 데이터베이스가 하나씩 열린다.
+  assert.equal(c.opened(), 0, '열지 않아야 한다');
+  assert.equal(c.closed(), 0);
+});
+
+test('두 번 놓아도 한 번만 닫는다', async () => {
+  const c = closable();
+  const get = openOnce(c.open);
+  await get();
+
+  await releaseHandle(get, (v) => v.close());
+  await releaseHandle(get, (v) => v.close());
+
+  assert.equal(c.closed(), 1);
+  assert.equal(c.opened(), 1, '놓은 것을 또 놓겠다고 새로 열면 안 된다');
+});
+
+test('닫다가 실패해도 놓은 것은 놓은 것이다', async () => {
+  // 이미 죽어서 못 닫는 경우가 바로 우리가 고치려는 그 경우다.
+  let opened = 0;
+  const get = openOnce(async () => {
+    opened += 1;
+    return { id: opened };
+  });
+  await get();
+
+  await releaseHandle(get, async () => {
+    throw new Error("Call to function 'NativeDatabase.closeAsync' has been rejected.");
+  });
+
+  assert.equal(get.opened(), false, '닫기가 실패해도 들고 있으면 안 된다');
+  await get();
+  assert.equal(opened, 2, '다음에 쓸 때 새로 열려야 한다');
+});
+
+test('놓은 뒤에도 질의는 그냥 된다', async () => {
+  // 뒤로 갔다 돌아온 뒤 목록을 여는 것이 이 모양이다.
+  const c = closable();
+  const get = openOnce(c.open);
+  await withReopen(get, async (v) => v.id);
+
+  await releaseHandle(get, (v) => v.close());
+  const got = await withReopen(get, async (v) => v.id);
+
+  assert.equal(got, 2, '새로 연 것으로 해야 한다');
+  assert.equal(c.opened(), 2, '다시 열기까지 갈 필요 없이 한 번만 열려야 한다');
 });
