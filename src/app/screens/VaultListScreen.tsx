@@ -82,7 +82,7 @@ export function VaultListScreen() {
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     search: {
       minHeight: TOUCH + 12,
@@ -90,13 +90,13 @@ const useStyles = createStyles((colors) =>
       borderColor: colors.primary,
       borderRadius: radius.md,
       paddingHorizontal: space.md,
-      fontFamily: font.family,
+      fontFamily: fonts.family,
       fontSize: font.big,
       color: colors.text,
       marginBottom: space.sm,
     },
     empty: { paddingVertical: space.xl, gap: space.sm, alignItems: 'center' },
     addHint: { minHeight: TOUCH, justifyContent: 'center', paddingHorizontal: space.md },
-    addHintText: { fontFamily: font.familyBold, fontSize: font.body, color: colors.primary, fontWeight: WEIGHT },
+    addHintText: { fontFamily: fonts.familyBold, fontSize: font.body, color: colors.primary, fontWeight: WEIGHT },
   }),
 );

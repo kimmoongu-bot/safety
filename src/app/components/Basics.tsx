@@ -277,7 +277,7 @@ export function Choice<T extends string | number>({
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.bg },
     header: {
@@ -303,18 +303,18 @@ const useStyles = createStyles((colors) =>
     mark: { width: 56, height: 56, flexShrink: 0 },
     /** 제목과 그 아래 한 줄. 자물쇠 표시 옆에 통째로 놓인다. */
     titleBlock: { flexShrink: 1 },
-    headerTitle: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
+    headerTitle: { fontFamily: fonts.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
     /** 앱 얼굴이 되는 화면에서만 크게. 다른 화면 제목까지 커지면 화면마다 크기가 달라 보인다. */
-    headerTitleLogo: { fontFamily: font.familyBold, fontSize: font.logo },
+    headerTitleLogo: { fontFamily: fonts.familyBold, fontSize: font.logo },
     /** 제목 아래 한 줄. 흐린 글자색도 대비 6.5:1 이라 명세 3장을 넘는다. */
-    headerSubtitle: { fontFamily: font.family, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.textDim, marginTop: 2 },
+    headerSubtitle: { fontFamily: fonts.family, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.textDim, marginTop: 2 },
     back: { minHeight: TOUCH, justifyContent: 'center' },
-    backText: { fontFamily: font.familyBold, fontSize: font.body, color: colors.accent, fontWeight: WEIGHT },
+    backText: { fontFamily: fonts.familyBold, fontSize: font.body, color: colors.accent, fontWeight: WEIGHT },
     scroll: { flex: 1 },
     scrollContent: { padding: space.md, paddingBottom: space.xl, gap: space.sm },
     footer: { padding: space.md, borderTopWidth: 1, borderTopColor: colors.border, gap: space.sm },
-    title: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, marginBottom: space.sm },
-    body: { fontFamily: font.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5 },
+    title: { fontFamily: fonts.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, marginBottom: space.sm },
+    body: { fontFamily: fonts.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5 },
     bodyDim: { color: colors.textDim },
     notice: {
       backgroundColor: colors.warnBg,
@@ -324,7 +324,7 @@ const useStyles = createStyles((colors) =>
       borderColor: colors.warnBorder,
     },
     noticePlain: { backgroundColor: colors.surface, borderColor: colors.border },
-    noticeText: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.warnText, lineHeight: font.bodySmall * 1.5 },
+    noticeText: { fontFamily: fonts.family, fontSize: font.bodySmall, color: colors.warnText, lineHeight: font.bodySmall * 1.5 },
     noticeTextPlain: { color: colors.text },
     btn: {
       minHeight: TOUCH + 8,
@@ -344,13 +344,13 @@ const useStyles = createStyles((colors) =>
     btnText_: { backgroundColor: 'transparent' },
     btnPressed: { opacity: 0.75 },
     btnDisabled: { opacity: 0.5 },
-    btnLabelOnFill: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText, textAlign: 'center' },
-    btnLabelPlain: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text, textAlign: 'center' },
-    btnLabelDanger: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.danger, textAlign: 'center' },
-    btnLabelText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.accent, textAlign: 'center' },
+    btnLabelOnFill: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText, textAlign: 'center' },
+    btnLabelPlain: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text, textAlign: 'center' },
+    btnLabelDanger: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.danger, textAlign: 'center' },
+    btnLabelText: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.accent, textAlign: 'center' },
     field: { gap: space.xs, marginBottom: space.sm },
-    fieldLabel: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.text },
-    fieldHint: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },
+    fieldLabel: { fontFamily: fonts.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.text },
+    fieldHint: { fontFamily: fonts.family, fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },
     /**
      * 테두리는 글자칸이 아니라 바깥 상자가 갖는다. 그래야 오른쪽에 "보기" 같은
      * 조작을 넣어도 테두리 안에 들어간다.
@@ -372,7 +372,7 @@ const useStyles = createStyles((colors) =>
       minHeight: TOUCH,
       paddingHorizontal: space.md,
       paddingVertical: space.sm,
-      fontFamily: font.family,
+      fontFamily: fonts.family,
       fontSize: font.body,
       color: colors.text,
     },
@@ -387,7 +387,7 @@ const useStyles = createStyles((colors) =>
       borderLeftWidth: 2,
       borderLeftColor: colors.border,
     },
-    fieldActionText: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.accent },
+    fieldActionText: { fontFamily: fonts.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.accent },
     row: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
     toggle: {
       minHeight: TOUCH + 8,
@@ -415,7 +415,7 @@ const useStyles = createStyles((colors) =>
       backgroundColor: colors.surface,
     },
     knobTrackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-    knobLabel: { fontFamily: font.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.text },
+    knobLabel: { fontFamily: fonts.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.text },
     knobLabelOn: { color: colors.primaryText },
     choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     choice: {
@@ -428,7 +428,7 @@ const useStyles = createStyles((colors) =>
       backgroundColor: colors.surface,
     },
     choiceOn: { borderColor: colors.primary, backgroundColor: colors.primary },
-    choiceText: { fontFamily: font.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.text },
+    choiceText: { fontFamily: fonts.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.text },
     choiceTextOn: { color: colors.primaryText },
   }),
 );

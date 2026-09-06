@@ -12,28 +12,9 @@
  * 나오면 아래 `body` 한 줄만 고치면 된다.
  */
 
-import { Platform, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { usePrefsStore } from '../state/prefsStore.ts';
 import { darkColors, lightColors, type Palette } from './palette.ts';
-
-/**
- * 글꼴 — Pretendard (SIL OFL 1.1)
- *
- * 라이선스 원문은 `assets/fonts/Pretendard-OFL.txt` 에 같이 넣어 두었다.
- * OFL 은 소프트웨어에 넣어 파는 것을 명시적으로 허용한다. 글꼴 자체를 따로 팔거나,
- * 고친 것에 'Pretendard' 이름을 붙이는 것만 금지한다. 우리는 원본 그대로 넣는다.
- *
- * **굵기를 이름으로 직접 고른다.** 안드로이드에 굵기 짝짓기를 맡기면 없는 굵기를
- * 기계가 억지로 굵게 그려(가짜 굵기) 글자가 뭉개진다. 두 벌만 넣었으므로
- * 어느 것을 쓸지 우리가 정한다.
- *
- * 이름이 플랫폼마다 다르다. 안드로이드는 파일 이름을, 아이폰은 글꼴 안에 적힌
- * 이름을 쓴다. (아이폰은 아직 기기에서 확인하지 않았다.)
- */
-const FAMILY = Platform.select({
-  android: { regular: 'Pretendard-Regular', bold: 'Pretendard-SemiBold' },
-  default: { regular: 'Pretendard', bold: 'Pretendard' },
-});
 
 /**
  * 색 — 디자인 시안의 색 체계.
@@ -50,10 +31,11 @@ export { type Palette, lightColors, darkColors, colors } from './palette.ts';
  * 읽는 글보다 크게 둔다.
  */
 export const font = {
-  /** 본문·설명에 쓰는 보통 굵기 */
-  family: FAMILY.regular,
-  /** 제목·버튼·이름표에 쓰는 굵은 것 (시안의 SemiBold) */
-  familyBold: FAMILY.bold,
+  /*
+    글꼴 이름은 여기 없다. 화면 언어에 따라 달라지므로 `theme/fonts.ts` 가 정하고,
+    `createStyles` 가 스타일을 만들 때 넘겨 준다. 여기 상수로 두면 파일을 읽는
+    순간에 박혀서 일본어 화면에서 바꿀 수 없다.
+  */
   title: 20,
   /**
    * 앱 얼굴이 되는 화면의 제목 ("잠김"). 보통 제목보다 크다.

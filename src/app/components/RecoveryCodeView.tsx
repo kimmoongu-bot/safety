@@ -29,7 +29,7 @@ export function RecoveryCodeView({ code }: { code: string }) {
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     box: {
       backgroundColor: colors.warnBg,
@@ -41,7 +41,7 @@ const useStyles = createStyles((colors) =>
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
     index: {
-      fontFamily: font.familyBold,
+      fontFamily: fonts.familyBold,
       fontSize: font.body,
       fontWeight: WEIGHT,
       color: colors.warnText,
@@ -50,7 +50,7 @@ const useStyles = createStyles((colors) =>
     },
     group: {
       flex: 1,
-      fontFamily: font.familyBold,
+      fontFamily: fonts.familyBold,
       fontSize: font.huge,
       fontWeight: WEIGHT,
       color: colors.text,

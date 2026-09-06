@@ -137,7 +137,7 @@ export function DetailScreen({ id }: { id: string }) {
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     block: {
       borderWidth: 1,
@@ -147,7 +147,7 @@ const useStyles = createStyles((colors) =>
       gap: space.sm,
       marginBottom: space.sm,
     },
-    label: { fontFamily: font.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.textDim },
-    value: { fontFamily: font.family, fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
+    label: { fontFamily: fonts.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.textDim },
+    value: { fontFamily: fonts.family, fontSize: font.big, color: colors.text, lineHeight: font.big * 1.4 },
   }),
 );

@@ -75,7 +75,7 @@ export function PinPad({
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.sm },
     dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
@@ -111,7 +111,7 @@ const useStyles = createStyles((colors) =>
     keyBox: { borderRadius: KEY / 2, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
     pressed: { opacity: 0.7, backgroundColor: colors.surface },
     off: { opacity: 0.5 },
-    keyText: { fontFamily: font.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.text },
-    keyTextSmall: { fontFamily: font.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.accent },
+    keyText: { fontFamily: fonts.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.text },
+    keyTextSmall: { fontFamily: fonts.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.accent },
   }),
 );

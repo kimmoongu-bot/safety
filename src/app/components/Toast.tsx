@@ -41,7 +41,7 @@ export function ToastHost() {
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     toast: {
       // 위쪽에 띄운다. 아래쪽은 버튼과 폰 내비게이션 바에 가려 잘린다.
@@ -56,6 +56,6 @@ const useStyles = createStyles((colors) =>
     // 크림 바탕에 얹히는 색이다. 흰 바탕 시절 색을 그대로 두면 혼자 튄다.
     ok: { backgroundColor: colors.toastOkBg, borderColor: colors.ok },
     bad: { backgroundColor: colors.toastBadBg, borderColor: colors.danger },
-    text: { fontFamily: font.familyBold, fontSize: font.body, color: colors.text, fontWeight: WEIGHT, lineHeight: font.body * 1.4 },
+    text: { fontFamily: fonts.familyBold, fontSize: font.body, color: colors.text, fontWeight: WEIGHT, lineHeight: font.body * 1.4 },
   }),
 );

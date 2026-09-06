@@ -45,7 +45,7 @@ export function SearchResultsScreen({ query }: { query: string }) {
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     search: {
       minHeight: TOUCH + 12,
@@ -53,7 +53,7 @@ const useStyles = createStyles((colors) =>
       borderColor: colors.primary,
       borderRadius: radius.md,
       paddingHorizontal: space.md,
-      fontFamily: font.family,
+      fontFamily: fonts.family,
       fontSize: font.big,
       color: colors.text,
     },
