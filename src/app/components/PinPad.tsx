@@ -1,7 +1,7 @@
 import React from 'react';
 import { useT } from '../i18n/index.ts';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { font, space, WEIGHT } from '../theme/index.ts';
+import { CENTER_GLYPH, font, space, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
 
 /**
@@ -111,7 +111,20 @@ const useStyles = createStyles((colors, fonts) =>
     keyBox: { borderRadius: KEY / 2, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
     pressed: { opacity: 0.7, backgroundColor: colors.surface },
     off: { opacity: 0.5 },
-    keyText: { fontFamily: fonts.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.text },
-    keyTextSmall: { fontFamily: fonts.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.accent },
+    // 동그라미 한가운데. CENTER_GLYPH 가 없으면 글꼴에 따라 숫자가 아래로 처진다.
+    keyText: {
+      fontFamily: fonts.familyBold,
+      fontSize: font.huge,
+      fontWeight: WEIGHT,
+      color: colors.text,
+      ...CENTER_GLYPH,
+    },
+    keyTextSmall: {
+      fontFamily: fonts.familyBold,
+      fontSize: font.body,
+      fontWeight: WEIGHT,
+      color: colors.accent,
+      ...CENTER_GLYPH,
+    },
   }),
 );

@@ -77,6 +77,24 @@ export const radius = { sm: 8, md: 12, lg: 18 } as const;
 export const WEIGHT = 'normal' as const;
 
 /**
+ * 상자 한가운데에 글자를 놓을 때 같이 준다.
+ *
+ * **안드로이드는 글꼴이 정해 둔 위아래 여백을 글자 상자에 더한다.** 그 여백은
+ * 글꼴마다 다르고, 한자를 담는 일본어 글꼴은 특히 넓다. 그대로 두면 상자는
+ * 가운데인데 글자는 상자 안에서 아래로 처진다.
+ *
+ * 실기기에서 일본어로 바꿨을 때 숫자판에서 드러났다. 한국어에서는 Pretendard
+ * 여백에 맞춰 우연히 맞아 보였을 뿐이다. **크기를 정해 둔 상자 안에 글자를
+ * 가운데 놓는 곳이면 어디든 이걸 준다.**
+ */
+export const CENTER_GLYPH = {
+  includeFontPadding: false,
+  textAlign: 'center',
+  textAlignVertical: 'center',
+} as const;
+
+
+/**
  * 지금 쓸 색 한 벌.
  *
  * 설정에서 고른 값이 먼저다. '자동'이면 폰 설정을 따라간다.

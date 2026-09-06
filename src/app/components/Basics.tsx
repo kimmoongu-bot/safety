@@ -11,7 +11,7 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
-import { font, radius, space, TOUCH, useColors, WEIGHT } from '../theme/index.ts';
+import { CENTER_GLYPH, TOUCH, WEIGHT, font, radius, space, useColors } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
 import { useT } from '../i18n/index.ts';
 
@@ -415,7 +415,14 @@ const useStyles = createStyles((colors, fonts) =>
       backgroundColor: colors.surface,
     },
     knobTrackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-    knobLabel: { fontFamily: fonts.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.text },
+    // 켬/끔 단추도 크기를 정해 둔 상자다. 숫자판과 같은 이유로 CENTER_GLYPH 를 준다.
+    knobLabel: {
+      fontFamily: fonts.familyBold,
+      fontSize: font.bodySmall,
+      fontWeight: WEIGHT,
+      color: colors.text,
+      ...CENTER_GLYPH,
+    },
     knobLabelOn: { color: colors.primaryText },
     choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
     choice: {

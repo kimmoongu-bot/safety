@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import type { RecordStore } from '../../core/ports.ts';
 import type { VaultRecord } from '../../core/schema.ts';
-import { openOnce } from '../openOnce.ts';
+import { type Reopenable, openOnce } from '../openOnce.ts';
 
 /**
  * 레코드 저장소.
@@ -58,7 +58,7 @@ export class ExpoSqliteRecordStore implements RecordStore {
    * 한 번만 연다. 왜 이렇게 해야 하는지는 `src/data/openOnce.ts` 에 적었다 —
    * 실기기에서 데이터베이스가 두 번 열려 질의가 죽은 적이 있다.
    */
-  private readonly open: () => Promise<SQLite.SQLiteDatabase>;
+  private readonly open: Reopenable<SQLite.SQLiteDatabase>;
 
   constructor(opener: DbOpener = (name) => SQLite.openDatabaseAsync(name)) {
     this.open = openOnce(async () => {
@@ -70,21 +70,53 @@ export class ExpoSqliteRecordStore implements RecordStore {
     });
   }
 
+  /**
+   * 질의를 하되, 실패하면 **한 번만** 다시 열어 본다.
+   *
+   * 안드로이드가 앱을 뒤로 보내면서 데이터베이스 손잡이를 정리하는 경우가 있다.
+   * 그러면 다음 질의가 이렇게 죽는다.
+   *   Call to function 'NativeDatabase.prepareAsync' has been rejected.
+   *   → Caused by: java.lang.NullPointerException
+   * 들고 있던 손잡이를 버리고 다시 열면 살아난다. 안 그러면 앱을 껐다 켜기 전까지
+   * 영영 안 되고, 사용자에게는 앱이 고장 난 것으로 보인다.
+   *
+   * **두 번 해도 안전하다.** 넣기는 같은 id 면 덮어쓰고(UPSERT), 지우기는 없으면
+   * 아무 일도 안 하며, 읽기는 바꾸는 것이 없다. 그래서 그냥 다시 해 볼 수 있다.
+   *
+   * 다시 열기는 한 번뿐이다. 계속 하면 진짜 고장난 것을 감추고 화면만 멈춘다.
+   * 두 번 다 실패하면 **처음 오류**를 던진다 — 그게 진짜 원인이고, 두 번째 것은
+   * 그 뒤에 따라온 것일 수 있다.
+   */
+  private async query<R>(work: (db: SQLite.SQLiteDatabase) => Promise<R>): Promise<R> {
+    try {
+      return await work(await this.open());
+    } catch (first) {
+      this.open.reset();
+      try {
+        return await work(await this.open());
+      } catch {
+        throw first;
+      }
+    }
+  }
+
   async list(): Promise<VaultRecord[]> {
-    const db = await this.open();
-    const rows = await db.getAllAsync<Row>('SELECT * FROM records');
-    return rows.map(toRecord);
+    return this.query(async (db) => {
+      const rows = await db.getAllAsync<Row>('SELECT * FROM records');
+      return rows.map(toRecord);
+    });
   }
 
   async get(id: string): Promise<VaultRecord | null> {
-    const db = await this.open();
-    const row = await db.getFirstAsync<Row>('SELECT * FROM records WHERE id = ?', id);
-    return row ? toRecord(row) : null;
+    return this.query(async (db) => {
+      const row = await db.getFirstAsync<Row>('SELECT * FROM records WHERE id = ?', id);
+      return row ? toRecord(row) : null;
+    });
   }
 
   async put(record: VaultRecord): Promise<void> {
-    const db = await this.open();
-    await db.runAsync(
+    await this.query((db) =>
+      db.runAsync(
       `INSERT INTO records (id, created_at, updated_at, favorite, schema_version, nonce, ciphertext, tag)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
@@ -102,23 +134,23 @@ export class ExpoSqliteRecordStore implements RecordStore {
       record.cipher.nonce,
       record.cipher.ciphertext,
       record.cipher.tag,
+      ),
     );
   }
 
   async putMany(records: VaultRecord[]): Promise<void> {
-    const db = await this.open();
-    await db.withTransactionAsync(async () => {
-      for (const record of records) await this.put(record);
-    });
+    await this.query((db) =>
+      db.withTransactionAsync(async () => {
+        for (const record of records) await this.put(record);
+      }),
+    );
   }
 
   async remove(id: string): Promise<void> {
-    const db = await this.open();
-    await db.runAsync('DELETE FROM records WHERE id = ?', id);
+    await this.query((db) => db.runAsync('DELETE FROM records WHERE id = ?', id));
   }
 
   async clear(): Promise<void> {
-    const db = await this.open();
-    await db.execAsync('DELETE FROM records; VACUUM;');
+    await this.query((db) => db.execAsync('DELETE FROM records; VACUUM;'));
   }
 }
