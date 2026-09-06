@@ -32,7 +32,7 @@ export function PrivacyShield() {
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     shield: {
       position: 'absolute',
@@ -45,6 +45,6 @@ const useStyles = createStyles((colors) =>
       justifyContent: 'center',
       zIndex: 999,
     },
-    logo: { fontFamily: font.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.primary, letterSpacing: 4 },
+    logo: { fontFamily: fonts.familyBold, fontSize: font.huge, fontWeight: WEIGHT, color: colors.primary, letterSpacing: 4 },
   }),
 );

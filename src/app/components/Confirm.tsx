@@ -42,11 +42,11 @@ export function Confirm({
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: space.md },
     card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.lg, gap: space.sm },
-    title: { fontFamily: font.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
-    message: { fontFamily: font.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5, marginBottom: space.sm },
+    title: { fontFamily: fonts.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
+    message: { fontFamily: fonts.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5, marginBottom: space.sm },
   }),
 );

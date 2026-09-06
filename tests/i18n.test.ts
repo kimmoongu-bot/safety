@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { en } from '../src/app/i18n/en.ts';
+import { ja } from '../src/app/i18n/ja.ts';
+import { ru } from '../src/app/i18n/ru.ts';
 import { ko } from '../src/app/i18n/ko.ts';
 import { makePseudo } from '../src/app/i18n/pseudo.ts';
 import { translate } from '../src/app/i18n/types.ts';
@@ -151,5 +154,112 @@ test('옛 항목의 갈래는 번역하지 않고 그대로 보여 준다', asyn
     const shown = categoryLabel(code, t);
     assert.notEqual(shown, code, `${code} 가 번역되지 않았다`);
     assert.ok(!shown.includes('.'), `${code} → ${shown} 처럼 열쇠 이름이 나오면 안 된다`);
+  }
+});
+
+// ── 영어 문장 ────────────────────────────────────────────────────────────────
+
+/**
+ * 한국어 말고 우리가 가진 언어들.
+ *
+ * 언어를 더할 때 이 줄에만 더하면 아래 검사가 전부 그 언어에도 걸린다.
+ * 여기 안 적으면 그 언어는 아무도 안 본 채로 배포된다.
+ */
+const OTHERS: Record<string, Record<string, unknown>> = { en, ja, ru };
+
+/**
+ * 이 문장이 받는 값 이름들.
+ *
+ * 글이면 `{name}` 을 뽑고, 함수면 **매개변수에 적힌 이름**을 뽑는다.
+ * 함수 본문의 `${name}` 을 보면 안 된다 — 값을 빼먹은 문장은 본문에도 그 이름이
+ * 없어서, 볼 것이 없어지고 검사가 저절로 통과한다.
+ */
+function paramNames(message: unknown): string[] {
+  if (typeof message === 'string') {
+    return [...message.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '').sort();
+  }
+  if (typeof message !== 'function') return [];
+  const head = /^\(\s*\{([^}]*)\}/.exec(String(message));
+  if (!head?.[1]) return [];
+  return head[1]
+    .split(',')
+    .map((piece) => (piece.split(':')[0] ?? '').trim())
+    .filter((name) => /^\w+$/.test(name))
+    .sort();
+}
+
+test('옮긴 문장 목록이 한국어와 열쇠가 같다', () => {
+  const koKeys = Object.keys(ko).sort();
+  for (const [tag, catalog] of Object.entries(OTHERS)) {
+    assert.deepEqual(Object.keys(catalog).sort(), koKeys, `${tag} 의 열쇠가 다르다`);
+  }
+});
+
+test('옮긴 문장에 한글이 남아 있지 않다', () => {
+  // ko.ts 를 복사해 옮기다 한 줄을 빠뜨리면 그 화면에 한국어가 튀어나온다.
+  for (const [tag, catalog] of Object.entries(OTHERS)) {
+    const left: string[] = [];
+    for (const [key, value] of Object.entries(catalog)) {
+      if (/[가-힣]/.test(String(value))) left.push(key);
+    }
+    assert.deepEqual(left, [], `${tag} 에서 안 옮긴 문장: ${left.join(', ')}`);
+  }
+});
+
+test('언어마다 받는 값 이름이 한국어와 같다', () => {
+  /*
+    한국어가 `{query}` 인데 옮긴 쪽이 `{search}` 면 화면에 `{search}` 가 그대로
+    나온다. 열쇠 이름이 맞고 문장도 그럴듯해서 눈으로는 못 잡는다.
+  */
+  for (const [tag, catalog] of Object.entries(OTHERS)) {
+    const mismatched: string[] = [];
+    for (const key of Object.keys(ko)) {
+      const a = paramNames((ko as Record<string, unknown>)[key]).join(',');
+      const b = paramNames(catalog[key]).join(',');
+      if (a !== b) mismatched.push(`${key}: ko(${a}) vs ${tag}(${b})`);
+    }
+    assert.deepEqual(mismatched, [], `${tag} 의 값 이름이 다른 곳: ${mismatched.join(' / ')}`);
+  }
+});
+
+test('옮긴 문장이 받은 값을 실제로 보여 준다', () => {
+  /*
+    개수에 따라 갈리는 문장을 함수로 적다가 값을 빼먹기 쉽다.
+    `({ count }) => 'Found some.'` 처럼 되면 화면에서 숫자가 사라진다.
+
+    기대하는 값 이름은 **한국어 쪽에서** 가져온다. 옮긴 쪽에서 가져오면 빼먹은
+    문장은 애초에 검사 대상에서 빠진다.
+
+    숫자는 7 을 넣는다. 1 을 넣으면 "1 time" 처럼 숫자를 글자로 적는 갈래로 빠져
+    자리 표시자 없이도 통과해 버린다.
+  */
+  const SENTINEL: Record<string, string | number> = {
+    count: 7, seconds: 7, minutes: 7, digit: 7, min: 7,
+    how: 'ZZQ1', what: 'ZZQ2', service: 'ZZQ3', name: 'ZZQ4',
+    wait: 'ZZQ5', why: 'ZZQ6', reason: 'ZZQ7', query: 'ZZQ8',
+    username: 'ZZQ9', code: 'ZZQ10', when: 'ZZQ11', label: 'ZZQ12',
+  };
+  for (const [tag, catalog] of Object.entries(OTHERS)) {
+    const missing: string[] = [];
+    for (const key of Object.keys(ko)) {
+      const value = catalog[key];
+      const wanted = paramNames((ko as Record<string, unknown>)[key]);
+      if (wanted.length === 0) continue;
+      const out =
+        typeof value === 'function'
+          ? (value as (p: Record<string, string | number>) => string)(SENTINEL)
+          : String(value);
+      for (const nameWanted of wanted) {
+        const mark = SENTINEL[nameWanted];
+        if (mark === undefined) {
+          missing.push(`${key}:${nameWanted} (검사에 넣을 값이 없다)`);
+          continue;
+        }
+        // 글로 남은 문장은 아직 `{name}` 인 채다. 그것도 통과로 본다.
+        const shown = out.includes(String(mark)) || out.includes(`{${nameWanted}}`);
+        if (!shown) missing.push(`${key}:${nameWanted}`);
+      }
+    }
+    assert.deepEqual(missing, [], `${tag} 에서 값이 안 나오는 곳: ${missing.join(', ')}`);
   }
 });

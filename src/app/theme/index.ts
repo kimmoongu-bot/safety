@@ -7,31 +7,14 @@
  *   최소값(minHeight)만 준다
  *
  * **본문 크기는 명세를 벗어난다.** 명세 3장은 본문 최소 17sp 이지만 시안이 16 이고,
- * 사용자가 16 으로 가기로 정했다. 중장년층이 주 대상이라 정했던 숫자이므로,
- * 기기에서 실제로 읽히는지 확인해야 한다. 안 읽히면 되돌린다.
+ * 기기에서 읽히는 것을 확인한 뒤 16 으로 확정했다 (2026-09-02).
+ * 중장년층이 주 대상이라 정했던 숫자이므로, 나중에 실제 사용자에게서 "작다" 는 말이
+ * 나오면 아래 `body` 한 줄만 고치면 된다.
  */
 
-import { Platform, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
+import { usePrefsStore } from '../state/prefsStore.ts';
 import { darkColors, lightColors, type Palette } from './palette.ts';
-
-/**
- * 글꼴 — Pretendard (SIL OFL 1.1)
- *
- * 라이선스 원문은 `assets/fonts/Pretendard-OFL.txt` 에 같이 넣어 두었다.
- * OFL 은 소프트웨어에 넣어 파는 것을 명시적으로 허용한다. 글꼴 자체를 따로 팔거나,
- * 고친 것에 'Pretendard' 이름을 붙이는 것만 금지한다. 우리는 원본 그대로 넣는다.
- *
- * **굵기를 이름으로 직접 고른다.** 안드로이드에 굵기 짝짓기를 맡기면 없는 굵기를
- * 기계가 억지로 굵게 그려(가짜 굵기) 글자가 뭉개진다. 두 벌만 넣었으므로
- * 어느 것을 쓸지 우리가 정한다.
- *
- * 이름이 플랫폼마다 다르다. 안드로이드는 파일 이름을, 아이폰은 글꼴 안에 적힌
- * 이름을 쓴다. (아이폰은 아직 기기에서 확인하지 않았다.)
- */
-const FAMILY = Platform.select({
-  android: { regular: 'Pretendard-Regular', bold: 'Pretendard-SemiBold' },
-  default: { regular: 'Pretendard', bold: 'Pretendard' },
-});
 
 /**
  * 색 — 디자인 시안의 색 체계.
@@ -48,11 +31,21 @@ export { type Palette, lightColors, darkColors, colors } from './palette.ts';
  * 읽는 글보다 크게 둔다.
  */
 export const font = {
-  /** 본문·설명에 쓰는 보통 굵기 */
-  family: FAMILY.regular,
-  /** 제목·버튼·이름표에 쓰는 굵은 것 (시안의 SemiBold) */
-  familyBold: FAMILY.bold,
+  /*
+    글꼴 이름은 여기 없다. 화면 언어에 따라 달라지므로 `theme/fonts.ts` 가 정하고,
+    `createStyles` 가 스타일을 만들 때 넘겨 준다. 여기 상수로 두면 파일을 읽는
+    순간에 박혀서 일본어 화면에서 바꿀 수 없다.
+  */
   title: 20,
+  /**
+   * 앱 얼굴이 되는 화면의 제목 ("잠김"). 보통 제목보다 크다.
+   *
+   * 여기서 더 키우지 않는다. 이 크기는 글꼴 설정을 따라 커지므로, 200% 로 두면
+   * 48 이 된다. 잠금 화면은 스크롤 없이 한 화면에 들어와야 한다 — 스크롤이 생기면
+   * "몇 번 틀렸고 얼마나 기다려야 하는지" 가 위로 밀려 안 보인다.
+   * 더 커 보이게 하려면 옆의 자물쇠 그림을 키운다. 그림은 글꼴 설정을 안 따른다.
+   */
+  logo: 24,
   body: 16,
   bodySmall: 15,
   label: 16,
@@ -84,14 +77,19 @@ export const radius = { sm: 8, md: 12, lg: 18 } as const;
 export const WEIGHT = 'normal' as const;
 
 /**
- * 지금 기기가 어두운 모드인지 보고 색 한 벌을 돌려준다.
+ * 지금 쓸 색 한 벌.
  *
- * 아직 앱 안에 "밝게/어둡게" 설정은 없다. 기기 설정을 따라간다.
- * 설정을 두려면 잠금 화면에서도 읽을 수 있어야 하는데, 지금 설정은 금고 안에
- * 암호로 들어 있어 금고를 열기 전에는 못 읽는다. 그 저장 자리를 따로 만들어야 한다.
+ * 설정에서 고른 값이 먼저다. '자동'이면 폰 설정을 따라간다.
+ *
+ * 고른 값은 잠금 화면에서도 읽혀야 해서 금고 밖에 따로 보관한다 — core/prefs.ts.
+ * 금고 안에 두면 금고를 열기 전에는 못 읽어서, 잠금 화면만 폰 설정을 따르고
+ * 금고를 여는 순간 색이 바뀐다.
  */
 export function useColors(): Palette {
-  return useColorScheme() === 'dark' ? darkColors : lightColors;
+  const choice = usePrefsStore((s) => s.prefs.theme);
+  const system = useColorScheme();
+  const dark = choice === 'system' ? system === 'dark' : choice === 'dark';
+  return dark ? darkColors : lightColors;
 }
 
 /**

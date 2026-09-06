@@ -1,7 +1,7 @@
 import type { CryptoProvider } from '../../core/crypto/types.ts';
 import { AES_KEY_BYTES } from '../../core/crypto/types.ts';
 import type { SealedBlob } from '../../core/crypto/aead.ts';
-import type { MetaStore, RecordStore, SecureKeyStore } from '../../core/ports.ts';
+import type { MetaStore, PrefsStore, RecordStore, SecureKeyStore } from '../../core/ports.ts';
 import type { VaultMeta, VaultRecord } from '../../core/schema.ts';
 
 /**
@@ -124,5 +124,31 @@ export class MemoryRecordStore implements RecordStore {
 
   rawBytes(): string {
     return [...this.rows.values()].join('\n');
+  }
+}
+
+export class MemoryPrefsStore implements PrefsStore {
+  private blob: string | null = null;
+
+  async read(): Promise<SealedBlob | null> {
+    return this.blob ? (JSON.parse(this.blob) as SealedBlob) : null;
+  }
+
+  async write(blob: SealedBlob): Promise<void> {
+    this.blob = JSON.stringify(blob);
+  }
+
+  async clear(): Promise<void> {
+    this.blob = null;
+  }
+
+  /** 테스트용: 디스크에 실제로 남는 바이트를 그대로 본다. */
+  rawBytes(): string {
+    return this.blob ?? '';
+  }
+
+  /** 테스트용: 파일이 깨진 상황을 만든다. */
+  corrupt(): void {
+    this.blob = JSON.stringify({ nonce: 'AAAA', ciphertext: 'AAAA' });
   }
 }

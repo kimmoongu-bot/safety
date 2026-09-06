@@ -124,3 +124,25 @@ test('글자 크기를 정하는 곳은 글꼴도 함께 정한다', () => {
   }
   assert.deepEqual(offenders, [], `글꼴을 안 정한 곳: ${offenders.join(', ')}`);
 });
+
+test('src/core 에는 사람이 읽을 한국어 문장이 없다 (국제화)', () => {
+  /**
+   * 코어는 오류 **코드**만 던지고, 말은 `src/app/i18n/ko.ts` 가 정한다.
+   * 코어에 한국어를 박아 두면 번역자가 손대야 할 파일이 두 곳이 되고,
+   * 한 곳을 옮기면 다른 곳이 조용히 남는다.
+   *
+   * 주석은 한국어로 쓴다. 그건 화면에 안 나가고, 우리가 읽을 것이다.
+   */
+  const offenders: string[] = [];
+  for (const file of files) {
+    if (!file.startsWith(join('src', 'core'))) continue;
+    const source = readFileSync(file, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '') // 여러 줄 주석
+      .replace(/\/\/.*$/gm, ''); // 한 줄 주석
+    source.split('\n').forEach((line, i) => {
+      // 따옴표 안에 한글이 있으면 화면에 나갈 말이다.
+      if (/(['"`])[^'"`\n]*[가-힣][^'"`\n]*\1/.test(line)) offenders.push(`${file}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [], `코어에 박힌 한국어: ${offenders.join(', ')}`);
+});

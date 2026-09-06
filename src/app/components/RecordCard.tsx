@@ -94,7 +94,7 @@ export function RecordCard({
   );
 }
 
-const useStyles = createStyles((colors) =>
+const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     wrap: { flexDirection: 'row', alignItems: 'stretch', gap: space.sm },
     card: {
@@ -120,13 +120,13 @@ const useStyles = createStyles((colors) =>
       justifyContent: 'center',
       flexShrink: 0,
     },
-    markText: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText },
+    markText: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.primaryText },
     cardText: { flex: 1, gap: 2 },
-    service: { fontFamily: font.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text },
-    username: { fontFamily: font.family, fontSize: font.bodySmall, color: colors.textDim },
+    service: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text },
+    username: { fontFamily: fonts.family, fontSize: font.bodySmall, color: colors.textDim },
     badges: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
     badge: {
-      fontFamily: font.family,
+      fontFamily: fonts.family,
       fontSize: font.caption,
       color: colors.text,
       // 흰 카드 위에 얹히므로 크림색이어야 보인다.
@@ -146,7 +146,7 @@ const useStyles = createStyles((colors) =>
       borderWidth: 2,
       borderColor: colors.border,
     },
-    starText: { fontFamily: font.family, fontSize: font.title, color: colors.textDim },
+    starText: { fontFamily: fonts.family, fontSize: font.title, color: colors.textDim },
     starOn: { color: colors.favorite },
   }),
 );

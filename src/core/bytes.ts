@@ -3,6 +3,8 @@
  * 순수 함수만 둔다. 여기서는 어떤 값도 로그로 남기지 않는다.
  */
 
+import { VaultError } from './errors.ts';
+
 const B64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 export function utf8ToBytes(text: string): Uint8Array {
@@ -39,7 +41,9 @@ export function fromBase64(text: string): Uint8Array {
   let idx = 0;
   for (const ch of clean) {
     const v = B64_ALPHABET.indexOf(ch);
-    if (v < 0) throw new Error('base64: 올바르지 않은 문자');
+    // base64 가 아닌 글자가 섞였다 = 저장된 것이 깨졌거나 우리가 만든 파일이 아니다.
+    // 여기서 평범한 Error 를 던지면 화면에 영어 부스러기가 그대로 나간다.
+    if (v < 0) throw new VaultError('DATA_DAMAGED');
     acc = (acc << 6) | v;
     bits += 6;
     if (bits >= 8) {

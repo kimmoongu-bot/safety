@@ -41,7 +41,9 @@
         {
           "fonts": [
             "./assets/fonts/Pretendard-Regular.otf",
-            "./assets/fonts/Pretendard-SemiBold.otf"
+            "./assets/fonts/Pretendard-SemiBold.otf",
+            "./assets/fonts/NotoSansJP-Regular.ttf",
+            "./assets/fonts/NotoSansJP-SemiBold.ttf"
           ]
         }
       ],

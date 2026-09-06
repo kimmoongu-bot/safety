@@ -3,6 +3,7 @@ import type { OpenRecord, VaultPayload } from '../../core/schema.ts';
 import type { AppSettings } from '../../core/settings.ts';
 import { DEFAULT_SETTINGS } from '../../core/settings.ts';
 import { VaultError, isVaultError } from '../../core/errors.ts';
+import type { VaultErrorCode, VaultErrorDetail } from '../../core/errors.ts';
 import type { Vault } from '../../core/vault.ts';
 
 export type Route =
@@ -81,15 +82,38 @@ type Actions = {
  * 넘겨받기 전에는 열쇠 이름이 그대로 나온다. 화면이 그려지기 전에 나는 오류는
  * 어차피 사용자가 볼 수 없고, 빈칸보다는 열쇠 이름이 낫다.
  */
-type Translator = (key: 'common.failed' | 'common.failedWhy', params?: Record<string, string | number>) => string;
+/**
+ * 오류 문장의 열쇠 이름은 코드에서 바로 만든다.
+ *
+ * 덕분에 코어에 코드를 하나 더하고 `ko.ts` 에 문장을 안 적으면 **타입 검사에서
+ * 걸린다.** 아래 `setStoreTranslator` 에 넘어오는 번역기는 `ko.ts` 에 있는 열쇠만
+ * 받는데, 여기서 요구하는 열쇠가 그 안에 없으면 넘길 수 없기 때문이다.
+ */
+type ErrorKey = `error.${VaultErrorCode | VaultErrorDetail}`;
+
+type Translator = (
+  key: 'common.failed' | 'common.failedWhy' | ErrorKey,
+  params?: Record<string, string | number>,
+) => string;
 let translate: Translator = (key) => key;
 
 export function setStoreTranslator(fn: Translator): void {
   translate = fn;
 }
 
+/**
+ * 오류를 사람이 읽을 문장으로 바꾼다.
+ *
+ * 코어는 코드만 던진다. 열쇠 이름은 코드를 그대로 쓴다 — `error.WRONG_PIN` 처럼.
+ * 그래서 코어에 코드를 하나 더 만들면 문장 목록에 한 줄만 더하면 된다.
+ * 빠뜨리면 화면에 열쇠 이름이 그대로 보인다. 빈칸보다 눈에 띄어서 바로 고치게 된다.
+ */
 function describeFailure(e: unknown): string {
-  if (isVaultError(e)) return (e as VaultError).userMessage;
+  if (isVaultError(e)) {
+    const err = e as VaultError;
+    // 같은 종류 안에서 해야 할 일이 다르면 detail 이 붙는다 (지문 미준비 / 지문 바뀜).
+    return translate(`error.${err.detail ?? err.code}`, err.params);
+  }
   // 우리가 예상하지 못한 오류다. 원인을 끝까지 보여 준다.
   //
   // 90자에서 자르고 있었는데, 실기기에서 데이터베이스 오류가 났을 때 하필
