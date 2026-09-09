@@ -119,7 +119,8 @@ export const ru = {
   // ── Первая настройка (продолжение) ────────────────────────
   'setup.pinTitle': 'Придумайте PIN-код',
   'setup.pinAgainTitle': 'Введите его ещё раз',
-  'setup.pinHelp': 'Это цифры, которыми вы будете открывать хранилище. Не меньше четырёх.',
+  'setup.pinHelp': 'Выберите цифры для открытия сейфа. Не менее 6 цифр.',
+  'setup.pinWhy': 'Короткий код можно угадать. Если телефон потерян, эти цифры — последняя защита.',
   'setup.pinAgainHelp': 'Введите только что придуманный PIN-код ещё раз.',
   'setup.next': 'Дальше',
   'setup.pinMismatch': 'Введённые PIN-коды не совпадают. Начните заново.',
@@ -220,6 +221,8 @@ export const ru = {
     'Пароль резервной копии должен отличаться от PIN-кода приложения.',
   'error.BACKUP_PASSWORD_TOO_SHORT': ({ count }) =>
     `Пароль резервной копии — не меньше ${count} ${plural(count, 'символа', 'символов', 'символов')}.`,
+  'error.PIN_TOO_SHORT': ({ count }) =>
+    `PIN-код — не меньше ${count} ${plural(count, 'цифры', 'цифр', 'цифр')}. Короткий можно угадать.`,
   'error.WIPED_AFTER_FAILURES': 'После 10 неверных попыток хранилище стёрто.',
   'error.BIOMETRIC_NOT_SET_UP':
     'На этом телефоне нельзя открыть по отпечатку или лицу. Введите PIN-код.',
@@ -268,6 +271,7 @@ export const ru = {
   'settings.pinHeading': 'Изменить PIN-код',
   'settings.pinCurrent': 'Нынешний PIN-код',
   'settings.pinNext': 'Новый PIN-код',
+  'settings.pinNextHint': ({ count }) => `Не менее ${count} ${plural(count, 'цифры', 'цифр', 'цифр')}`,
   'settings.pinChange': 'Изменить',
   'settings.pinChanged': 'PIN-код изменён.',
   'settings.cancel': 'Не надо',

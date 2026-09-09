@@ -10,6 +10,7 @@ import { disableScreenGuard, enableScreenGuard } from '../platform/screenGuard.t
 import { guardFailureMessage } from '../screenGuardPolicy.ts';
 import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
 import { CLIPBOARD_CHOICES } from '../../core/settings.ts';
+import { NEW_PIN_MIN_LENGTH } from '../../core/vault.ts';
 import { SYSTEM_LOCALE, THEME_CHOICES, type ThemeChoice } from '../../core/prefs.ts';
 import { space } from '../theme/index.ts';
 
@@ -207,6 +208,7 @@ export function SettingsScreen() {
           />
           <Field
             label={t('settings.pinNext')}
+            hint={t('settings.pinNextHint', { count: NEW_PIN_MIN_LENGTH })}
             value={nextPin}
             onChangeText={setNextPin}
             keyboardType="number-pad"
@@ -214,6 +216,8 @@ export function SettingsScreen() {
           />
           <BigButton
             label={t('settings.pinChange')}
+            // 너무 짧으면 아예 못 누른다. 눌러 보고 퇴짜를 맞는 것보다 낫다.
+            disabled={nextPin.trim().length < NEW_PIN_MIN_LENGTH}
             onPress={async () => {
               if (!vault) return;
               const done = await run(() => vault.changePin(currentPin, nextPin));

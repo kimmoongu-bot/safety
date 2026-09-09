@@ -98,7 +98,8 @@ export const ko = {
   // ── 최초 설정 (이어서) ────────────────────────────────────
   'setup.pinTitle': 'PIN(핀) 만들기',
   'setup.pinAgainTitle': '한 번 더 눌러 주세요',
-  'setup.pinHelp': '금고를 열 때 쓸 숫자를 정합니다. 4자리 이상이면 됩니다.',
+  'setup.pinHelp': '금고를 열 때 쓸 숫자를 정합니다. 6자리 이상으로 정해 주세요.',
+  'setup.pinWhy': '짧으면 남이 찍어 맞힐 수 있습니다. 폰을 잃어버렸을 때 이 숫자가 마지막 벽입니다.',
   'setup.pinAgainHelp': '방금 정한 PIN(핀)을 한 번 더 눌러 주세요.',
   'setup.next': '다음',
   'setup.pinMismatch': '두 번 누른 PIN(핀)이 다릅니다. 처음부터 다시 정해 주세요.',
@@ -196,6 +197,7 @@ export const ko = {
   // 같은 종류 안에서 해야 할 일이 다른 경우들.
   'error.BACKUP_PASSWORD_SAME_AS_PIN': '백업 비밀번호는 앱 PIN(핀)과 다르게 정해 주세요.',
   'error.BACKUP_PASSWORD_TOO_SHORT': '백업 비밀번호는 {count}자 이상으로 정해 주세요.',
+  'error.PIN_TOO_SHORT': 'PIN(핀)은 {count}자리 이상으로 정해 주세요. 짧으면 남이 찍어 맞힐 수 있습니다.',
   'error.WIPED_AFTER_FAILURES': '실패가 10번 넘어 금고를 지웠습니다.',
   'error.BIOMETRIC_NOT_SET_UP': '이 기기에서는 지문·얼굴로 열 수 없습니다. PIN(핀)을 입력해 주세요.',
   'error.BIOMETRIC_CHANGED': '지문·얼굴 정보가 바뀌었습니다. PIN(핀)으로 열어 주세요.',
@@ -240,6 +242,7 @@ export const ko = {
   'settings.pinHeading': 'PIN(핀) 바꾸기',
   'settings.pinCurrent': '지금 쓰는 PIN(핀)',
   'settings.pinNext': '새로 쓸 PIN(핀)',
+  'settings.pinNextHint': '{count}자리 이상 숫자',
   'settings.pinChange': '바꾸기',
   'settings.pinChanged': 'PIN(핀)을 바꿨습니다.',
   'settings.cancel': '그만두기',

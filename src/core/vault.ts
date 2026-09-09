@@ -65,12 +65,39 @@ export type LockoutView = {
   attemptsBeforeWipe: number | null;
 };
 
-const MIN_PIN_LENGTH = 4;
+/**
+ * **새로 정하는** PIN 의 최소 자릿수.
+ *
+ * 4자리는 1만 가지다. 명세 5.4 의 대기(8회 실패부터 15분)를 감안해도 전부 해 보는 데
+ * 넉 달이면 되고, `1234`·`0000`·생일을 먼저 넣어 보는 사람에게는 그 계산조차 의미가
+ * 없다. 6자리면 100만 가지라 같은 방식으로 28년이 걸린다.
+ *
+ * 폰을 잃어버렸을 때 남는 벽이 이것 하나뿐이라 여기서 아끼지 않는다.
+ */
+export const NEW_PIN_MIN_LENGTH = 6;
+
+/**
+ * **이미 만들어진** 금고를 열 때 받아 주는 최소 자릿수.
+ *
+ * 올리지 않는다. 4자리로 금고를 만든 사람이 앱을 갱신했다고 자기 금고를 못 열게 되면,
+ * 그건 보안이 아니라 자료 유실이다. 그 사람은 설정에서 PIN 을 바꿀 때 6자리를 받는다.
+ */
+const EXISTING_PIN_MIN_LENGTH = 4;
 
 function pinToSecret(pin: string): Uint8Array {
   const trimmed = pin.trim();
-  if (trimmed.length < MIN_PIN_LENGTH || !/^\d+$/.test(trimmed)) throw new VaultError('INVALID_INPUT');
+  if (trimmed.length < EXISTING_PIN_MIN_LENGTH || !/^\d+$/.test(trimmed)) {
+    throw new VaultError('INVALID_INPUT');
+  }
   return utf8ToBytes(trimmed);
+}
+
+/** 새로 정하는 PIN 만 검사한다. 금고를 만들 때와 PIN 을 바꿀 때 두 곳에서 부른다. */
+export function assertNewPin(pin: string): void {
+  const trimmed = pin.trim();
+  if (trimmed.length < NEW_PIN_MIN_LENGTH || !/^\d+$/.test(trimmed)) {
+    throw new VaultError('INVALID_INPUT', 'PIN_TOO_SHORT', { count: NEW_PIN_MIN_LENGTH });
+  }
 }
 
 /**
@@ -157,6 +184,7 @@ export class Vault {
   // ── 만들기 ──────────────────────────────────────────────────────────────
   async create(input: CreateVaultInput): Promise<CreateVaultResult> {
     if (await this.metaStore.readMeta()) throw new VaultError('VAULT_ALREADY_EXISTS');
+    assertNewPin(input.pin);
     const pinSecret = pinToSecret(input.pin);
     const deviceKey = await this.requireDeviceKey();
     let params: KdfParams;
@@ -452,6 +480,9 @@ export class Vault {
 
   /** PIN 바꾸기. DEK 는 그대로 두고 감싼 것만 다시 만든다. */
   async changePin(currentPin: string, nextPin: string): Promise<void> {
+    // 새 PIN 부터 본다. 지금 PIN 이 맞는지 확인하고 나서 퇴짜를 놓으면,
+    // 사용자는 다 쳐 놓고 처음부터 다시 해야 한다.
+    assertNewPin(nextPin);
     const meta = await this.readMeta();
     const wrap = findWrap(meta, 'pin');
     if (!wrap || !wrap.kdf) throw new VaultError('DATA_DAMAGED');

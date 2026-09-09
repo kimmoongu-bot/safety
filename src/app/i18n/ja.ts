@@ -99,7 +99,8 @@ export const ja = {
   // ── 最初の設定（つづき） ──────────────────────────────────
   'setup.pinTitle': '暗証番号を作る',
   'setup.pinAgainTitle': 'もう一度入力してください',
-  'setup.pinHelp': '金庫を開くときに使う数字を決めます。4桁以上です。',
+  'setup.pinHelp': '金庫を開くときに使う数字を決めます。6桁以上にしてください。',
+  'setup.pinWhy': '短いと当てられてしまいます。携帯をなくしたとき、この数字が最後の壁です。',
   'setup.pinAgainHelp': 'いま決めた暗証番号をもう一度入力してください。',
   'setup.next': '次へ',
   'setup.pinMismatch': '2回入力した暗証番号がちがいます。はじめから決め直してください。',
@@ -198,6 +199,7 @@ export const ja = {
   'error.BACKUP_PASSWORD_SAME_AS_PIN':
     'バックアップのパスワードは、アプリの暗証番号とちがうものにしてください。',
   'error.BACKUP_PASSWORD_TOO_SHORT': 'バックアップのパスワードは{count}文字以上にしてください。',
+  'error.PIN_TOO_SHORT': '暗証番号は{count}桁以上にしてください。短いと当てられてしまいます。',
   'error.WIPED_AFTER_FAILURES': '10回以上まちがえたので金庫を消しました。',
   'error.BIOMETRIC_NOT_SET_UP':
     'この端末では指紋・顔で開けません。暗証番号を入力してください。',
@@ -244,6 +246,7 @@ export const ja = {
   'settings.pinHeading': '暗証番号を変える',
   'settings.pinCurrent': 'いまの暗証番号',
   'settings.pinNext': '新しい暗証番号',
+  'settings.pinNextHint': '{count}桁以上の数字',
   'settings.pinChange': '変える',
   'settings.pinChanged': '暗証番号を変えました。',
   'settings.cancel': 'やめる',

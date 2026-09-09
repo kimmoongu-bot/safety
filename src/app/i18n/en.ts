@@ -107,7 +107,8 @@ export const en = {
   // ── Setting up (continued) ────────────────────────────────
   'setup.pinTitle': 'Create your PIN',
   'setup.pinAgainTitle': 'Please enter it once more',
-  'setup.pinHelp': 'Choose the numbers you will use to open your vault. Four digits or more.',
+  'setup.pinHelp': 'Choose the numbers you will use to open your vault. At least 6 digits.',
+  'setup.pinWhy': 'A short PIN can be guessed. If you lose your phone, these numbers are the last wall.',
   'setup.pinAgainHelp': 'Enter the PIN you just chose one more time.',
   'setup.next': 'Next',
   'setup.pinMismatch': 'The two PINs do not match. Please start again.',
@@ -210,6 +211,7 @@ export const en = {
   // Same kind of failure, but what to do about it differs.
   'error.BACKUP_PASSWORD_SAME_AS_PIN': 'Please make the backup password different from your PIN.',
   'error.BACKUP_PASSWORD_TOO_SHORT': 'The backup password must be at least {count} characters.',
+  'error.PIN_TOO_SHORT': 'Please choose a PIN of at least {count} digits. A short one can be guessed.',
   'error.WIPED_AFTER_FAILURES': 'The vault was erased after 10 wrong tries.',
   'error.BIOMETRIC_NOT_SET_UP':
     'This phone cannot open the vault with a fingerprint or face. Please enter your PIN.',
@@ -258,6 +260,7 @@ export const en = {
   'settings.pinHeading': 'Change your PIN',
   'settings.pinCurrent': 'Current PIN',
   'settings.pinNext': 'New PIN',
+  'settings.pinNextHint': 'At least {count} digits',
   'settings.pinChange': 'Change',
   'settings.pinChanged': 'Your PIN has been changed.',
   'settings.cancel': 'Never mind',

@@ -4,6 +4,7 @@ import { BigButton, Body, Field, Notice, Screen, Title } from '../components/Bas
 import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
+import { NEW_PIN_MIN_LENGTH } from '../../core/vault.ts';
 import { type BiometricKind, checkBiometricSupport } from '../platform/biometrics.ts';
 import { normalizeRecoveryCode } from '../../core/recoveryCode.ts';
 import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
@@ -17,7 +18,7 @@ import { space } from '../theme/index.ts';
  */
 type Step = 'pin' | 'pin-again' | 'biometric' | 'code-show' | 'code-check';
 
-const MIN_PIN = 4;
+
 
 export function SetupScreen() {
   const { vault, run, reset, showToast, refresh } = useVaultStore();
@@ -65,12 +66,14 @@ export function SetupScreen() {
             ? t('setup.pinHelp')
             : t('setup.pinAgainHelp')}
         </Body>
+        {/* 왜 길게 정해야 하는지 한 줄로 말해 준다. 이유를 알면 지키기 쉽다. */}
+        {step === 'pin' ? <Body dim>{t('setup.pinWhy')}</Body> : null}
         <PinDots length={value.length} />
         <PinPad value={value} onChange={setValue} />
         <View style={{ height: space.md }} />
         <BigButton
           label={t('setup.next')}
-          disabled={value.length < MIN_PIN}
+          disabled={value.length < NEW_PIN_MIN_LENGTH}
           onPress={() => {
             if (step === 'pin') {
               setStep('pin-again');

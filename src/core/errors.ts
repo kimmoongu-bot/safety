@@ -37,6 +37,8 @@ export type VaultErrorDetail =
   | 'BACKUP_PASSWORD_SAME_AS_PIN'
   /** 백업 비밀번호가 너무 짧다. `{count}` 자 이상이어야 한다. */
   | 'BACKUP_PASSWORD_TOO_SHORT'
+  /** 새로 정하는 PIN 이 너무 짧다. `{count}` 자리 이상이어야 한다. */
+  | 'PIN_TOO_SHORT'
   /** 연속 실패가 문턱을 넘어 금고를 지웠다 (명세 5.4). */
   | 'WIPED_AFTER_FAILURES'
   /** 이 기기에 지문·얼굴로 여는 것이 준비되어 있지 않다. */
