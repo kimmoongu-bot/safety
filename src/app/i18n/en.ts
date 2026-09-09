@@ -336,6 +336,16 @@ export const en = {
     'It has been 90 days since your last backup. Please make a new backup file.',
   'system.guardUnsupported': 'This phone cannot block the screen.',
 
+  // ── 채우기 화면 (자동 완성) ──
+  'fill.title': 'Fill in',
+  'fill.asking': '{app} is asking for a username and password.',
+  'fill.askingUnknown': 'We cannot tell which app is asking.',
+  'fill.site': 'Address: {domain}',
+  'fill.check': 'Check that this is the right app. If you do not know it, close this.',
+  'fill.notYet': 'The list to choose from is not here yet. It comes in the next version.',
+  'fill.close': 'Close',
+  'fill.noRequest': 'There is nothing to fill in.',
+
   // ── 정보 화면과 개인정보 처리방침 ──
   'settings.infoGo': 'About this app',
   'info.title': 'About',

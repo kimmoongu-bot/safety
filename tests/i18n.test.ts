@@ -238,7 +238,7 @@ test('옮긴 문장이 받은 값을 실제로 보여 준다', () => {
     how: 'ZZQ1', what: 'ZZQ2', service: 'ZZQ3', name: 'ZZQ4',
     wait: 'ZZQ5', why: 'ZZQ6', reason: 'ZZQ7', query: 'ZZQ8',
     username: 'ZZQ9', code: 'ZZQ10', when: 'ZZQ11', label: 'ZZQ12',
-    version: 'ZZQ13', date: 'ZZQ14',
+    version: 'ZZQ13', date: 'ZZQ14', app: 'ZZQ15', domain: 'ZZQ16',
   };
   for (const [tag, catalog] of Object.entries(OTHERS)) {
     const missing: string[] = [];

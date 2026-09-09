@@ -318,6 +318,16 @@ export const ja = {
     '最後のバックアップから90日が過ぎました。新しいバックアップファイルを作っておいてください。',
   'system.guardUnsupported': 'この端末では画面を隠せません。',
 
+  // ── 채우기 화면 (자동 완성) ──
+  'fill.title': '入力',
+  'fill.asking': '{app} がIDとパスワードを求めています。',
+  'fill.askingUnknown': 'どのアプリが求めているのか分かりません。',
+  'fill.site': 'アドレス: {domain}',
+  'fill.check': 'このアプリで合っているか見てください。知らないアプリなら閉じてください。',
+  'fill.notYet': '選ぶ一覧はまだありません。次の版で出ます。',
+  'fill.close': '閉じる',
+  'fill.noRequest': '入力するものがありません。',
+
   // ── 정보 화면과 개인정보 처리방침 ──
   'settings.infoGo': 'アプリの情報を見る',
   'info.title': '情報',

@@ -309,6 +309,16 @@ export const ko = {
   'system.reminderBody': '마지막 백업 후 90일이 지났습니다. 새 백업 파일을 만들어 두세요.',
   'system.guardUnsupported': '이 기기에서는 화면 가리기를 쓸 수 없습니다.',
 
+  // ── 채우기 화면 (자동 완성) ──
+  'fill.title': '채우기',
+  'fill.asking': '{app} 에서 아이디와 비밀번호를 달라고 합니다.',
+  'fill.askingUnknown': '어떤 앱이 달라고 하는지 알 수 없습니다.',
+  'fill.site': '주소: {domain}',
+  'fill.check': '이 앱이 맞는지 보세요. 모르는 앱이면 닫으세요.',
+  'fill.notYet': '고를 목록은 아직 없습니다. 다음 판에서 나옵니다.',
+  'fill.close': '닫기',
+  'fill.noRequest': '채울 것이 없습니다.',
+
   // ── 정보 화면과 개인정보 처리방침 ──
   'settings.infoGo': '앱 정보 보기',
   'info.title': '정보',
