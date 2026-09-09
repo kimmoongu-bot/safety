@@ -1,9 +1,14 @@
 node_modules/
 .expo/
 dist/
-android/
-ios/
 *.log
+
+# prebuild 가 만들어 내는 폴더. **맨 앞의 `/` 가 중요하다.**
+# 없으면 어느 깊이의 `android` 폴더든 전부 무시한다. 실제로 그것 때문에
+# `modules/jamgim-autofill/android/` 와 `plugins/android/` 가 통째로 안 올라가서
+# 빌드가 prebuild 단계에서 죽었다. 여기 파일은 깃에 없으면 빌드 서버에도 없다.
+/android/
+/ios/
 
 # 파이썬 캐시 (tools/logo)
 __pycache__/

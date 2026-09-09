@@ -1,0 +1,89 @@
+package app.jamgim.autofill
+
+import android.app.assist.AssistStructure
+import android.os.Build
+import android.text.InputType
+import android.view.View
+import android.view.autofill.AutofillId
+import androidx.annotation.RequiresApi
+import org.json.JSONArray
+import org.json.JSONObject
+
+/**
+ * 화면에서 글자를 넣을 수 있는 칸들을 긁어 온다 (docs/자동완성.md 2단계).
+ *
+ * **여기서는 판단하지 않는다.** 어느 칸이 아이디이고 어느 칸이 비밀번호인지는
+ * 자바스크립트가 정한다 (`src/core/autofill.ts`). 그쪽은 순수 함수라 노드에서
+ * 검사할 수 있고, 여기는 실기기에서만 확인된다. 확인할 수 있는 쪽에 판단을 둔다.
+ *
+ * 그래서 이 파일은 **단서를 모으기만** 한다.
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+class LoginFields private constructor(
+  /** 자바스크립트에 넘길 단서. 자리 번호가 아래 `ids` 의 자리와 같다. */
+  val json: String,
+  /** 안드로이드에 값을 돌려줄 때 쓸 칸 번호. 자바스크립트에는 넘기지 않는다. */
+  val ids: List<AutofillId>,
+  /** 웹이면 주소. 브라우저 안에서는 꾸러미 이름이 브라우저라 이것이 있어야 한다. */
+  val webDomain: String?,
+) {
+  companion object {
+    fun from(structure: AssistStructure): LoginFields {
+      val fields = JSONArray()
+      val ids = mutableListOf<AutofillId>()
+      var domain: String? = null
+
+      fun visit(node: AssistStructure.ViewNode) {
+        node.webDomain?.takeIf { it.isNotEmpty() }?.let { if (domain == null) domain = it }
+
+        val id = node.autofillId
+        if (id != null && node.autofillType == View.AUTOFILL_TYPE_TEXT) {
+          fields.put(describe(node, ids.size))
+          ids.add(id)
+        }
+        for (i in 0 until node.childCount) visit(node.getChildAt(i))
+      }
+
+      for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode)
+      return LoginFields(fields.toString(), ids, domain)
+    }
+
+    private fun describe(node: AssistStructure.ViewNode, index: Int): JSONObject {
+      val hints = JSONArray()
+      node.autofillHints?.forEach { hints.put(it) }
+
+      val html = node.htmlInfo
+      var htmlType: String? = null
+      var htmlName: String? = null
+      if (html != null && html.tag == "input") {
+        for ((name, value) in html.attributes ?: emptyList()) {
+          when (name) {
+            "type" -> htmlType = value.lowercase()
+            "name" -> htmlName = value
+          }
+        }
+      }
+
+      return JSONObject().apply {
+        put("index", index)
+        put("hints", hints)
+        put("idEntry", node.idEntry ?: JSONObject.NULL)
+        put("hint", node.hint ?: JSONObject.NULL)
+        put("htmlType", htmlType ?: JSONObject.NULL)
+        put("htmlName", htmlName ?: JSONObject.NULL)
+        put("isPasswordInput", isPassword(node.inputType))
+        // 글자를 넣을 수 있는 칸인가. 화면에 적혀 있기만 한 글자는 아니다.
+        put("isEditable", node.className?.contains("EditText") == true || html?.tag == "input")
+      }
+    }
+
+    /** 안드로이드가 이 칸을 비밀번호 칸으로 표시했나. 갈래가 셋이라 다 본다. */
+    private fun isPassword(inputType: Int): Boolean {
+      val variation = inputType and InputType.TYPE_MASK_VARIATION
+      return variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+        variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+        variation == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD ||
+        variation == InputType.TYPE_NUMBER_VARIATION_PASSWORD
+    }
+  }
+}

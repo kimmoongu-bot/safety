@@ -1,0 +1,31 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+  <application>
+    <!--
+      자동 완성 서비스 (docs/자동완성.md).
+
+      android:permission 은 우리가 얻는 권한이 아니라 **거는 자물쇠**다.
+      이 표시가 있으면 안드로이드 시스템만 이 서비스에 연결할 수 있다. 다른 앱은
+      못 붙는다. 스토어의 권한 목록에는 아무것도 늘지 않는다.
+
+      android:label 을 적지 않는다. 안 적으면 시스템이 앱 이름을 그대로 쓴다.
+      적으면 그 문자열을 4개 언어로 또 관리해야 한다.
+
+      자동 완성은 안드로이드 8.0(API 26)부터다. 7.0·7.1 기기에서는 시스템이 이
+      서비스를 아예 찾지 않으므로 그냥 없는 기능이 된다. 앱은 그대로 돈다.
+      tools:targetApi 는 빌드 검사에게 그 사실을 알려 주는 것뿐이다.
+    -->
+    <service
+        android:name="app.jamgim.autofill.JamgimAutofillService"
+        android:exported="true"
+        android:permission="android.permission.BIND_AUTOFILL_SERVICE"
+        tools:targetApi="26">
+      <intent-filter>
+        <action android:name="android.service.autofill.AutofillService" />
+      </intent-filter>
+      <meta-data
+          android:name="android.autofill"
+          android:resource="@xml/jamgim_autofill" />
+    </service>
+  </application>
+</manifest>

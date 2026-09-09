@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 /**
@@ -166,5 +167,38 @@ test('SQLite 를 우리만 쓰는 연결로 연다', () => {
     source,
     /SQLite\.openDatabaseAsync\(name,\s*OPEN_OPTIONS\)/,
     `${path} 가 옵션 없이 열고 있다`,
+  );
+});
+
+/**
+ * 빌드에 필요한 파일이 깃에 들어 있어야 한다.
+ *
+ * EAS 는 **깃이 아는 파일만** 빌드 서버로 보낸다. 여기 있는데 깃에 없으면
+ * 빌드 서버에는 없는 것이고, prebuild 가 그 파일을 찾다가 죽는다.
+ *
+ * 실제로 이것 때문에 빌드가 죽었다. `.gitignore` 에 `android/` 라고만 적혀 있어서
+ * **어느 깊이의 `android` 폴더든 전부** 무시했다. prebuild 가 만드는 최상위
+ * `android/` 를 무시하려던 것인데, `modules/jamgim-autofill/android/` 와
+ * `plugins/android/` 까지 같이 무시됐다. 네이티브 코드가 통째로 안 올라갔다.
+ *
+ * 여기서는 눈에 안 띈다 — 내 컴퓨터에는 파일이 있으니 `expo config` 도, 번들도
+ * 다 통과한다. 그래서 검사로 지킨다.
+ */
+test('modules 와 plugins 아래에 깃이 무시하는 파일이 없다', () => {
+  const out = execFileSync('git', ['status', '--ignored', '--porcelain', 'modules', 'plugins'], {
+    encoding: 'utf8',
+  });
+  const ignored = out
+    .split('\n')
+    .filter((line) => line.startsWith('!!'))
+    .map((line) => line.slice(3).trim());
+  assert.deepEqual(ignored, [], `깃이 무시해서 빌드 서버에 안 가는 것: ${ignored.join(', ')}`);
+});
+
+test('설정 플러그인이 읽는 파일이 실제로 있다', () => {
+  // 플러그인이 `fs.copyFileSync` 로 읽는 파일이다. 없으면 prebuild 가 죽는다.
+  assert.ok(
+    readFileSync('plugins/android/JamgimFillActivity.kt', 'utf8').includes('class JamgimFillActivity'),
+    '채우기 액티비티 원본이 없거나 비어 있다',
   );
 });
