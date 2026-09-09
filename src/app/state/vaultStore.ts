@@ -16,7 +16,8 @@ export type Route =
   | { name: 'edit'; id: string }
   | { name: 'detail'; id: string }
   | { name: 'settings' }
-  | { name: 'backup' };
+  | { name: 'backup' }
+  | { name: 'info' };
 
 export type Toast = { text: string; tone: 'ok' | 'bad' } | null;
 

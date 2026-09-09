@@ -25,6 +25,7 @@ import { FALLBACK_AUTO_LOCK_MS, shouldLockForIdle, shouldLockOnBackground } from
 import { BackupScreen } from './screens/BackupScreen.tsx';
 import { DetailScreen } from './screens/DetailScreen.tsx';
 import { EditScreen } from './screens/EditScreen.tsx';
+import { InfoScreen } from './screens/InfoScreen.tsx';
 import { LockScreen } from './screens/LockScreen.tsx';
 import { SearchResultsScreen } from './screens/SearchResultsScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
@@ -57,6 +58,8 @@ function Router() {
       return <SettingsScreen />;
     case 'backup':
       return <BackupScreen />;
+    case 'info':
+      return <InfoScreen />;
     default:
       return (
         <View style={styles.center}>
