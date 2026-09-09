@@ -14,7 +14,8 @@ import { ExpoPrefsStore } from '../data/adapters/expoPrefsStore.ts';
 import { ExpoSecureKeyStore } from '../data/adapters/expoSecureKeyStore.ts';
 import { ExpoSqliteRecordStore } from '../data/adapters/expoSqliteRecordStore.ts';
 import { clearIfDue as clearClipboardIfDue } from './platform/clipboard.ts';
-import { enableScreenGuard, guardFailureMessage } from './platform/screenGuard.ts';
+import { disableScreenGuard, enableScreenGuard } from './platform/screenGuard.ts';
+import { applyScreenGuard, guardFailureMessage } from './screenGuardPolicy.ts';
 import { PrivacyShield } from './components/PrivacyShield.tsx';
 import { ToastHost } from './components/Toast.tsx';
 import { AVAILABLE, useT } from './i18n/index.ts';
@@ -134,28 +135,25 @@ export default function App() {
   /**
    * 화면 찍기·최근 앱 미리보기 막기 (명세 5.5). 기본값은 켬이다.
    *
-   * 앱이 막 뜨는 순간에는 안드로이드 화면(액티비티)이 아직 붙기 전일 수 있다.
-   * 그때 걸면 실패하므로 잠깐 쉬었다가 세 번까지 다시 걸어 본다. 앱이 다시 앞으로
-   * 나올 때도 한 번 더 건다 — 화면이 새로 만들어지면 표시가 풀리기 때문이다.
+   * 판단은 `applyScreenGuard` 가 한다 (실기기 없이 확인하려고 떼어 놨다).
+   * 여기서는 바깥 세상만 이어 준다.
    *
-   * 세 번 다 실패하면 조용히 넘어가지 않고 화면에 알린다. 예전에는 실패를 삼켜서,
-   * 최근 앱 목록에 비밀번호가 그대로 보이는데도 아무도 몰랐다.
+   * 앱이 다시 앞으로 나올 때 한 번 더 맞춘다 — 화면이 새로 만들어지면 표시가
+   * 풀리기 때문이다.
    */
   useEffect(() => {
-    if (!settings.blockScreenCapture) return;
     let cancelled = false;
-    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+    const io = {
+      enable: enableScreenGuard,
+      disable: disableScreenGuard,
+      wait: (ms: number) => new Promise<void>((r) => setTimeout(r, ms)),
+      cancelled: () => cancelled,
+    };
     const apply = async () => {
-      let last: ReturnType<typeof guardFailureMessage> | null = null;
-      for (let attempt = 0; attempt < 3 && !cancelled; attempt += 1) {
-        if (attempt > 0) await wait(400);
-        const result = await enableScreenGuard();
-        if (result.ok) return;
-        last = guardFailureMessage(result);
-      }
-      if (!cancelled && last) {
-        useVaultStore.getState().showToast(t(last.key, last.params), 'bad');
-      }
+      const failure = await applyScreenGuard(settings.blockScreenCapture, io);
+      if (!failure) return;
+      const message = guardFailureMessage(failure);
+      useVaultStore.getState().showToast(t(message.key, message.params), 'bad');
     };
     void apply();
     const sub = AppState.addEventListener('change', (next) => {

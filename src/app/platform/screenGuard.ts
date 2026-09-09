@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 import * as ScreenCapture from 'expo-screen-capture';
+import type { GuardResult } from '../screenGuardPolicy.ts';
+import { oneAtATime } from './oneAtATime.ts';
 
 /**
  * 화면 보호 (명세 5.5)
@@ -23,65 +25,54 @@ import * as ScreenCapture from 'expo-screen-capture';
  */
 const GUARD_KEY = 'jamgim';
 
-/**
- * 실패한 까닭.
- *
- * **말을 만들지 않는다.** 무엇이 잘못됐는지만 돌려주고, 화면에 뭐라고 쓸지는
- * 문장 목록이 정한다. `detail` 은 안드로이드가 뱉은 원문이라 번역 대상이 아니다 —
- * 기기에서만 나는 오류를 쫓을 때 유일한 단서다.
- */
-export type GuardResult =
-  | { ok: true }
-  | { ok: false; why: 'unsupported' }
-  | { ok: false; why: 'failed'; detail: string };
-
 function describe(e: unknown): string {
   const detail = e instanceof Error ? e.message : String(e ?? '');
   return detail.replace(/\s+/g, ' ').trim().slice(0, 90);
 }
 
 /**
- * 실패한 까닭을 문장 열쇠와 값으로 바꾼다.
+ * 켜기와 끄기를 **한 줄로 세운다.**
  *
- * 화면 두 곳(앱이 뜰 때, 설정 스위치)에서 같은 문장을 써야 해서 여기 모아 둔다.
+ * 앱을 켜면 설정을 읽기 전에 기본값(켬)으로 한 번 걸고, 읽고 나서 '꺼짐' 이면 푼다.
+ * 이 둘이 겹치면 어느 것이 나중에 도착할지 알 수 없고, 푸는 것이 먼저 도착하면
+ * 설정은 꺼짐인데 화면은 계속 안 찍히는 상태가 된다. 줄을 세우면 마지막에 시킨
+ * 것이 이긴다.
  */
-export function guardFailureMessage(
-  result: Extract<GuardResult, { ok: false }>,
-): { key: 'system.guardUnsupported' | 'settings.screenGuardFailed'; params?: { reason: string } } {
-  return result.why === 'unsupported'
-    ? { key: 'system.guardUnsupported' }
-    : { key: 'settings.screenGuardFailed', params: { reason: result.detail } };
+const queue = oneAtATime();
+
+export function enableScreenGuard(): Promise<GuardResult> {
+  return queue(async () => {
+    try {
+      if (!(await ScreenCapture.isAvailableAsync())) {
+        return { ok: false, why: 'unsupported' };
+      }
+      // 남아 있을지 모를 이름표부터 뗀다. 위 1) 참고.
+      try {
+        await ScreenCapture.allowScreenCaptureAsync(GUARD_KEY);
+      } catch {
+        // 뗄 것이 없었을 뿐이다.
+      }
+      await ScreenCapture.preventScreenCaptureAsync(GUARD_KEY);
+      if (Platform.OS === 'ios') {
+        // 아이폰은 앱 전환 화면 가림막이 따로다.
+        await ScreenCapture.enableAppSwitcherProtectionAsync();
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, why: 'failed', detail: describe(e) };
+    }
+  });
 }
 
-export async function enableScreenGuard(): Promise<GuardResult> {
-  try {
-    if (!(await ScreenCapture.isAvailableAsync())) {
-      return { ok: false, why: 'unsupported' };
-    }
-    // 남아 있을지 모를 이름표부터 뗀다. 위 1) 참고.
+export function disableScreenGuard(): Promise<void> {
+  return queue(async () => {
     try {
       await ScreenCapture.allowScreenCaptureAsync(GUARD_KEY);
+      if (Platform.OS === 'ios') await ScreenCapture.disableAppSwitcherProtectionAsync();
     } catch {
-      // 뗄 것이 없었을 뿐이다.
+      // 끄는 데 실패해도 더 안전한 쪽(켜진 채)으로 남을 뿐이다.
     }
-    await ScreenCapture.preventScreenCaptureAsync(GUARD_KEY);
-    if (Platform.OS === 'ios') {
-      // 아이폰은 앱 전환 화면 가림막이 따로다.
-      await ScreenCapture.enableAppSwitcherProtectionAsync();
-    }
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, why: 'failed', detail: describe(e) };
-  }
-}
-
-export async function disableScreenGuard(): Promise<void> {
-  try {
-    await ScreenCapture.allowScreenCaptureAsync(GUARD_KEY);
-    if (Platform.OS === 'ios') await ScreenCapture.disableAppSwitcherProtectionAsync();
-  } catch {
-    // 끄는 데 실패해도 더 안전한 쪽(켜진 채)으로 남을 뿐이다.
-  }
+  });
 }
 
 /** 아이폰은 앱이 잠깐 비활성일 때 덮을 가림 뷰가 하나 더 필요하다. */

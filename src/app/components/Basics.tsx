@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
@@ -99,6 +104,50 @@ export function BigButton({
   );
 }
 
+type Measurable = React.ComponentRef<typeof View>;
+
+/**
+ * 자판이 가린 높이(dp). 자판이 없으면 0.
+ *
+ * 안드로이드 15부터 화면이 끝까지 차오르면서(edge-to-edge) **자판이 올라와도 창이
+ * 줄지 않는다.** 예전에는 창이 줄어 아래 입력창이 저절로 밀려 올라갔는데, 이제는
+ * 자판이 그 위를 그냥 덮는다. 메모 칸이 자판에 가려 보이지 않던 것이 이것이다.
+ *
+ * `KeyboardAvoidingView` 는 여기서 도움이 안 된다. 그것은 "보이는 화면의 아래끝"을
+ * 기준으로 계산하는데, 창이 줄지 않으니 그 값이 화면 맨 아래 그대로다 — 가려진 만큼을
+ * 0 으로 본다. 대신 리액트 네이티브가 알려 주는 **자판 높이**를 직접 쓴다. 이 값은
+ * 창이 줄든 말든 맞고, 아래 버튼 영역(내비게이션 바) 높이는 이미 빠져 있다.
+ */
+function useKeyboardHeight(): number {
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    // 아이폰은 자판이 올라오기 **전에** 알려 준다. 그래서 화면이 자판과 같이 움직인다.
+    // 안드로이드에는 그 알림이 없어서 올라온 **뒤에** 받는다.
+    const ios = Platform.OS === 'ios';
+    const show = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
+      setHeight(e.endCoordinates?.height ?? 0);
+    });
+    const hide = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => {
+      setHeight(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  return height;
+}
+
+/**
+ * "이 칸이 가려지지 않게 해 달라"고 화면에 부탁하는 길.
+ *
+ * 입력창은 자기가 어디쯤 있는지 모르고, 스크롤은 어느 칸에 손이 갔는지 모른다.
+ * 그래서 입력창이 손이 닿은 순간 자기를 알리고, 화면이 필요하면 밀어 올린다.
+ */
+const KeepInView = createContext<((view: Measurable | null) => void) | null>(null);
+
 /**
  * 입력창.
  *
@@ -114,13 +163,20 @@ export function Field({
 }: TextInputProps & { label: string; hint?: string; trailing?: React.ReactNode }) {
   const styles = useStyles();
   const colors = useColors();
+  const keepInView = useContext(KeepInView);
+  const boxRef = useRef<Measurable>(null);
   return (
-    <View style={styles.field}>
+    <View ref={boxRef} style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
       {hint ? <Text style={styles.fieldHint}>{hint}</Text> : null}
       <View style={[styles.inputBox, props.multiline && styles.inputBoxMultiline]}>
         <TextInput
           {...props}
+          // 손이 닿으면 화면에 알린다. 자판이 이 칸을 가리면 화면이 밀어 올린다.
+          onFocus={(e) => {
+            keepInView?.(boxRef.current);
+            props.onFocus?.(e);
+          }}
           style={[styles.input, props.multiline && styles.inputMultiline]}
           placeholderTextColor={colors.textDim}
           accessibilityLabel={label}
@@ -168,8 +224,61 @@ export function Screen({
 }) {
   const styles = useStyles();
   const t = useT();
+
+  const scrollRef = useRef<ScrollView>(null);
+  /** 스크롤 안쪽 상자. 입력창이 "여기서 몇 칸 아래"인지 잴 기준이 된다. */
+  const innerRef = useRef<Measurable>(null);
+  /** 지금 손이 가 있는 입력창. 자판이 올라오면 다시 이것을 본다. */
+  const focusedRef = useRef<Measurable | null>(null);
+  /** 스크롤에서 실제로 보이는 높이. 자판이 올라오면 그만큼 줄어든다. */
+  const viewportRef = useRef(0);
+  /** 지금 얼마나 내려서 보고 있나. */
+  const offsetRef = useRef(0);
+
+  const keyboard = useKeyboardHeight();
+
+  const keepInView = useCallback((view: Measurable | null) => {
+    focusedRef.current = view;
+    const inner = innerRef.current;
+    const viewport = viewportRef.current;
+    if (!view || !inner || !viewport) return;
+    view.measureLayout(
+      inner,
+      (_left, top, _width, height) => {
+        const bottom = top + height + space.md; // 아래로 한 칸 여유를 둔다
+        if (bottom > offsetRef.current + viewport) {
+          scrollRef.current?.scrollTo({ y: bottom - viewport, animated: true });
+        } else if (top < offsetRef.current) {
+          scrollRef.current?.scrollTo({ y: Math.max(0, top - space.md), animated: true });
+        }
+      },
+      () => {
+        // 잴 수 없으면 아무것도 하지 않는다. 화면이 제멋대로 움직이는 것보다 낫다.
+      },
+    );
+  }, []);
+
+  /*
+    자판이 올라오면 보이는 높이가 줄어든다. 줄어든 그 순간 다시 맞춘다.
+    시간을 재서 기다리지 않는다 — 기기마다 자판이 올라오는 속도가 다르다.
+  */
+  const onScrollLayout = (e: LayoutChangeEvent) => {
+    const next = e.nativeEvent.layout.height;
+    if (next === viewportRef.current) return;
+    viewportRef.current = next;
+    keepInView(focusedRef.current);
+  };
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    offsetRef.current = e.nativeEvent.contentOffset.y;
+  };
+
   return (
-    <View style={styles.screen}>
+    /*
+      자판이 가린 만큼 화면 전체를 줄인다. 그러면 스크롤도 그만큼 짧아지고,
+      아래 단추(저장 등)도 자판 위로 올라와 그대로 눌린다.
+    */
+    <View style={[styles.screen, keyboard > 0 ? { paddingBottom: keyboard } : null]}>
       <View style={styles.header}>
         {onBack ? (
           <Pressable accessibilityRole="button" accessibilityLabel={t('common.backLabel')} onPress={onBack} style={styles.back}>
@@ -190,11 +299,16 @@ export function Screen({
         </View>
       </View>
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        onLayout={onScrollLayout}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
-        {children}
+        <View ref={innerRef} style={styles.scrollInner}>
+          <KeepInView.Provider value={keepInView}>{children}</KeepInView.Provider>
+        </View>
       </ScrollView>
       {footer ? <View style={styles.footer}>{footer}</View> : null}
     </View>
@@ -311,7 +425,8 @@ const useStyles = createStyles((colors, fonts) =>
     back: { minHeight: TOUCH, justifyContent: 'center' },
     backText: { fontFamily: fonts.familyBold, fontSize: font.body, color: colors.accent, fontWeight: WEIGHT },
     scroll: { flex: 1 },
-    scrollContent: { padding: space.md, paddingBottom: space.xl, gap: space.sm },
+    /** 여백은 안쪽 상자가 가진다. 입력창 위치를 이 상자 기준으로 재기 때문이다. */
+    scrollInner: { padding: space.md, paddingBottom: space.xl, gap: space.sm },
     footer: { padding: space.md, borderTopWidth: 1, borderTopColor: colors.border, gap: space.sm },
     title: { fontFamily: fonts.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text, marginBottom: space.sm },
     body: { fontFamily: fonts.family, fontSize: font.body, color: colors.text, lineHeight: font.body * 1.5 },
