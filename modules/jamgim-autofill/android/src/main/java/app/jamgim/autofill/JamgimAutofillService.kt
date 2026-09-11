@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.CancellationSignal
 import android.service.autofill.AutofillService
+import android.service.autofill.Dataset
 import android.service.autofill.FillCallback
 import android.service.autofill.FillRequest
 import android.service.autofill.FillResponse
@@ -123,9 +124,34 @@ class JamgimAutofillService : AutofillService() {
       setTextViewText(R.id.jamgim_autofill_row_text, applicationInfo.loadLabel(packageManager))
     }
 
-    return FillResponse.Builder()
-      .setAuthentication(ids.toTypedArray(), pending.intentSender, row)
+    /*
+      **잠금은 이 줄 하나에 건다. 응답 전체에 걸지 않는다.**
+
+      처음에는 `FillResponse.setAuthentication(...)` 으로 응답 전체에 걸었다.
+      줄은 똑같이 떴고 우리 화면도 똑같이 떴다. 그런데 값을 돌려주면 안드로이드가
+      그것을 **버렸다.** 기록에 이렇게 남았다.
+
+          W AutofillSession: invalid index (65535) for authentication id ...
+
+      65535(0xFFFF)는 "줄 번호 없음" 이라는 표시다. 응답 전체에 잠금을 걸면
+      돌아온 답이 어느 줄의 것인지가 없고, 안드로이드는 **줄 하나짜리 답(Dataset)
+      을 받을 자리가 없어서** 그냥 버린다. 응답 전체에 건 잠금에는 응답(FillResponse)
+      으로 답해야 하는데, 그러면 고르는 화면이 한 번 더 뜬다 — 이미 우리 화면에서
+      골랐는데 또 고르라는 꼴이다.
+
+      그래서 잠금을 **줄에** 건다. 줄에 걸면 돌아온 답이 그 줄의 것임이 분명해서
+      안드로이드가 곧바로 채운다. 비밀번호 앱들이 쓰는 길이 이쪽이다.
+
+      값 자리에는 `null` 을 넣어 둔다. **여기에 진짜 값을 넣으면 안 된다** —
+      이 줄은 잠금을 풀기 전에 만들어지고, 잠금 화면을 거치지 않은 사람에게도
+      보인다. 채울 칸이 어디인지만 알려 주고, 값은 우리 화면이 답할 때 넘긴다.
+    */
+    val dataset = Dataset.Builder(row)
+      .setAuthentication(pending.intentSender)
+      .also { builder -> ids.forEach { builder.setValue(it, null) } }
       .build()
+
+    return FillResponse.Builder().addDataset(dataset).build()
   }
 
   /**
