@@ -43,14 +43,37 @@ ANDROID=15-robolectric-13954326
 
 mkdir -p "$CACHE"
 
+# Maven 은 파일마다 지문(.sha1)을 같이 올려 둔다. 그것과 맞는지 본다.
+#
+# **크기로 짐작하지 않는다.** 이 파일은 186MB 인데 회선이 느려서 받는 데 한참
+# 걸린다. 받는 도중의 크기를 보고 "잘렸다"거나 "너무 크다"고 두 번 넘겨짚었고,
+# 두 번 다 틀렸다 — 그냥 아직 받는 중이었다. 그 바람에 멀쩡한 파일을 지우고
+# 처음부터 다시 받기도 했다.
+#
+# 압축 목록 읽기(`unzip -l`)도 모자란다. 받다 만 파일에서도 통할 때가 있다.
+# 지문은 다르다. 맞으면 맞는 것이고 아니면 아닌 것이다. 짐작할 여지가 없다.
+verify() { # 이름 경로
+  local name=$1 path=$2
+  local want
+  want=$(curl -fsS "$MAVEN/$path.sha1" | tr -d ' \n-' | cut -c1-40) || return 1
+  local got
+  got=$(sha1sum "$CACHE/$name" | cut -d' ' -f1)
+  [ "$want" = "$got" ]
+}
+
 fetch() { # 이름 경로
   local name=$1 path=$2
-  [ -s "$CACHE/$name" ] && return 0
-  echo "받는 중: $name"
-  # 이어받기(-C -)를 쓰지 않는다. 100MB 짜리에서 한 번 써 봤더니 원본보다 큰
-  # 파일이 나왔다 — 앞부분이 겹쳐 붙은 것이다. 잘렸으면 아래 검사가 잡고,
-  # 그때는 지우고 처음부터 받는 편이 확실하다.
-  curl -fsS --retry 5 --retry-all-errors -o "$CACHE/$name" "$MAVEN/$path"
+  if [ -s "$CACHE/$name" ] && verify "$name" "$path"; then return 0; fi
+  echo "받는 중: $name (186MB 짜리가 있다. 느린 회선에서는 오래 걸린다)"
+  # 이어받기를 켠다. 큰 파일이라 도중에 끊기면 처음부터 받는 것이 아깝다.
+  # 이어받기가 어긋나더라도 아래 지문 검사가 잡으므로 위험하지 않다.
+  curl -fsS -C - --retry 5 --retry-all-errors -o "$CACHE/$name" "$MAVEN/$path"
+  verify "$name" "$path" || {
+    # 이어받기가 어긋났을 수 있다. 한 번만 처음부터 받아 본다.
+    rm -f "$CACHE/$name"
+    curl -fsS --retry 5 --retry-all-errors -o "$CACHE/$name" "$MAVEN/$path"
+    verify "$name" "$path" || { echo "받았는데 지문이 다르다: $name"; exit 2; }
+  }
 }
 
 fetch kotlin-compiler.jar        "org/jetbrains/kotlin/kotlin-compiler/$KOTLIN/kotlin-compiler-$KOTLIN.jar"
@@ -63,12 +86,6 @@ fetch trove4j.jar                "org/jetbrains/intellij/deps/trove4j/1.0.202003
 fetch coroutines.jar             "org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.1/kotlinx-coroutines-core-jvm-1.8.1.jar"
 fetch annotations.jar            "org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar"
 fetch android-all.jar            "org/robolectric/android-all/$ANDROID/android-all-$ANDROID.jar"
-
-# 받다 만 파일을 통과시키지 않는다. 잘린 jar 은 "클래스를 못 찾겠다" 로 나와서
-# 진짜 코드 잘못처럼 보인다.
-for jar in "$CACHE"/*.jar; do
-  unzip -l "$jar" >/dev/null 2>&1 || { echo "망가진 파일: $jar — 지우고 다시 받으세요"; exit 2; }
-done
 
 RUNNER=$(ls "$CACHE"/kotlin-*.jar "$CACHE"/trove4j.jar "$CACHE"/annotations.jar "$CACHE"/coroutines.jar | tr '\n' ':')
 SRC=modules/jamgim-autofill/android/src/main/java/app/jamgim/autofill
