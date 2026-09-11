@@ -38,18 +38,35 @@ class JamgimAutofillService : AutofillService() {
     cancellationSignal: CancellationSignal,
     callback: FillCallback,
   ) {
-    val structure = request.fillContexts.lastOrNull()?.structure
-    if (structure == null) {
-      callback.onSuccess(null)
-      return
-    }
+    /*
+      **무슨 일이 있어도 답은 한다.**
 
-    val fields = LoginFields.from(structure)
-    if (fields.ids.isEmpty()) {
-      // 글자 칸이 하나도 없다. 로그인 화면이 아니다.
+      여기서 예외가 나면 콜백이 안 불리고, 안드로이드는 우리가 답할 때까지 기다리다
+      만다. 사용자에게는 그냥 아무것도 안 뜨는 것으로 보인다 — 고장인지 원래 그런지
+      알 길이 없다. 그래서 통째로 감싸고, 잘못되면 "내놓을 것 없음" 으로 답한다.
+
+      로그를 남기지 않는다 (명세 5.5). 여기에는 다른 앱의 화면 내용이 들어온다.
+    */
+    try {
+      callback.onSuccess(buildResponse(request))
+    } catch (e: Throwable) {
       callback.onSuccess(null)
-      return
     }
+  }
+
+  private fun buildResponse(request: FillRequest): FillResponse? {
+    val structure = request.fillContexts.lastOrNull()?.structure ?: return null
+    val fields = LoginFields.from(structure)
+
+    /*
+      글자 칸을 못 찾았으면 화면에 있는 칸 전부로 물러선다.
+
+      안드로이드가 "이건 글자 칸이다" 라고 말해 주지 않는 앱이 있다 — 직접 그린
+      화면이나 오래된 앱이 그렇다. 그때 우리가 아무것도 안 내놓으면 사용자에게는
+      자동 완성이 고장 난 것으로 보인다. 어느 칸에 채울지는 우리 화면에서 정한다.
+    */
+    val ids = if (fields.ids.isNotEmpty()) fields.ids else fields.anyIds
+    if (ids.isEmpty()) return null // 채울 자리가 정말 하나도 없다
 
     // 어느 앱이 달라고 하는지. 채우기 화면에서 사용자에게 그대로 보여 준다.
     val asking = structure.activityComponent?.packageName ?: ""
@@ -57,7 +74,7 @@ class JamgimAutofillService : AutofillService() {
     val intent = Intent()
       .setClassName(packageName, FILL_ACTIVITY)
       .putExtra(EXTRA_FIELDS, fields.json)
-      .putParcelableArrayListExtra(EXTRA_IDS, ArrayList(fields.ids))
+      .putParcelableArrayListExtra(EXTRA_IDS, ArrayList(ids))
       .putExtra(EXTRA_ASKING_PACKAGE, asking)
       .putExtra(EXTRA_WEB_DOMAIN, fields.webDomain)
 
@@ -75,10 +92,9 @@ class JamgimAutofillService : AutofillService() {
       setTextViewText(R.id.jamgim_autofill_row_text, applicationInfo.loadLabel(packageManager))
     }
 
-    val response = FillResponse.Builder()
-      .setAuthentication(fields.ids.toTypedArray(), pending.intentSender, row)
+    return FillResponse.Builder()
+      .setAuthentication(ids.toTypedArray(), pending.intentSender, row)
       .build()
-    callback.onSuccess(response)
   }
 
   /**

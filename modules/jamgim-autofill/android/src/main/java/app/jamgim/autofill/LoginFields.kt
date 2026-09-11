@@ -27,6 +27,15 @@ class LoginFields private constructor(
   val json: String,
   /** 안드로이드에 값을 돌려줄 때 쓸 칸 번호. 자바스크립트에는 넘기지 않는다. */
   val ids: List<AutofillId>,
+  /**
+   * 화면에 있는 **모든** 칸 번호.
+   *
+   * 위 `ids` 는 안드로이드가 "글자 칸" 이라고 말해 준 것만 담는다. 그런데 그렇게
+   * 말해 주지 않는 앱이 있다 — 직접 그린 화면이나 오래된 앱이 그렇다. 그럴 때
+   * 우리가 아무것도 안 내놓으면 사용자에게는 자동 완성이 고장 난 것으로 보인다.
+   * 그래서 하나도 못 찾았을 때 이것으로 물러선다.
+   */
+  val anyIds: List<AutofillId>,
   /** 웹이면 주소. 브라우저 안에서는 꾸러미 이름이 브라우저라 이것이 있어야 한다. */
   val webDomain: String?,
 ) {
@@ -34,6 +43,7 @@ class LoginFields private constructor(
     fun from(structure: AssistStructure): LoginFields {
       val fields = JSONArray()
       val ids = mutableListOf<AutofillId>()
+      val anyIds = mutableListOf<AutofillId>()
       var domain: String? = null
 
       fun visit(node: AssistStructure.ViewNode) {
@@ -44,15 +54,18 @@ class LoginFields private constructor(
         }
 
         val id = node.autofillId
-        if (id != null && node.autofillType == View.AUTOFILL_TYPE_TEXT) {
-          fields.put(describe(node, ids.size))
-          ids.add(id)
+        if (id != null) {
+          anyIds.add(id)
+          if (node.autofillType == View.AUTOFILL_TYPE_TEXT) {
+            fields.put(describe(node, ids.size))
+            ids.add(id)
+          }
         }
         for (i in 0 until node.childCount) visit(node.getChildAt(i))
       }
 
       for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode)
-      return LoginFields(fields.toString(), ids, domain)
+      return LoginFields(fields.toString(), ids, anyIds, domain)
     }
 
     private fun describe(node: AssistStructure.ViewNode, index: Int): JSONObject {
