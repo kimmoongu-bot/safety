@@ -37,7 +37,11 @@ class LoginFields private constructor(
       var domain: String? = null
 
       fun visit(node: AssistStructure.ViewNode) {
-        node.webDomain?.takeIf { it.isNotEmpty() }?.let { if (domain == null) domain = it }
+        // 첫 번째로 나온 주소만 쓴다. 풀어 쓴다 — 짧게 쓰면 무엇이 어디에 담기는지 흐려진다.
+        val found = node.webDomain
+        if (domain == null && found != null && found.isNotEmpty()) {
+          domain = found
+        }
 
         val id = node.autofillId
         if (id != null && node.autofillType == View.AUTOFILL_TYPE_TEXT) {
@@ -63,7 +67,7 @@ class LoginFields private constructor(
           `android.util.Pair` 다. 코틀린 `Pair` 가 아니라서 `for ((a, b) in ...)` 로
           풀 수 없다 — component1/component2 가 없다. 컴파일이 거기서 멎는다.
         */
-        for (attr in html.attributes ?: emptyList()) {
+        html.attributes?.forEach { attr ->
           when (attr.first) {
             "type" -> htmlType = attr.second?.lowercase()
             "name" -> htmlName = attr.second
