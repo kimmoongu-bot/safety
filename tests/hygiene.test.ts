@@ -195,6 +195,41 @@ test('modules 와 plugins 아래에 깃이 무시하는 파일이 없다', () =>
   assert.deepEqual(ignored, [], `깃이 무시해서 빌드 서버에 안 가는 것: ${ignored.join(', ')}`);
 });
 
+/**
+ * 채우기 액티비티는 `R` 도 `BuildConfig` 도 쓸 수 없다.
+ *
+ * 그 둘은 꾸러미 이름 아래에 생기는데, 개발용 빌드는 이름에 `.dev` 를 붙인다
+ * (app.config.js). 이 파일의 꾸러미 이름은 고정이라 못 찾는다. 클라우드에서는
+ * 되고 **내 피시에서만** 빌드가 깨져서 15분을 버렸다. 자세한 것은 그 파일 위에.
+ */
+test('채우기 액티비티가 R 과 BuildConfig 를 안 쓴다', () => {
+  const source = readFileSync('plugins/android/JamgimFillActivity.kt', 'utf8')
+    // 주석에는 적혀 있다. 하지 말라고 적어 둔 것이니 코드만 본다.
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/\bR\.\w/.test(source), 'R 을 쓰면 개발용 빌드에서 깨진다');
+  assert.ok(!/\bBuildConfig\b/.test(source), 'BuildConfig 를 쓰면 개발용 빌드에서 깨진다');
+});
+
+/**
+ * 대역이 거짓말을 하지 않는지 본다.
+ *
+ * `tools/kotlin-check/stub-app/ExpoWrapper.kt` 는 Expo 의 진짜 클래스를 흉내 낸
+ * 것이다. 흉내가 진짜보다 너그러우면 검사는 통과하고 빌드는 깨진다. 그래서
+ * 우리가 쓰는 생성자(값 두 개짜리)가 진짜에 정말 있는지 여기서 확인한다.
+ * Expo 를 올린 뒤 이 검사가 깨지면, 대역이 아니라 액티비티를 고쳐야 한다.
+ */
+test('Expo 의 ReactActivityDelegateWrapper 에 우리가 쓰는 생성자가 있다', () => {
+  const source = readFileSync(
+    'node_modules/expo/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt',
+    'utf8',
+  );
+  assert.match(
+    source,
+    /constructor\(activity: ReactActivity, delegate: ReactActivityDelegate\)/,
+    '값 두 개짜리 생성자가 없어졌다 — 채우기 액티비티를 고쳐야 한다',
+  );
+});
+
 test('설정 플러그인이 읽는 파일이 실제로 있다', () => {
   // 플러그인이 `fs.copyFileSync` 로 읽는 파일이다. 없으면 prebuild 가 죽는다.
   assert.ok(

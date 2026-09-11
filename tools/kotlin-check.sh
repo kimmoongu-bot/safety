@@ -14,11 +14,18 @@
 # 그런데 Maven 은 열려 있고, 거기에 코틀린 컴파일러와 **안드로이드 프레임워크
 # 클래스**(로보렉트릭이 올려 둔 것)가 있다. 둘을 받아서 컴파일만 해 본다.
 #
+# ## 채우기 화면도 본다
+#
+# `plugins/android/JamgimFillActivity.kt` 는 한동안 여기서 못 보는 파일이었고,
+# 하필 그 파일이 빌드를 깼다 — 개발용 빌드에서만 없는 `R` 과 `BuildConfig` 를
+# 썼다. 리액트 네이티브는 Maven 에 있으므로(react-android) 받아서 같이 건다.
+# androidx 와 expo 는 못 받아서 `tools/kotlin-check/stub-app/` 에 대역을 세웠다.
+#
 # ## 무엇을 못 보나
 #
-# Expo 와 리액트 네이티브에 기대는 파일은 못 본다 — 그 라이브러리는 Maven 에
-# 없다. `JamgimAutofillModule.kt` 와 `plugins/android/JamgimFillActivity.kt` 가
-# 그렇다. 여기서 통과해도 **빌드가 된다는 뜻은 아니다.** 틀린 곳 몇 가지를
+# 대역이 있는 곳은 못 본다. 대역에 있는 것이 진짜에 없어도 여기서는 통과한다.
+# 그래서 `tests/hygiene.test.ts` 가 진짜 expo 파일을 따로 읽어 본다.
+# 여기서 통과해도 **빌드가 된다는 뜻은 아니다.** 틀린 곳 몇 가지를
 # 미리 걸러 줄 뿐이다.
 #
 #     ./tools/kotlin-check.sh
@@ -38,6 +45,8 @@ cd "$(dirname "$0")/.."
 CACHE="${JAMGIM_KOTLIN_CACHE:-${TMPDIR:-/tmp}/jamgim-kotlin-check}"
 MAVEN=https://repo1.maven.org/maven2
 KOTLIN=2.1.21
+# package.json 의 react-native 와 같아야 한다. 올릴 때 같이 올린다.
+RN=0.86.3
 # 안드로이드 15 프레임워크. 자동 완성은 8.0(API 26)부터라 어느 최신판이든 된다.
 ANDROID=15-robolectric-13954326
 
@@ -86,6 +95,11 @@ fetch trove4j.jar                "org/jetbrains/intellij/deps/trove4j/1.0.202003
 fetch coroutines.jar             "org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.1/kotlinx-coroutines-core-jvm-1.8.1.jar"
 fetch annotations.jar            "org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar"
 fetch android-all.jar            "org/robolectric/android-all/$ANDROID/android-all-$ANDROID.jar"
+# 리액트 네이티브. 받는 것은 168MB 인데 쓰는 것은 그 안의 classes.jar(3MB)뿐이다.
+# 나머지는 기계어라 컴파일에는 필요 없다.
+fetch react-android.aar          "com/facebook/react/react-android/$RN/react-android-$RN-release.aar"
+unzip -o -q "$CACHE/react-android.aar" classes.jar -d "$CACHE"
+mv -f "$CACHE/classes.jar" "$CACHE/react-android.jar"
 
 RUNNER=$(ls "$CACHE"/kotlin-*.jar "$CACHE"/trove4j.jar "$CACHE"/annotations.jar "$CACHE"/coroutines.jar | tr '\n' ':')
 SRC=modules/jamgim-autofill/android/src/main/java/app/jamgim/autofill
@@ -98,3 +112,11 @@ java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
   "$SRC/JamgimAutofillModule.kt" \
   tools/kotlin-check/stub/*.kt \
   tools/kotlin-check/R.kt
+
+# 채우기 화면. **`R` 과 `BuildConfig` 를 일부러 안 걸었다.** 개발용 빌드에서는
+# 그 둘이 이 꾸러미 이름 아래에 없다 — 있는 척하면 검사가 거짓말을 한다.
+java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+  -no-stdlib -nowarn -d "$CACHE/out-app" \
+  -cp "$CACHE/android-all.jar:$CACHE/kotlin-stdlib.jar:$CACHE/react-android.jar" \
+  plugins/android/JamgimFillActivity.kt \
+  tools/kotlin-check/stub-app/*.kt

@@ -25,17 +25,36 @@ import expo.modules.ReactActivityDelegateWrapper
  * 이 액티비티만 앱 쪽에 있다. 리액트 네이티브가 앱 모듈에만 딸려 있기 때문이다.
  * 서비스는 이 클래스를 이름으로만 부른다.
  *
- * **모양은 Expo 가 만든 `MainActivity.kt` 를 그대로 따른다.** 리액트를 띄우는 데
- * 필요한 것은 판마다 달라지므로, 우리가 지어내지 않고 그쪽에 맞춘다. Expo 를
- * 올린 뒤 이 화면이 안 뜨면 `android/app/src/main/java/.../MainActivity.kt` 를
- * 새로 뽑아서 여기와 견줘 본다.
+ * **모양은 Expo 가 만든 `MainActivity.kt` 를 그대로 따른다 — 딱 두 군데만 빼고.**
+ * 리액트를 띄우는 데 필요한 것은 판마다 달라지므로, 우리가 지어내지 않고 그쪽에
+ * 맞춘다. Expo 를 올린 뒤 이 화면이 안 뜨면
+ * `android/app/src/main/java/.../MainActivity.kt` 를 새로 뽑아서 여기와 견줘 본다.
+ *
+ * ## `R` 과 `BuildConfig` 는 여기서 쓸 수 없다
+ *
+ * 그 둘은 **꾸러미 이름**(`namespace`) 아래에 생긴다. 그런데 개발용 빌드는 꾸러미
+ * 이름에 `.dev` 를 붙인다(app.config.js). 그러면 생기는 것은
+ * `app.jamgim.vault.dev.R` 인데 이 파일은 `app.jamgim.vault` 에 있으니 못 찾는다.
+ * 클라우드(배포용 이름)에서는 되고 **내 피시(개발용 이름)에서만 빌드가 깨졌다.**
+ * 15분짜리 빌드 하나를 그렇게 버렸다.
+ *
+ * MainActivity 는 프리빌드가 꾸러미 이름에 맞춰 새로 뽑아 주니 괜찮지만, 이 파일은
+ * 우리가 고정된 이름으로 넣어 준다. 그래서 둘 다 안 쓰도록 고쳤다.
+ *   - 화면 테마(`R.style.AppTheme`) → 매니페스트의 `android:theme` 로 옮겼다
+ *     (`plugins/withJamgimAutofill.js`). 거기서는 aapt 가 이름으로 찾아 주므로
+ *     꾸러미 이름과 상관없다. 코드보다 **더 일찍** 정해지기도 한다.
+ *   - `BuildConfig.IS_NEW_ARCHITECTURE_ENABLED` → Expo 가 SDK 55부터 이 값을
+ *     안 쓴다(`ReactActivityDelegateWrapper.kt` 의 주석). 값을 안 받는 생성자가
+ *     따로 있어서 그쪽을 쓴다.
+ *
+ * `tools/kotlin-check.sh` 가 이 파일을 그 둘 없이 컴파일해 본다. 다시 쓰면 거기서
+ * 걸린다.
  *
  * 화면 내용은 자바스크립트가 그린다. 리액트 쪽 이름은 `JamgimFill` 이고
  * `index.js` 에 등록되어 있다.
  */
 class JamgimFillActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(R.style.AppTheme)
     /*
       리액트 네이티브가 되살린 화면 상태를 쓰지 않게 null 을 넘긴다. MainActivity 도
       같은 이유로 이렇게 한다 — 되살린 상태와 새 요청이 섞이면 **예전 요청의 칸
@@ -49,7 +68,6 @@ class JamgimFillActivity : ReactActivity() {
   override fun createReactActivityDelegate(): ReactActivityDelegate {
     return ReactActivityDelegateWrapper(
       this,
-      BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
       object : DefaultReactActivityDelegate(
         this,
         mainComponentName,

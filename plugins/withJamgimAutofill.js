@@ -46,6 +46,15 @@ function withActivityEntry(config) {
           자동 완성은 곧바로 '취소' 로 받는다. 이 화면이 따로 있는 이유가 그것이다.
         */
         'android:launchMode': 'standard',
+        /*
+          테마를 여기서 준다. 본 화면(MainActivity)은 코드에서 `setTheme(R.style.AppTheme)`
+          를 부르지만 이 액티비티는 그럴 수 없다 — 개발용 빌드는 꾸러미 이름에 `.dev`
+          를 붙여서 `app.jamgim.vault.R` 이라는 것이 아예 없다. 이유는
+          `plugins/android/JamgimFillActivity.kt` 맨 위에 적었다.
+          매니페스트에 적으면 aapt 가 이름으로 찾아 주고, 화면이 만들어질 때
+          적용되니 코드로 부르는 것보다 오히려 이르다.
+        */
+        'android:theme': '@style/AppTheme',
         // 남의 앱이 이 화면을 띄울 수 없게 한다. 부르는 것은 시스템뿐이다.
         'android:exported': 'false',
         /*
