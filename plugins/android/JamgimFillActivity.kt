@@ -9,6 +9,8 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 import expo.modules.ReactActivityDelegateWrapper
 
+import app.jamgim.autofill.FillHandoff
+
 /**
  * 채우기 화면 (docs/자동완성.md 3단계).
  *
@@ -56,11 +58,25 @@ import expo.modules.ReactActivityDelegateWrapper
 class JamgimFillActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     /*
+      **리액트보다 먼저** 이름을 올린다.
+
+      `super.onCreate` 가 리액트 화면을 띄우기 시작한다. 자바스크립트는 뜨자마자
+      "지금 요청이 뭐냐" 고 묻는데, 그때 우리를 못 찾으면 "채울 것이 없습니다" 가
+      뜬 채로 끝난다. 여기서 먼저 올려 두면 그 경주가 아예 없다.
+      자세한 것은 `FillHandoff` 에 적었다.
+    */
+    FillHandoff.set(this)
+    /*
       리액트 네이티브가 되살린 화면 상태를 쓰지 않게 null 을 넘긴다. MainActivity 도
       같은 이유로 이렇게 한다 — 되살린 상태와 새 요청이 섞이면 **예전 요청의 칸
       번호로 채우려 드는** 일이 생긴다.
     */
     super.onCreate(null)
+  }
+
+  override fun onDestroy() {
+    FillHandoff.clear(this)
+    super.onDestroy()
   }
 
   override fun getMainComponentName(): String = "JamgimFill"

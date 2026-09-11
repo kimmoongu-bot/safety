@@ -149,12 +149,18 @@ class JamgimAutofillModule : Module() {
   }
 
   /**
-   * 지금 화면이 채우기 화면인가.
+   * 지금 떠 있는 채우기 화면.
    *
-   * 이름으로 확인한다. 본 화면에서 실수로 `cancelFill` 을 부르면 앱이 닫혀 버린다.
+   * **`appContext.currentActivity` 를 안 쓴다.** 그 값은 `onResume` 이 되어야
+   * 채워지는데, 자바스크립트가 그보다 먼저 물어볼 수 있다. 그러면 요청이 멀쩡히
+   * 와 있는데도 "채울 것이 없습니다" 가 뜬다. 실기기에서 그랬다.
+   * 자세한 것은 `FillHandoff` 에 적었다.
+   *
+   * 이름도 한 번 더 본다. 여기 오르는 것은 채우기 화면뿐이지만, 본 화면에서
+   * 실수로 `cancelFill` 이 불리면 앱이 닫혀 버린다. 값싼 확인이다.
    */
   private fun fillActivity(): Activity? {
-    val activity = appContext.currentActivity ?: return null
+    val activity = FillHandoff.current() ?: return null
     return if (activity.javaClass.name == JamgimAutofillService.FILL_ACTIVITY) activity else null
   }
 

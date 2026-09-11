@@ -56,6 +56,19 @@ class JamgimAutofillService : AutofillService() {
 
   private fun buildResponse(request: FillRequest): FillResponse? {
     val structure = request.fillContexts.lastOrNull()?.structure ?: return null
+
+    /*
+      **우리 앱에는 우리가 뜨지 않는다.**
+
+      잠김의 잠금 화면도 비밀번호 칸이라 그냥 두면 거기에도 "잠김" 이 뜬다.
+      실기기에서 그랬고, 보시는 분이 바로 이상하다고 하셨다. 맞는 말이다 —
+      금고를 여는 자리에 금고가 열쇠를 내밀겠다고 하는 꼴이다.
+
+      쓸모도 없다. 우리 PIN 은 금고 안에 든 것이 아니라 금고를 여는 열쇠다.
+      우리가 내놓을 수 있는 것이 애초에 없다.
+    */
+    if (structure.activityComponent?.packageName == packageName) return null
+
     val fields = LoginFields.from(structure)
 
     /*

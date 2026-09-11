@@ -107,6 +107,7 @@ SRC=modules/jamgim-autofill/android/src/main/java/app/jamgim/autofill
 java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
   -no-stdlib -nowarn -d "$CACHE/out" \
   -cp "$CACHE/android-all.jar:$CACHE/kotlin-stdlib.jar" \
+  "$SRC/FillHandoff.kt" \
   "$SRC/LoginFields.kt" \
   "$SRC/JamgimAutofillService.kt" \
   "$SRC/JamgimAutofillModule.kt" \
@@ -117,6 +118,6 @@ java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
 # 그 둘이 이 꾸러미 이름 아래에 없다 — 있는 척하면 검사가 거짓말을 한다.
 java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
   -no-stdlib -nowarn -d "$CACHE/out-app" \
-  -cp "$CACHE/android-all.jar:$CACHE/kotlin-stdlib.jar:$CACHE/react-android.jar" \
+  -cp "$CACHE/android-all.jar:$CACHE/kotlin-stdlib.jar:$CACHE/react-android.jar:$CACHE/out" \
   plugins/android/JamgimFillActivity.kt \
   tools/kotlin-check/stub-app/*.kt
