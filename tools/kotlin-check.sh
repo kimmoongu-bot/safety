@@ -23,6 +23,15 @@
 #
 #     ./tools/kotlin-check.sh
 #
+# ## 결과 읽는 법
+#
+# 아무 말도 없으면 통과다. 오류는 이렇게 나온다.
+#
+#     .../LoginFields.kt:83:33: error: function 'component1()' is ambiguous ...
+#
+# **`e:` 로 찾지 마라.** 코틀린 1.x 는 그렇게 적었지만 2.x 는 `파일:줄:칸: error:`
+# 로 적는다. 한 번 `e:` 로 찾다가 "오류가 없다" 고 잘못 읽었다.
+#
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -38,8 +47,10 @@ fetch() { # 이름 경로
   local name=$1 path=$2
   [ -s "$CACHE/$name" ] && return 0
   echo "받는 중: $name"
-  # 큰 파일이 도중에 잘린 적이 있다. 이어받기와 다시 시도를 켠다.
-  curl -fsS -C - --retry 5 --retry-all-errors -o "$CACHE/$name" "$MAVEN/$path"
+  # 이어받기(-C -)를 쓰지 않는다. 100MB 짜리에서 한 번 써 봤더니 원본보다 큰
+  # 파일이 나왔다 — 앞부분이 겹쳐 붙은 것이다. 잘렸으면 아래 검사가 잡고,
+  # 그때는 지우고 처음부터 받는 편이 확실하다.
+  curl -fsS --retry 5 --retry-all-errors -o "$CACHE/$name" "$MAVEN/$path"
 }
 
 fetch kotlin-compiler.jar        "org/jetbrains/kotlin/kotlin-compiler/$KOTLIN/kotlin-compiler-$KOTLIN.jar"
@@ -48,6 +59,8 @@ fetch kotlin-reflect.jar         "org/jetbrains/kotlin/kotlin-reflect/$KOTLIN/ko
 fetch kotlin-script-runtime.jar  "org/jetbrains/kotlin/kotlin-script-runtime/$KOTLIN/kotlin-script-runtime-$KOTLIN.jar"
 fetch kotlin-daemon-embeddable.jar "org/jetbrains/kotlin/kotlin-daemon-embeddable/$KOTLIN/kotlin-daemon-embeddable-$KOTLIN.jar"
 fetch trove4j.jar                "org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar"
+# 컴파일러가 속으로 코루틴을 쓴다. 없으면 클래스를 못 찾겠다며 멎는다.
+fetch coroutines.jar             "org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.1/kotlinx-coroutines-core-jvm-1.8.1.jar"
 fetch annotations.jar            "org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar"
 fetch android-all.jar            "org/robolectric/android-all/$ANDROID/android-all-$ANDROID.jar"
 
@@ -57,7 +70,7 @@ for jar in "$CACHE"/*.jar; do
   unzip -l "$jar" >/dev/null 2>&1 || { echo "망가진 파일: $jar — 지우고 다시 받으세요"; exit 2; }
 done
 
-RUNNER=$(ls "$CACHE"/kotlin-*.jar "$CACHE"/trove4j.jar "$CACHE"/annotations.jar | tr '\n' ':')
+RUNNER=$(ls "$CACHE"/kotlin-*.jar "$CACHE"/trove4j.jar "$CACHE"/annotations.jar "$CACHE"/coroutines.jar | tr '\n' ':')
 SRC=modules/jamgim-autofill/android/src/main/java/app/jamgim/autofill
 
 java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
