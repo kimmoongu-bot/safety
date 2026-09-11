@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  자판 위 자동 완성 줄의 색 (밝은 모드).
+
+  **이 줄은 안드로이드가 그린다.** 우리 화면 코드(리액트)가 아니라 RemoteViews 라,
+  `src/app/theme/palette.ts` 의 색을 쓸 수 없다. 그래서 같은 값을 여기 한 번 더 적는다.
+  팔레트를 바꾸면 여기도 같이 바꾼다.
+
+  **색을 정하지 않으면 흐리게 나온다.** 실기기에서 그랬다 — 떴는데 뭐라고 적혀
+  있는지 못 알아보셨다. 어느 앱 위에 뜰지 모르므로 바탕과 글자를 둘 다 못박는다.
+-->
+<resources>
+  <!-- palette.ts 의 lightColors.surface -->
+  <color name="jamgim_autofill_bg">#FFFFFF</color>
+  <!-- palette.ts 의 lightColors.text — 흰 바탕에서 14.5:1 -->
+  <color name="jamgim_autofill_fg">#202124</color>
+  <!-- palette.ts 의 lightColors.border -->
+  <color name="jamgim_autofill_line">#D6D0C4</color>
+</resources>

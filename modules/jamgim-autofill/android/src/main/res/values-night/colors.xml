@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  어두운 모드. 안드로이드가 이 줄을 그릴 때 **그 앱의 설정**을 따르므로,
+  폰이 어두운 모드면 여기 값이 쓰인다.
+-->
+<resources>
+  <!-- palette.ts 의 darkColors.surface -->
+  <color name="jamgim_autofill_bg">#22262B</color>
+  <!-- palette.ts 의 darkColors.text — 15.5:1 -->
+  <color name="jamgim_autofill_fg">#F3F0E8</color>
+  <!-- palette.ts 의 darkColors.border -->
+  <color name="jamgim_autofill_line">#39404A</color>
+</resources>

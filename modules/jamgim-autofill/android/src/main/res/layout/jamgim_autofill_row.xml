@@ -5,14 +5,23 @@
   RemoteViews 로 그리므로 우리 화면 코드(리액트)를 쓸 수 없다. 안드로이드가 이
   줄만은 자기 방식으로 그린다. 그래서 여기만 따로 있다.
 
-  글자 크기를 sp 로 둔다 — 사용자가 글꼴을 키우면 이 줄도 같이 커져야 한다.
+  **색과 크기를 못박는다.** 정하지 않았더니 실기기에서 너무 흐려서 뭐라고 적혀
+  있는지 못 알아보셨다. 어느 앱 위에 뜰지 모르니 물려받을 것이 없다.
+
+  글자 크기는 sp 로 둔다 — 사용자가 글꼴을 키우면 이 줄도 같이 커져야 한다.
+  위아래 여백 14dp + 18sp 면 손가락이 닿는 높이가 48dp 를 넘는다 (명세 3장).
 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/jamgim_autofill_row_text"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/jamgim_autofill_row_bg"
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
     android:paddingTop="14dp"
     android:paddingBottom="14dp"
-    android:textSize="16sp"
-    android:id="@+id/jamgim_autofill_row_text" />
+    android:textSize="18sp"
+    android:textStyle="bold"
+    android:textColor="@color/jamgim_autofill_fg"
+    android:singleLine="true"
+    android:ellipsize="end" />
