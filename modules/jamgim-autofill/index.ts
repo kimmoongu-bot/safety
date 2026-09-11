@@ -8,22 +8,18 @@ import type { CandidateField } from '../../src/core/autofill.ts';
  * 이 모듈이 통째로 없다. 그래서 `requireOptionalNativeModule` 로 받고, 없으면
  * "안 되는 기기" 와 똑같이 다룬다. 없다고 앱이 죽으면 안 된다.
  */
-type NativeRequest = {
-  /** 칸 목록. JSON 글이다 — 네이티브 경계를 넘을 때 모양이 흐트러지지 않게. */
-  fields: string;
-  /** 달라고 하는 앱의 꾸러미 이름. 예: `com.kakao.talk` */
-  askingPackage: string;
-  /** 브라우저면 그 안의 웹 주소. 없으면 `null`. */
-  webDomain: string | null;
-  /** 사람이 읽을 앱 이름. 못 찾았으면 `null` — 지어내지 않는다. */
-  askingLabel: string | null;
-};
-
 type Native = {
   isSupported(): boolean;
   isEnabled(): boolean;
   openSettings(): boolean;
-  getRequest(): NativeRequest | null;
+  /**
+   * 요청 내용. **글(JSON)로 받는다.**
+   *
+   * 지도(Map)나 기록(Record)으로 주고받으면 네이티브 경계에서 모양이 맞는지가
+   * 빌드 때까지 드러나지 않는다. 글 하나면 틀릴 구석이 없고, 어차피 여기서
+   * 한 번 풀어야 한다.
+   */
+  getRequest(): string | null;
   cancelFill(): boolean;
 };
 
@@ -60,19 +56,24 @@ export type FillRequest = {
 export function getFillRequest(): FillRequest | null {
   const raw = native?.getRequest();
   if (!raw) return null;
-  let fields: CandidateField[];
   try {
-    fields = JSON.parse(raw.fields) as CandidateField[];
+    const parsed = JSON.parse(raw) as {
+      fields: string;
+      askingPackage: string;
+      webDomain: string | null;
+      askingLabel: string | null;
+    };
+    const fields = JSON.parse(parsed.fields) as CandidateField[];
+    if (!Array.isArray(fields)) return null;
+    return {
+      fields,
+      askingPackage: parsed.askingPackage,
+      webDomain: parsed.webDomain,
+      askingLabel: parsed.askingLabel,
+    };
   } catch {
     return null;
   }
-  if (!Array.isArray(fields)) return null;
-  return {
-    fields,
-    askingPackage: raw.askingPackage,
-    webDomain: raw.webDomain,
-    askingLabel: raw.askingLabel,
-  };
 }
 
 /** 채우지 않고 닫는다. */

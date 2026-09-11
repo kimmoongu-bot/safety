@@ -1,11 +1,9 @@
 package app.jamgim.autofill
 
 import android.app.assist.AssistStructure
-import android.os.Build
 import android.text.InputType
 import android.view.View
 import android.view.autofill.AutofillId
-import androidx.annotation.RequiresApi
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -18,7 +16,12 @@ import org.json.JSONObject
  *
  * 그래서 이 파일은 **단서를 모으기만** 한다.
  */
-@RequiresApi(Build.VERSION_CODES.O)
+/*
+  androidx 의 `@RequiresApi` 를 쓰지 않는다. Expo 모듈에는 androidx.annotation 이
+  딸려 오지 않아서 컴파일이 안 된다 (`expo-module-gradle-plugin` 이 넣어 주는 것은
+  expo-modules-core 와 코틀린 표준 라이브러리뿐이다). 표시를 붙이는 대신, 이것을
+  부르기 전에 안드로이드 판을 확인하는 것은 `JamgimAutofillModule` 이 한다.
+*/
 class LoginFields private constructor(
   /** 자바스크립트에 넘길 단서. 자리 번호가 아래 `ids` 의 자리와 같다. */
   val json: String,
@@ -56,10 +59,14 @@ class LoginFields private constructor(
       var htmlType: String? = null
       var htmlName: String? = null
       if (html != null && html.tag == "input") {
-        for ((name, value) in html.attributes ?: emptyList()) {
-          when (name) {
-            "type" -> htmlType = value.lowercase()
-            "name" -> htmlName = value
+        /*
+          `android.util.Pair` 다. 코틀린 `Pair` 가 아니라서 `for ((a, b) in ...)` 로
+          풀 수 없다 — component1/component2 가 없다. 컴파일이 거기서 멎는다.
+        */
+        for (attr in html.attributes ?: emptyList()) {
+          when (attr.first) {
+            "type" -> htmlType = attr.second?.lowercase()
+            "name" -> htmlName = attr.second
           }
         }
       }

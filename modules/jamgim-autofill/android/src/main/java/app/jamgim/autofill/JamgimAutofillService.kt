@@ -11,7 +11,6 @@ import android.service.autofill.FillResponse
 import android.service.autofill.SaveCallback
 import android.service.autofill.SaveRequest
 import android.widget.RemoteViews
-import androidx.annotation.RequiresApi
 
 /**
  * 잠김 자동 완성 서비스 (docs/자동완성.md).
@@ -27,7 +26,11 @@ import androidx.annotation.RequiresApi
  * 값은 여기서 안 채운다. 사용자가 우리 화면에서 잠금을 풀고 직접 고른 뒤에야
  * 채워진다. 안드로이드는 이것을 '인증(authentication)' 이라고 부른다.
  */
-@RequiresApi(Build.VERSION_CODES.O)
+/*
+  androidx 의 `@RequiresApi` 를 쓰지 않는다. Expo 모듈에는 androidx.annotation 이
+  딸려 오지 않는다. 안드로이드 8.0 아래에서는 시스템이 이 서비스를 아예 찾지
+  않으므로 이 클래스가 불릴 일도 없다.
+*/
 class JamgimAutofillService : AutofillService() {
 
   override fun onFillRequest(

@@ -5,11 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.view.autofill.AutofillId
 import android.view.autofill.AutofillManager
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import org.json.JSONObject
 
 /**
  * 자동 완성에 대해 앱 화면이 물어보고 답하는 길.
@@ -20,6 +20,10 @@ import expo.modules.kotlin.modules.ModuleDefinition
  * **우리가 자동 완성을 몰래 켤 수 없다.** 안드로이드는 사용자가 직접 고르게 한다.
  * 우리는 그 설정 화면을 열어 주기만 한다. 그게 맞다 — 비밀번호를 다른 앱에
  * 건네는 일이다.
+ *
+ * **주고받는 것은 전부 글(JSON)이다.** 지도(Map)나 기록(Record)으로 주고받으면
+ * 네이티브 경계에서 모양이 맞는지가 빌드 때까지 드러나지 않는다. 글 하나면
+ * 틀릴 구석이 없고, 어차피 자바스크립트에서 한 번 풀어야 한다.
  */
 class JamgimAutofillModule : Module() {
   private val context
@@ -47,8 +51,8 @@ class JamgimAutofillModule : Module() {
     /**
      * 자동 완성 앱을 고르는 설정 화면을 연다. 열렸으면 참.
      *
-     * 기기에 따라 이 화면이 아예 없을 수 있다 (제조사가 뺀 경우). 그때 앱이
-     * 죽으면 안 된다.
+     * 기기에 따라 이 화면이 아예 없을 수 있다 (제조사가 뺀 경우).
+     * 그때 앱이 죽으면 안 된다.
      */
     Function("openSettings") {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return@Function false
@@ -64,29 +68,32 @@ class JamgimAutofillModule : Module() {
     }
 
     /**
-     * 지금 채우기 요청이 있으면 그 내용을 준다. 없으면 `null`.
+     * 지금 채우기 요청이 있으면 그 내용을 글로 준다. 없으면 `null`.
      *
-     * 채우기 화면(`JamgimFillActivity`)이 떴을 때만 값이 있다. 평소 화면에서
-     * 부르면 `null` 이다.
+     * 채우기 화면이 떴을 때만 값이 있다. 평소 화면에서 부르면 `null` 이다.
      */
     Function("getRequest") {
       val intent = fillActivity()?.intent ?: return@Function null
       val fields = intent.getStringExtra(JamgimAutofillService.EXTRA_FIELDS)
         ?: return@Function null
-      mapOf(
-        "fields" to fields,
-        "askingPackage" to (intent.getStringExtra(JamgimAutofillService.EXTRA_ASKING_PACKAGE) ?: ""),
-        "webDomain" to intent.getStringExtra(JamgimAutofillService.EXTRA_WEB_DOMAIN),
+      val asking = intent.getStringExtra(JamgimAutofillService.EXTRA_ASKING_PACKAGE) ?: ""
+      JSONObject().apply {
+        put("fields", fields)
+        put("askingPackage", asking)
+        put("webDomain", intent.getStringExtra(JamgimAutofillService.EXTRA_WEB_DOMAIN) ?: JSONObject.NULL)
         // 사람이 읽을 앱 이름. 꾸러미 이름만 보여 주면 아무도 못 알아본다.
-        "askingLabel" to appLabel(intent.getStringExtra(JamgimAutofillService.EXTRA_ASKING_PACKAGE)),
-      )
+        put("askingLabel", appLabel(asking) ?: JSONObject.NULL)
+      }.toString()
     }
 
-    /** 채우지 않고 닫는다. 사용자가 뒤로 가기를 눌렀을 때. */
+    /** 채우지 않고 닫는다. 사용자가 "닫기" 나 뒤로 가기를 눌렀을 때. */
     Function("cancelFill") {
       val activity = fillActivity() ?: return@Function false
-      activity.setResult(Activity.RESULT_CANCELED)
-      activity.finish()
+      // 화면을 닫는 일은 반드시 주 실행 줄에서. 여기는 자바스크립트 줄이다.
+      activity.runOnUiThread {
+        activity.setResult(Activity.RESULT_CANCELED)
+        activity.finish()
+      }
       true
     }
   }
