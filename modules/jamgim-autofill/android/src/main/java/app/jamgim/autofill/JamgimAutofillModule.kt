@@ -118,7 +118,7 @@ class JamgimAutofillModule : Module() {
         if (index < 0 || index >= ids.size) return
         val text = json.optString(valueKey, "")
         if (text.isEmpty()) return
-        val blank = RemoteViews(packageName, R.layout.jamgim_autofill_row)
+        val blank = RemoteViews(context.packageName, R.layout.jamgim_autofill_row)
         builder.setValue(ids[index], AutofillValue.forText(text), blank)
         filled += 1
       }

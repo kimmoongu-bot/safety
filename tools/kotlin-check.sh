@@ -95,4 +95,6 @@ java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
   -cp "$CACHE/android-all.jar:$CACHE/kotlin-stdlib.jar" \
   "$SRC/LoginFields.kt" \
   "$SRC/JamgimAutofillService.kt" \
+  "$SRC/JamgimAutofillModule.kt" \
+  tools/kotlin-check/stub/*.kt \
   tools/kotlin-check/R.kt
