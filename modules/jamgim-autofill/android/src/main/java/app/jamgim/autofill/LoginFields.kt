@@ -38,13 +38,51 @@ class LoginFields private constructor(
   val anyIds: List<AutofillId>,
   /** 웹이면 주소. 브라우저 안에서는 꾸러미 이름이 브라우저라 이것이 있어야 한다. */
   val webDomain: String?,
+  /**
+   * 이 화면이 **로그인 화면처럼 보이나.**
+   *
+   * 아니면 아무것도 내놓지 않는다. 처음에는 칸이 하나라도 있으면 무조건 손을
+   * 들었는데, 그랬더니 **카카오톡 대화창에도 "잠김" 이 떴다.** 검색창, 메모장,
+   * 주소 입력 칸 — 글자를 넣는 곳이면 어디든 떴다. 거슬리기도 하지만, 비밀번호
+   * 앱이 아무 데나 따라다니는 것은 보기에도 나쁘다.
+   *
+   * 판단은 **앱이 스스로 밝힌 것만** 본다. 아래 `isLoginSignal` 에 무엇을 보는지
+   * 적었다.
+   */
+  val looksLikeLogin: Boolean,
 ) {
   companion object {
+    /*
+      로그인 화면이라는 표시.
+
+      **말(낱말)은 여기서 안 본다.** "비밀번호" 같은 낱말로 찾고 싶어지지만, 낱말
+      목록은 `src/app/i18n/autofillWords.ts` 한 곳에만 둔다는 규칙이 있다. 여기에
+      또 두면 일본어·러시아어를 더할 때 손댈 곳이 두 군데가 되고, 한쪽만 고치는
+      날이 온다. 그리고 이쪽은 실기기가 아니면 확인할 방법도 없다.
+
+      그래서 구조만 본다. 안드로이드가 정해 둔 이름들이라 말과 상관없다.
+    */
+    private val LOGIN_HINTS = setOf(
+      // 비밀번호 칸. 로그인 화면이라는 가장 확실한 표시다.
+      "password", "newPassword",
+      /*
+        아이디 칸. 비밀번호를 나중에 묻는 화면(아이디 먼저, 다음 눌러야 비밀번호)
+        이 있어서 이것도 받는다. 앱이 이 표시를 붙이는 곳은 거의 로그인·가입
+        화면뿐이다.
+      */
+      "username", "newUsername", "emailAddress",
+      /*
+        `phone` 은 **일부러 뺐다.** 주문·배송 화면에 전화번호 칸이 흔하다.
+        그것까지 받으면 다시 아무 데서나 뜨게 된다.
+      */
+    )
+
     fun from(structure: AssistStructure): LoginFields {
       val fields = JSONArray()
       val ids = mutableListOf<AutofillId>()
       val anyIds = mutableListOf<AutofillId>()
       var domain: String? = null
+      var login = false
 
       fun visit(node: AssistStructure.ViewNode) {
         // 첫 번째로 나온 주소만 쓴다. 풀어 쓴다 — 짧게 쓰면 무엇이 어디에 담기는지 흐려진다.
@@ -52,6 +90,8 @@ class LoginFields private constructor(
         if (domain == null && found != null && found.isNotEmpty()) {
           domain = found
         }
+
+        if (isLoginSignal(node)) login = true
 
         val id = node.autofillId
         if (id != null) {
@@ -65,7 +105,39 @@ class LoginFields private constructor(
       }
 
       for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode)
-      return LoginFields(fields.toString(), ids, anyIds, domain)
+      return LoginFields(fields.toString(), ids, anyIds, domain, login)
+    }
+
+    /**
+     * 이 칸이 "여기는 로그인 화면이다" 라고 말해 주나.
+     *
+     * 셋 중 하나면 된다.
+     *  1. 앱이 붙인 용도 표시 (`android:autofillHints`) 가 위 목록에 있다
+     *  2. 웹이면 `<input type="password">`
+     *  3. 안드로이드가 비밀번호 칸으로 표시했다 (`inputType`)
+     *
+     * **못 잡는 것.** 셋 다 없는 로그인 화면은 못 알아본다 — 화면을 직접 그린
+     * 앱이 그렇다. 그런 앱에서는 자동 완성 줄이 안 뜬다. 아쉽지만, 아무 데나
+     * 뜨는 것보다는 낫다. 앱을 기억해 두는 6단계가 오면 그쪽에서 풀린다.
+     */
+    private fun isLoginSignal(node: AssistStructure.ViewNode): Boolean {
+      if (node.autofillHints?.any { LOGIN_HINTS.contains(it) } == true) return true
+
+      val html = node.htmlInfo
+      if (html != null && html.tag == "input") {
+        /*
+          `forEach` 를 안 쓴다. 그 안에서 `return` 하면 자바 쪽 `forEach` 로 잡혀서
+          컴파일이 안 될 수 있다. 평범한 반복문이 여기서는 더 안전하다.
+        */
+        val attrs = html.attributes
+        if (attrs != null) {
+          for (attr in attrs) {
+            if (attr.first == "type" && attr.second?.lowercase() == "password") return true
+          }
+        }
+      }
+
+      return isPassword(node.inputType)
     }
 
     private fun describe(node: AssistStructure.ViewNode, index: Int): JSONObject {

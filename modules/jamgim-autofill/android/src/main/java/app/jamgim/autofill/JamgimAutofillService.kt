@@ -59,6 +59,18 @@ class JamgimAutofillService : AutofillService() {
     val fields = LoginFields.from(structure)
 
     /*
+      로그인 화면처럼 보이지 않으면 손을 들지 않는다.
+
+      이게 없을 때 **카카오톡 대화창에도 "잠김" 이 떴다.** 글자를 넣는 칸이면
+      어디든 떴다 — 검색창, 메모장, 주소 칸. 비밀번호 앱이 아무 데나 따라다니는
+      것은 거슬리고, 보기에도 나쁘다.
+
+      대신 잃는 것이 있다. 표시를 안 붙인 로그인 화면에서는 이제 안 뜬다.
+      `LoginFields.isLoginSignal` 에 무엇을 보는지, 무엇을 못 잡는지 적었다.
+    */
+    if (!fields.looksLikeLogin) return null
+
+    /*
       글자 칸을 못 찾았으면 화면에 있는 칸 전부로 물러선다.
 
       안드로이드가 "이건 글자 칸이다" 라고 말해 주지 않는 앱이 있다 — 직접 그린
