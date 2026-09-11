@@ -20,6 +20,7 @@ type Native = {
    * 한 번 풀어야 한다.
    */
   getRequest(): string | null;
+  respond(payload: string): boolean;
   cancelFill(): boolean;
 };
 
@@ -79,4 +80,31 @@ export function getFillRequest(): FillRequest | null {
 /** 채우지 않고 닫는다. */
 export function cancelFill(): void {
   native?.cancelFill();
+}
+
+/** 고른 값. 자리 번호는 `getFillRequest` 가 준 칸 목록의 자리다. */
+export type FillAnswer = {
+  usernameIndex: number | null;
+  passwordIndex: number | null;
+  username: string;
+  password: string;
+};
+
+/**
+ * 고른 값을 안드로이드에 돌려주고 화면을 닫는다 (docs/자동완성.md 4단계).
+ *
+ * 돌려줬으면 참. 거짓이면 아무 일도 안 일어났다는 뜻이므로, 부르는 쪽이
+ * 사용자에게 알려야 한다 — 조용히 닫히면 왜 안 채워졌는지 알 길이 없다.
+ */
+export function respondWithFill(answer: FillAnswer): boolean {
+  if (!native) return false;
+  return native.respond(
+    JSON.stringify({
+      // 네이티브 쪽은 -1 을 "그 칸은 안 채운다" 로 읽는다.
+      usernameIndex: answer.usernameIndex ?? -1,
+      passwordIndex: answer.passwordIndex ?? -1,
+      username: answer.username,
+      password: answer.password,
+    }),
+  );
 }

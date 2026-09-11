@@ -319,6 +319,11 @@ export const ja = {
   'system.guardUnsupported': 'この端末では画面を隠せません。',
 
   // ── 채우기 화면 (자동 완성) ──
+  'fill.pick': 'どれを入れますか？',
+  'fill.noVault': 'まだ金庫がありません。ジャムギムを開いて金庫を作ってください。',
+  'fill.empty': '金庫に入れたものがありません。',
+  'fill.noField': 'この画面では入れる場所が見つかりませんでした。',
+  'fill.failed': '入れられませんでした。ご自分で入力してください。',
   'fill.title': '入力',
   'fill.asking': '{app} がIDとパスワードを求めています。',
   'fill.askingUnknown': 'どのアプリが求めているのか分かりません。',

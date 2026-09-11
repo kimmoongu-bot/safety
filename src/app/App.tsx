@@ -3,22 +3,15 @@ import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { setCryptoProvider } from '../core/crypto/registry.ts';
-import { NonceSource } from '../core/crypto/nonce.ts';
-import { Vault } from '../core/vault.ts';
 import { AUTO_LOCK_MS } from '../core/settings.ts';
-import { DisplayPrefsStore } from '../core/prefs.ts';
-import { createDeviceCryptoProvider } from './platform/deviceCryptoProvider.ts';
-import { ExpoMetaStore } from '../data/adapters/expoMetaStore.ts';
-import { ExpoPrefsStore } from '../data/adapters/expoPrefsStore.ts';
-import { ExpoSecureKeyStore } from '../data/adapters/expoSecureKeyStore.ts';
 import { ExpoSqliteRecordStore } from '../data/adapters/expoSqliteRecordStore.ts';
 import { clearIfDue as clearClipboardIfDue } from './platform/clipboard.ts';
 import { disableScreenGuard, enableScreenGuard } from './platform/screenGuard.ts';
 import { applyScreenGuard, guardFailureMessage } from './screenGuardPolicy.ts';
 import { PrivacyShield } from './components/PrivacyShield.tsx';
 import { ToastHost } from './components/Toast.tsx';
-import { AVAILABLE, useT } from './i18n/index.ts';
+import { useT } from './i18n/index.ts';
+import { boot } from './boot.ts';
 import { usePrefsStore } from './state/prefsStore.ts';
 import { setStoreTranslator, useVaultStore } from './state/vaultStore.ts';
 import { FALLBACK_AUTO_LOCK_MS, shouldLockForIdle, shouldLockOnBackground } from './lockPolicy.ts';
@@ -92,37 +85,15 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const provider = createDeviceCryptoProvider();
-      setCryptoProvider(provider);
-      const keyStore = new ExpoSecureKeyStore(provider);
-      // 금고와 화면 설정이 같은 기기 키를 쓰므로 nonce 생성기도 하나만 둔다.
-      const nonces = new NonceSource(provider);
-
       /*
-        화면 설정(밝기·언어)을 제일 먼저 읽는다. 금고보다 먼저다.
-        금고를 여는 것과 상관없이 화면을 그리는 데 쓰는 값이고, 이것을 모르는 채로
-        한 번 그리면 색이 번쩍인다.
+        세우는 일은 `boot()` 이 한다. 채우기 화면도 같은 것을 쓴다 — 다른 앱에서
+        잠김을 누르면 이 화면은 한 번도 안 뜬 채로 그쪽만 뜨기 때문이다.
+        두 번 불러도 금고는 하나다.
       */
-      await usePrefsStore.getState().load(
-        new DisplayPrefsStore({
-          provider,
-          nonces,
-          store: new ExpoPrefsStore(),
-          keyStore,
-          available: AVAILABLE,
-        }),
-      );
+      const { vault, records } = await boot();
       if (cancelled) return;
-
-      const records = new ExpoSqliteRecordStore();
       recordsRef.current = records;
-      const vault = new Vault({
-        provider,
-        keyStore,
-        nonces,
-        metaStore: new ExpoMetaStore(),
-        recordStore: records,
-      });
+
       const status = await vault.status();
       if (cancelled) return;
       attach(vault);

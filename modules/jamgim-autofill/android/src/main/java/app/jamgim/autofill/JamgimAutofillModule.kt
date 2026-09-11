@@ -5,7 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.service.autofill.Dataset
+import android.view.autofill.AutofillId
 import android.view.autofill.AutofillManager
+import android.view.autofill.AutofillValue
+import android.widget.RemoteViews
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -86,6 +90,52 @@ class JamgimAutofillModule : Module() {
       }.toString()
     }
 
+    /**
+     * 고른 값을 안드로이드에 돌려준다 (docs/자동완성.md 4단계).
+     *
+     * 받는 것은 글(JSON) 하나다.
+     *   { "usernameIndex": 0, "passwordIndex": 1, "username": "...", "password": "..." }
+     * 자리 번호는 `getRequest` 로 넘긴 칸 목록의 자리다. `-1` 이면 그 칸은 안 채운다.
+     *
+     * **여기서 처음으로 진짜 비밀번호가 이 파일을 지나간다.** 로그를 남기지 않는다
+     * (명세 5.5). 값은 안드로이드에 넘기는 즉시 우리 손을 떠난다.
+     */
+    Function("respond") { payload: String ->
+      val activity = fillActivity() ?: return@Function false
+      val ids: List<AutofillId> = readIds(activity.intent) ?: return@Function false
+
+      val json = JSONObject(payload)
+      val builder = Dataset.Builder()
+      var filled = 0
+
+      /*
+        값을 하나 넣을 때마다 그 칸에 보여 줄 그림도 같이 줘야 한다. 실제로는
+        사용자에게 보이지 않는다 — 우리는 이미 고르는 화면을 지나왔고, 안드로이드는
+        곧바로 채운다. 그래도 없으면 안 받아 준다.
+      */
+      fun put(indexKey: String, valueKey: String) {
+        val index = json.optInt(indexKey, -1)
+        if (index < 0 || index >= ids.size) return
+        val text = json.optString(valueKey, "")
+        if (text.isEmpty()) return
+        val blank = RemoteViews(packageName, R.layout.jamgim_autofill_row)
+        builder.setValue(ids[index], AutofillValue.forText(text), blank)
+        filled += 1
+      }
+
+      put("usernameIndex", "username")
+      put("passwordIndex", "password")
+      if (filled == 0) return@Function false
+
+      val reply = Intent().putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, builder.build())
+      // 화면을 닫는 일은 반드시 주 실행 줄에서. 여기는 자바스크립트 줄이다.
+      activity.runOnUiThread {
+        activity.setResult(Activity.RESULT_OK, reply)
+        activity.finish()
+      }
+      true
+    }
+
     /** 채우지 않고 닫는다. 사용자가 "닫기" 나 뒤로 가기를 눌렀을 때. */
     Function("cancelFill") {
       val activity = fillActivity() ?: return@Function false
@@ -107,6 +157,20 @@ class JamgimAutofillModule : Module() {
     val activity = appContext.currentActivity ?: return null
     return if (activity.javaClass.name == JamgimAutofillService.FILL_ACTIVITY) activity else null
   }
+
+  /**
+   * 서비스가 넘겨 준 칸 목록을 꺼낸다.
+   *
+   * 안드로이드 13 에서 꺼내는 방법이 바뀌었다. 옛 방법은 그 아래에서만 쓴다.
+   */
+  @Suppress("DEPRECATION")
+  private fun readIds(intent: Intent): List<AutofillId>? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      intent.getParcelableArrayListExtra(JamgimAutofillService.EXTRA_IDS, AutofillId::class.java)
+    } else {
+      // 갈래를 적어 준다. 옛 방법은 무엇을 꺼내는지 스스로 모른다.
+      intent.getParcelableArrayListExtra<AutofillId>(JamgimAutofillService.EXTRA_IDS)
+    }
 
   /** 꾸러미 이름을 사람이 읽을 앱 이름으로. 못 찾으면 `null` — 지어내지 않는다. */
   private fun appLabel(packageName: String?): String? {

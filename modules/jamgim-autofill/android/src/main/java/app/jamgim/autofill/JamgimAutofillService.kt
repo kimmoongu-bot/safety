@@ -74,7 +74,13 @@ class JamgimAutofillService : AutofillService() {
     val intent = Intent()
       .setClassName(packageName, FILL_ACTIVITY)
       .putExtra(EXTRA_FIELDS, fields.json)
-      .putParcelableArrayListExtra(EXTRA_IDS, ArrayList(ids))
+      /*
+        **자바스크립트에 넘긴 칸 목록과 자리 번호가 같아야 한다.**
+        화면에서 "두 번째 칸에 비밀번호" 라고 답하면 여기 두 번째가 그 칸이어야 한다.
+        아래 `ids` 는 우리 줄을 어디에 띄울지 정하는 것이라 더 넓을 수 있다 —
+        섞으면 엉뚱한 칸에 비밀번호를 넣는다.
+      */
+      .putParcelableArrayListExtra(EXTRA_IDS, ArrayList(fields.ids))
       .putExtra(EXTRA_ASKING_PACKAGE, asking)
       .putExtra(EXTRA_WEB_DOMAIN, fields.webDomain)
 

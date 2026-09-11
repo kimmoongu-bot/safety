@@ -337,6 +337,11 @@ export const en = {
   'system.guardUnsupported': 'This phone cannot block the screen.',
 
   // ── 채우기 화면 (자동 완성) ──
+  'fill.pick': 'Which one shall we use?',
+  'fill.noVault': 'There is no vault yet. Open Jamgim and create one first.',
+  'fill.empty': 'There is nothing saved in your vault.',
+  'fill.noField': 'We could not find a field to fill in on this screen.',
+  'fill.failed': 'We could not fill it in. Please type it yourself.',
   'fill.title': 'Fill in',
   'fill.asking': '{app} is asking for a username and password.',
   'fill.askingUnknown': 'We cannot tell which app is asking.',

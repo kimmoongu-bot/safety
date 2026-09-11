@@ -310,6 +310,11 @@ export const ko = {
   'system.guardUnsupported': '이 기기에서는 화면 가리기를 쓸 수 없습니다.',
 
   // ── 채우기 화면 (자동 완성) ──
+  'fill.pick': '어느 것을 넣을까요?',
+  'fill.noVault': '금고가 아직 없습니다. 잠김을 열어 금고부터 만들어 주세요.',
+  'fill.empty': '금고에 넣어 둔 것이 없습니다.',
+  'fill.noField': '이 화면에서는 채울 칸을 찾지 못했습니다.',
+  'fill.failed': '채우지 못했습니다. 직접 입력해 주세요.',
   'fill.title': '채우기',
   'fill.asking': '{app} 에서 아이디와 비밀번호를 달라고 합니다.',
   'fill.askingUnknown': '어떤 앱이 달라고 하는지 알 수 없습니다.',
