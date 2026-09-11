@@ -28,6 +28,13 @@ export type CandidateField = {
   isPasswordInput: boolean;
   /** 사람이 글자를 넣을 수 있는 칸인가. 아니면 볼 것도 없다. */
   isEditable: boolean;
+  /**
+   * 지금 **눈에 보이는** 칸인가.
+   *
+   * 한 화면에 로그인 방법이 여러 갈래인 앱이 많다 — 아이디 / 공동인증서 /
+   * 간편인증. 고르지 않은 갈래의 칸도 화면 구조에는 그대로 남아 있다.
+   */
+  isVisible: boolean;
 };
 
 export type FieldPick = {
@@ -89,7 +96,19 @@ function hasAny(text: string, words: readonly string[]): boolean {
  * 에서 앞의 것이 진짜다.
  */
 export function pickFields(fields: readonly CandidateField[], words: FieldWords): FieldPick {
-  const usable = fields.filter((f) => f.isEditable);
+  /*
+    **안 보이는 칸은 처음부터 뺀다.**
+
+    실기기에서 이런 일이 있었다. 손택스 로그인 화면에서 항목을 골랐는데 화면만
+    닫히고 두 칸 다 비어 있었다. 값은 넘어갔는데 **보이지 않는 칸에** 들어간
+    것이다. 로그인 갈래가 여럿인 앱에서는 고르지 않은 갈래의 칸도 화면 구조에
+    그대로 남아 있고, 그것이 우리 목록에서 더 앞에 올 수 있다.
+
+    사용자에게는 아무 일도 안 일어난 것으로 보인다. 그게 제일 나쁘다 — 고장인지
+    원래 그런지 알 길이 없다. 이제는 볼 수 있는 칸만 보고, 그런 칸이 없으면
+    "채울 칸을 못 찾았습니다" 라고 말한다.
+  */
+  const usable = fields.filter((f) => f.isEditable && f.isVisible);
 
   const password =
     firstOf(usable, (f) => f.hints.some((h) => HINT_PASSWORD.has(h))) ??

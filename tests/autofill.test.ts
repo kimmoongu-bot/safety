@@ -23,6 +23,7 @@ function field(over: Partial<CandidateField> = {}): CandidateField {
     htmlName: null,
     isPasswordInput: false,
     isEditable: true,
+    isVisible: true,
     ...over,
   };
 }
@@ -148,6 +149,35 @@ test('글자를 넣을 수 없는 칸은 보지 않는다', () => {
     { idEntry: 'pw_input', isPasswordInput: true },
   );
   assert.deepEqual(pick(s), { username: 1, password: 2 });
+});
+
+/**
+ * 실기기에서 나온 것이다. 손택스 로그인 화면에서 항목을 골랐는데 화면만 닫히고
+ * 두 칸 다 비어 있었다. 값은 넘어갔는데 **안 보이는 칸에** 들어간 것이다.
+ *
+ * 로그인 갈래가 여럿인 앱(아이디 / 공동인증서 / 간편인증)에서는 고르지 않은
+ * 갈래의 칸도 화면 구조에 그대로 남아 있다. 그것이 목록에서 더 앞에 오면
+ * 우리가 그쪽을 고른다. 사용자 눈에는 아무 일도 안 일어난 것으로 보인다.
+ */
+test('안 보이는 칸은 고르지 않는다', () => {
+  const s = screen(
+    // 고르지 않은 갈래의 칸. 구조에는 있지만 화면에는 없다.
+    { idEntry: 'cert_id', isVisible: false },
+    { idEntry: 'cert_password', isPasswordInput: true, isVisible: false },
+    // 지금 보이는 갈래.
+    { idEntry: 'login_id' },
+    { idEntry: 'login_password', isPasswordInput: true },
+  );
+  assert.deepEqual(pick(s), { username: 2, password: 3 });
+});
+
+test('보이는 칸이 하나도 없으면 아무것도 고르지 않는다', () => {
+  // 여기서 억지로 고르면 값이 안 보이는 칸에 들어가고 화면만 닫힌다.
+  const s = screen(
+    { idEntry: 'login_id', isVisible: false },
+    { idEntry: 'login_password', isPasswordInput: true, isVisible: false },
+  );
+  assert.deepEqual(pick(s), { username: null, password: null });
 });
 
 test('칸이 하나도 없어도 죽지 않는다', () => {

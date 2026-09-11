@@ -84,7 +84,14 @@ class LoginFields private constructor(
       var domain: String? = null
       var login = false
 
-      fun visit(node: AssistStructure.ViewNode) {
+      /*
+        `visible` 은 **위에서 내려온다.** 안 보이는 상자 안에 든 칸은 저 혼자
+        "보인다" 고 말한다 — 상자가 숨은 것을 모르기 때문이다. 그래서 부모가
+        안 보이면 자식도 안 보이는 것으로 친다.
+      */
+      fun visit(node: AssistStructure.ViewNode, visible: Boolean) {
+        val here = visible && node.visibility == View.VISIBLE
+
         // 첫 번째로 나온 주소만 쓴다. 풀어 쓴다 — 짧게 쓰면 무엇이 어디에 담기는지 흐려진다.
         val found = node.webDomain
         if (domain == null && found != null && found.isNotEmpty()) {
@@ -97,14 +104,14 @@ class LoginFields private constructor(
         if (id != null) {
           anyIds.add(id)
           if (node.autofillType == View.AUTOFILL_TYPE_TEXT) {
-            fields.put(describe(node, ids.size))
+            fields.put(describe(node, ids.size, here))
             ids.add(id)
           }
         }
-        for (i in 0 until node.childCount) visit(node.getChildAt(i))
+        for (i in 0 until node.childCount) visit(node.getChildAt(i), here)
       }
 
-      for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode)
+      for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode, true)
       return LoginFields(fields.toString(), ids, anyIds, domain, login)
     }
 
@@ -119,6 +126,11 @@ class LoginFields private constructor(
      * **못 잡는 것.** 셋 다 없는 로그인 화면은 못 알아본다 — 화면을 직접 그린
      * 앱이 그렇다. 그런 앱에서는 자동 완성 줄이 안 뜬다. 아쉽지만, 아무 데나
      * 뜨는 것보다는 낫다. 앱을 기억해 두는 6단계가 오면 그쪽에서 풀린다.
+     *
+     * **안 보이는 칸도 본다.** 채울 때는 안 보이는 칸을 거르지만(`isVisible`),
+     * 손을 들지 말지는 너그럽게 정한다. 숨은 비밀번호 칸 하나 때문에 로그인
+     * 화면에서 아예 안 뜨는 편이 더 나쁘다. 대신 채울 것이 없으면 화면에
+     * "채울 칸을 못 찾았습니다" 가 뜬다 — 조용히 닫히지 않는다.
      */
     private fun isLoginSignal(node: AssistStructure.ViewNode): Boolean {
       if (node.autofillHints?.any { LOGIN_HINTS.contains(it) } == true) return true
@@ -140,7 +152,7 @@ class LoginFields private constructor(
       return isPassword(node.inputType)
     }
 
-    private fun describe(node: AssistStructure.ViewNode, index: Int): JSONObject {
+    private fun describe(node: AssistStructure.ViewNode, index: Int, visible: Boolean): JSONObject {
       val hints = JSONArray()
       node.autofillHints?.forEach { hints.put(it) }
 
@@ -170,6 +182,15 @@ class LoginFields private constructor(
         put("isPasswordInput", isPassword(node.inputType))
         // 글자를 넣을 수 있는 칸인가. 화면에 적혀 있기만 한 글자는 아니다.
         put("isEditable", node.className?.contains("EditText") == true || html?.tag == "input")
+        /*
+          지금 눈에 보이는 칸인가.
+
+          한 화면에 로그인 방법이 여러 갈래인 앱이 많다 — 아이디 / 공동인증서 /
+          간편인증. 고르지 않은 갈래의 칸도 **화면 구조에는 그대로 있다.** 그것을
+          골라 채우면 값은 들어가는데 **사용자 눈에는 아무것도 안 채워진다.**
+          닫히기만 하고 아무 일도 안 일어난 것처럼 보인다.
+        */
+        put("isVisible", visible)
       }
     }
 
