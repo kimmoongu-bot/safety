@@ -239,6 +239,10 @@ export function SettingsScreen() {
       <Title>{t('settings.backupHeading')}</Title>
       <BigButton label={t('settings.backupGo')} tone="plain" onPress={() => go({ name: 'backup' })} />
 
+      <View style={{ height: space.md }} />
+      <Title>{t('info.title')}</Title>
+      <BigButton label={t('settings.infoGo')} tone="plain" onPress={() => go({ name: 'info' })} />
+
       <View style={{ height: space.lg }} />
       <Title>{t('settings.wipeHeading')}</Title>
       <Notice>

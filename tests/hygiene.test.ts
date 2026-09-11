@@ -202,3 +202,25 @@ test('설정 플러그인이 읽는 파일이 실제로 있다', () => {
     '채우기 액티비티 원본이 없거나 비어 있다',
   );
 });
+
+/**
+ * 화면을 만들었으면 들어가는 길도 있어야 한다.
+ *
+ * 실제로 이런 일이 있었다. 정보 화면을 다 만들고, 길 이름도 넣고, 화면을 고르는
+ * 곳에도 넣었는데, **설정 화면에 단추를 넣는 수정만 조용히 빠졌다.** 앱에는
+ * 멀쩡히 들어 있지만 사용자는 영영 볼 수 없는 화면이 됐다.
+ *
+ * 타입 검사도 테스트도 이것을 못 잡는다. 코드가 다 맞고, 다만 아무도 그 화면을
+ * 부르지 않을 뿐이다.
+ *
+ * 설정에서만 들어갈 수 있는 화면들을 여기 적어 둔다. 설정에 새 화면을 달면
+ * 여기에도 한 줄 는다.
+ */
+test('설정에서만 갈 수 있는 화면은 설정에 단추가 있다', () => {
+  const source = readFileSync('src/app/screens/SettingsScreen.tsx', 'utf8');
+  const missing: string[] = [];
+  for (const route of ['backup', 'info']) {
+    if (!source.includes(`name: '${route}'`)) missing.push(route);
+  }
+  assert.deepEqual(missing, [], `설정에서 갈 수 없는 화면: ${missing.join(', ')}`);
+});
