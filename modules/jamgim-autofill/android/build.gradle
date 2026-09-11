@@ -3,6 +3,23 @@ plugins {
   id 'expo-module-gradle-plugin'
 }
 
+/*
+  `group` · `version` · `defaultConfig`.
+
+  `node_modules` 의 Expo 모듈 열몇 개를 다 열어 봤더니 **하나도 빠짐없이** 이것을
+  적고 있다. 우리만 없었다. 이것이 빌드가 죽은 원인인지는 **모른다** — 여기서
+  그레이들을 돌려 볼 수 없어서 확인을 못 했다. 다만 남들이 전부 하는 것을 우리만
+  안 하고 있을 이유도 없다.
+
+  판 번호는 앱과 따로 간다. 이 모듈은 앱보다 훨씬 드물게 바뀐다.
+*/
+group = 'app.jamgim'
+version = '0.1.0'
+
 android {
   namespace "app.jamgim.autofill"
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+  }
 }
