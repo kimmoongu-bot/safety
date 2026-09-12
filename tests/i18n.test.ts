@@ -61,7 +61,8 @@ const MIGRATED = [
 function withoutComments(source: string): string[] {
   return source
     .replace(/\/\*[\s\S]*?\*\//g, '') // 여러 줄 주석과 JSX 안 주석
-    .split('\n')
+    // 윈도우에서 받으면 줄 끝에 \r 이 붙는다. 떼고 나눠야 아래 주석 지우기가 걸린다.
+    .split(/\r?\n/)
     .map((line) => line.replace(/\/\/.*$/, '')); // 줄 끝 주석
 }
 

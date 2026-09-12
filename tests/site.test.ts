@@ -18,12 +18,18 @@ import {
 
 const source = readFileSync(PRIVACY_SOURCE, 'utf8');
 
+/**
+ * 윈도우에서 받으면 깃이 줄 끝을 \r\n 으로 바꿔 둔다. 만들어 낸 쪽은 \n 이다.
+ * 줄바꿈 방식이 아니라 적힌 내용이 같은지를 본다.
+ */
+const sameLines = (html: string): string => html.replace(/\r\n/g, '\n');
+
 test('올려 둔 웹 한 장이 방침 원본과 맞는다', () => {
   const made = buildPrivacyHtml(source);
   const kept = readFileSync(PRIVACY_TARGET, 'utf8');
   assert.equal(
-    kept,
-    made,
+    sameLines(kept),
+    sameLines(made),
     '방침을 고치고 다시 만들지 않았다 — node --experimental-strip-types tools/site/build-privacy.ts',
   );
 });
