@@ -176,6 +176,20 @@ class JamgimAutofillService : AutofillService() {
         arrayOf(passwordId),
       )
       if (others.isNotEmpty()) save.setOptionalIds(others.toTypedArray())
+      /*
+        **칸이 안 보이게 되어도 물어봐 달라.**
+
+        안드로이드가 "이제 담을지 물어볼 때다" 로 삼는 기본 신호는 **화면이
+        끝나는 것**이다. 그런데 웹 로그인은 화면이 안 끝난다 — 앱 안의 웹이
+        페이지만 바꾸고 액티비티는 그대로다. 그 신호가 영영 안 온다.
+
+        실기기에서 실손24 와 손택스 둘 다 안 떴다. 둘 다 웹이다.
+
+        대신 잃는 것: 로그인을 안 하고 그냥 나가도 칸은 안 보이게 되므로, 그때도
+        물어볼 수 있다. 처음에는 그것이 싫어서 안 걸었는데, **안 뜨는 것이 훨씬
+        나쁘다.** 한 번 더 묻는 것은 '담지 않기' 를 누르면 그만이다.
+      */
+      save.setFlags(SaveInfo.FLAG_SAVE_ON_ALL_VIEWS_INVISIBLE)
       response.setSaveInfo(save.build())
     }
 
