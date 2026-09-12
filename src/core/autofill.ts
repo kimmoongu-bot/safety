@@ -48,8 +48,33 @@ export type FieldPick = {
   안드로이드가 정해 둔 이름들. 앱이 이걸 적어 뒀으면 추측할 필요가 없다.
   (`android.view.View.AUTOFILL_HINT_*`)
 */
-const HINT_PASSWORD = new Set(['password', 'newPassword']);
-const HINT_USERNAME = new Set(['username', 'newUsername', 'emailAddress', 'phone']);
+/*
+  안드로이드가 정한 이름과 **웹이 정한 이름을 같이 본다.**
+
+  웹 페이지 안의 칸은 브라우저 부품이 `autocomplete` 값을 그대로 넘겨 준다.
+  그쪽은 이름이 다르다 — 안드로이드는 `newPassword`, 웹은 `new-password` 다.
+  실기기에서 손택스 비밀번호 칸이 `["new-password"]` 로 왔다. 우리 목록에 없어서
+  그 단서는 그냥 버려지고 있었다.
+
+  그 화면은 `htmlType` 이 `password` 라 결과는 같았지만, `htmlType` 이 없고
+  `autocomplete` 만 있는 칸에서는 놓친다.
+*/
+const HINT_PASSWORD = new Set([
+  'password',
+  'newPassword',
+  // 웹
+  'current-password',
+  'new-password',
+]);
+const HINT_USERNAME = new Set([
+  'username',
+  'newUsername',
+  'emailAddress',
+  'phone',
+  // 웹
+  'email',
+  'tel',
+]);
 
 /**
  * 이름표에서 찾을 낱말들.

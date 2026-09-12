@@ -180,6 +180,26 @@ test('보이는 칸이 하나도 없으면 아무것도 고르지 않는다', ()
   assert.deepEqual(pick(s), { username: null, password: null });
 });
 
+/**
+ * 웹 페이지 안의 칸은 이름이 다르다.
+ *
+ * 브라우저 부품이 `autocomplete` 값을 그대로 넘겨 준다 — 안드로이드의
+ * `newPassword` 가 웹에서는 `new-password` 다. 실기기에서 손택스 비밀번호 칸이
+ * `["new-password"]` 로 왔다.
+ *
+ * 그 화면은 `htmlType` 도 `password` 라 결과가 같았지만, 그것이 없는 칸에서는
+ * 이 단서 하나뿐이다.
+ */
+test('웹이 쓰는 이름(autocomplete)도 알아본다', () => {
+  const s = screen({ hints: ['email'] }, { hints: ['new-password'] });
+  assert.deepEqual(pick(s), { username: 0, password: 1 });
+});
+
+test('웹의 current-password 도 알아본다', () => {
+  const s = screen({ hints: ['username'] }, { hints: ['current-password'] });
+  assert.deepEqual(pick(s), { username: 0, password: 1 });
+});
+
 test('칸이 하나도 없어도 죽지 않는다', () => {
   assert.deepEqual(pick([]), { username: null, password: null });
 });

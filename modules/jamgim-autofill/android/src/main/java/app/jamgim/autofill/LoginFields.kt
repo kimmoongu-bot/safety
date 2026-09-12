@@ -73,6 +73,12 @@ class LoginFields private constructor(
       */
       "username", "newUsername", "emailAddress",
       /*
+        **웹은 이름이 다르다.** 웹 페이지 안의 칸은 브라우저 부품이 `autocomplete`
+        값을 그대로 넘긴다 — 안드로이드의 `newPassword` 가 웹에서는 `new-password`
+        다. 실기기에서 손택스가 그렇게 왔다.
+      */
+      "current-password", "new-password", "email",
+      /*
         `phone` 은 **일부러 뺐다.** 주문·배송 화면에 전화번호 칸이 흔하다.
         그것까지 받으면 다시 아무 데서나 뜨게 된다.
       */
