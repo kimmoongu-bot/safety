@@ -83,6 +83,8 @@ class JamgimAutofillModule : Module() {
       val asking = intent.getStringExtra(JamgimAutofillService.EXTRA_ASKING_PACKAGE) ?: ""
       JSONObject().apply {
         put("fields", fields)
+        // 없으면 채우기다. 채우기가 먼저 있었고 그 인텐트에는 이 표시가 없다.
+        put("mode", intent.getStringExtra(JamgimAutofillService.EXTRA_MODE) ?: "fill")
         put("askingPackage", asking)
         put("webDomain", intent.getStringExtra(JamgimAutofillService.EXTRA_WEB_DOMAIN) ?: JSONObject.NULL)
         // 사람이 읽을 앱 이름. 꾸러미 이름만 보여 주면 아무도 못 알아본다.
@@ -136,9 +138,41 @@ class JamgimAutofillModule : Module() {
       true
     }
 
+    /**
+     * 담기 요청에서 그 칸에 들어 있던 글자 하나 (docs/자동완성.md 22장).
+     *
+     * 자리 번호는 `getRequest` 가 준 칸 목록의 자리다. 화면이 **고른 두 개만**
+     * 물어본다 — 나머지는 자바스크립트로 넘어가지 않는다.
+     *
+     * 채우기 요청에서는 담아 둔 것이 없으므로 언제나 `null` 이다.
+     *
+     * 자리 번호를 **글로 받는다.** 이 파일 맨 위에 적은 대로, 네이티브 경계를
+     * 넘는 것은 전부 글이다. 숫자로 받아도 되지만 한 군데만 다르게 두면 다음
+     * 사람이 여기서 한 번 멈춘다.
+     */
+    Function("savedValue") { index: String ->
+      if (fillActivity() == null) return@Function null
+      SaveHandoff.value(index.toIntOrNull() ?: -1)
+    }
+
+    /**
+     * 담기를 마치고 닫는다.
+     *
+     * 안드로이드에 돌려줄 답이 없다 — 담을지 말지는 이미 안드로이드가 물었고,
+     * 우리는 그 뒤에 뜬 화면이다. 들고 있던 글자를 지우고 닫는다.
+     */
+    Function("finishSave") {
+      val activity = fillActivity() ?: return@Function false
+      SaveHandoff.clear()
+      activity.runOnUiThread { activity.finish() }
+      true
+    }
+
     /** 채우지 않고 닫는다. 사용자가 "닫기" 나 뒤로 가기를 눌렀을 때. */
     Function("cancelFill") {
       val activity = fillActivity() ?: return@Function false
+      // 담기 화면에서 닫았을 수도 있다. 들고 있던 글자를 남기지 않는다.
+      SaveHandoff.clear()
       // 화면을 닫는 일은 반드시 주 실행 줄에서. 여기는 자바스크립트 줄이다.
       activity.runOnUiThread {
         activity.setResult(Activity.RESULT_CANCELED)

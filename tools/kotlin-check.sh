@@ -101,16 +101,15 @@ fetch react-android.aar          "com/facebook/react/react-android/$RN/react-and
 unzip -o -q "$CACHE/react-android.aar" classes.jar -d "$CACHE"
 mv -f "$CACHE/classes.jar" "$CACHE/react-android.jar"
 
+# 파일을 하나씩 적지 않는다. 새 파일을 만들고 여기 더하는 것을 두 번 빠뜨렸고,
+# 두 번 다 "왜 클래스를 못 찾지" 로 시간을 썼다. 폴더째 건다.
 RUNNER=$(ls "$CACHE"/kotlin-*.jar "$CACHE"/trove4j.jar "$CACHE"/annotations.jar "$CACHE"/coroutines.jar | tr '\n' ':')
 SRC=modules/jamgim-autofill/android/src/main/java/app/jamgim/autofill
 
 java -cp "$RUNNER" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
   -no-stdlib -nowarn -d "$CACHE/out" \
   -cp "$CACHE/android-all.jar:$CACHE/kotlin-stdlib.jar" \
-  "$SRC/FillHandoff.kt" \
-  "$SRC/LoginFields.kt" \
-  "$SRC/JamgimAutofillService.kt" \
-  "$SRC/JamgimAutofillModule.kt" \
+  "$SRC"/*.kt \
   tools/kotlin-check/stub/*.kt \
   tools/kotlin-check/R.kt
 

@@ -10,6 +10,7 @@ import android.service.autofill.FillCallback
 import android.service.autofill.FillRequest
 import android.service.autofill.FillResponse
 import android.service.autofill.SaveCallback
+import android.service.autofill.SaveInfo
 import android.service.autofill.SaveRequest
 import android.widget.RemoteViews
 
@@ -151,15 +152,83 @@ class JamgimAutofillService : AutofillService() {
       .also { builder -> ids.forEach { builder.setValue(it, null) } }
       .build()
 
-    return FillResponse.Builder().addDataset(dataset).build()
+    val response = FillResponse.Builder().addDataset(dataset)
+
+    /*
+      **담을지 물어봐 달라고 미리 부탁해 둔다** (docs/자동완성.md 22장).
+
+      담기는 우리가 시작할 수 없다. 안드로이드가 "이 칸이 바뀌었고 화면을
+      떠난다" 를 보고 **자기가** 물어본다. 그러려면 채우기를 내놓는 지금
+      어느 칸을 지켜볼지 알려 줘야 한다.
+
+      지켜볼 칸은 비밀번호 칸이다. 아이디 칸을 지목하면 아이디만 고치고 나가도
+      담을지 묻게 된다.
+
+      안드로이드 9.0(API 28)부터만 건다. 그 아래에서는 담은 값을 우리 화면으로
+      넘길 길(`SaveCallback.onSuccess(IntentSender)`)이 없다. 물어만 보고 아무
+      일도 안 일어나는 것이 제일 나쁘다.
+    */
+    val passwordId = fields.passwordId
+    if (passwordId != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      val others = fields.ids.filter { it != passwordId }
+      val save = SaveInfo.Builder(
+        SaveInfo.SAVE_DATA_TYPE_USERNAME or SaveInfo.SAVE_DATA_TYPE_PASSWORD,
+        arrayOf(passwordId),
+      )
+      if (others.isNotEmpty()) save.setOptionalIds(others.toTypedArray())
+      response.setSaveInfo(save.build())
+    }
+
+    return response.build()
   }
 
   /**
-   * 다른 앱에서 새 비밀번호를 만들었을 때 "잠김에 담을까요" 하고 묻는 길.
-   * 5단계에서 다룬다. 지금은 담겠다고 한 적이 없으므로 여기로 오지 않는다.
+   * 다른 앱에서 아이디·비밀번호를 넣고 나갔다. 담을지 물어본다
+   * (docs/자동완성.md 22장).
+   *
+   * **여기서도 금고는 안 연다.** 값을 우리 화면에 넘기고, 잠금을 푼 사용자가
+   * 직접 담는다. 채우기와 같은 규칙이다 (명세 5.4).
+   *
+   * 값은 인텐트에 싣지 않는다. 서비스와 앱이 같은 프로세스라 `SaveHandoff` 에
+   * 놓고 화면이 집어 간다.
    */
   override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
-    callback.onSuccess()
+    /*
+      여기서 예외가 나면 안드로이드는 "담기 실패" 를 사용자에게 보여 준다.
+      우리 잘못을 남의 화면에 띄우지 않는다. 조용히 없던 일로 한다.
+    */
+    try {
+      val structure = request.fillContexts.lastOrNull()?.structure
+      if (structure == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        callback.onSuccess()
+        return
+      }
+
+      val fields = LoginFields.from(structure, withValues = true)
+      if (fields.ids.isEmpty()) {
+        callback.onSuccess()
+        return
+      }
+
+      SaveHandoff.set(fields.values)
+
+      val intent = Intent()
+        .setClassName(packageName, FILL_ACTIVITY)
+        .putExtra(EXTRA_MODE, MODE_SAVE)
+        .putExtra(EXTRA_FIELDS, fields.json)
+        .putExtra(EXTRA_ASKING_PACKAGE, structure.activityComponent?.packageName ?: "")
+        .putExtra(EXTRA_WEB_DOMAIN, fields.webDomain)
+
+      var flags = PendingIntent.FLAG_CANCEL_CURRENT
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags = flags or PendingIntent.FLAG_MUTABLE
+      val pending = PendingIntent.getActivity(this, 2, intent, flags)
+
+      // 안드로이드가 이 화면을 곧바로 띄운다.
+      callback.onSuccess(pending.intentSender)
+    } catch (e: Throwable) {
+      SaveHandoff.clear()
+      callback.onSuccess()
+    }
   }
 
   companion object {
@@ -174,6 +243,14 @@ class JamgimAutofillService : AutofillService() {
     const val FILL_ACTIVITY = "app.jamgim.vault.JamgimFillActivity"
 
     const val EXTRA_FIELDS = "jamgim.fields"
+
+    /**
+     * 이 화면이 채우러 뜬 것인지 담으러 뜬 것인지.
+     *
+     * 없으면 채우기다 — 채우기가 먼저 있었고, 그 인텐트에는 이 표시가 없다.
+     */
+    const val EXTRA_MODE = "jamgim.mode"
+    const val MODE_SAVE = "save"
     const val EXTRA_IDS = "jamgim.ids"
     const val EXTRA_ASKING_PACKAGE = "jamgim.asking"
     const val EXTRA_WEB_DOMAIN = "jamgim.webDomain"

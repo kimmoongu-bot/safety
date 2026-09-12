@@ -10,6 +10,7 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 
 import app.jamgim.autofill.FillHandoff
+import app.jamgim.autofill.SaveHandoff
 
 /**
  * 채우기 화면 (docs/자동완성.md 3단계).
@@ -76,6 +77,11 @@ class JamgimFillActivity : ReactActivity() {
 
   override fun onDestroy() {
     FillHandoff.clear(this)
+    /*
+      담기 화면이 들고 있던 글자를 지운다. 사용자가 '담지 않기' 를 누르지 않고
+      그냥 앱을 밀어서 닫는 길도 있다 — 그때도 남으면 안 된다 (명세 5.5).
+    */
+    SaveHandoff.clear()
     super.onDestroy()
   }
 

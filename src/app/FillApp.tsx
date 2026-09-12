@@ -17,10 +17,13 @@ import { setStoreTranslator, useVaultStore } from './state/vaultStore.ts';
 import { enableScreenGuard } from './platform/screenGuard.ts';
 import { space, useColors } from './theme/index.ts';
 import { createStyles } from './theme/useStyles.ts';
+import { SaveOffer, type SaveDraft } from './components/SaveOffer.tsx';
 import {
   cancelFill,
+  finishSave,
   getFillRequest,
   respondWithFill,
+  savedValue,
   type FillRequest,
 } from '../../modules/jamgim-autofill/index.ts';
 
@@ -165,6 +168,26 @@ export default function FillApp() {
   );
 
   const asking = request?.askingLabel ?? request?.askingPackage ?? '';
+  const saving = request?.mode === 'save';
+
+  /**
+   * 담을 것 — 사용자가 방금 그 앱에 친 아이디와 비밀번호.
+   *
+   * **고른 두 칸만 물어본다.** 화면에 있던 글자를 통째로 가져오지 않는다
+   * (명세 5.5). 어느 칸이 무엇인지는 채울 때와 **같은 판단**으로 정한다.
+   *
+   * 이름은 우리가 아는 것으로 채워 둔다 — 앱 이름이 있으면 그것, 웹이면 주소.
+   * 사용자가 고칠 수 있다. 나중에 목록에서 찾을 사람은 사용자다.
+   */
+  const draft = useMemo<SaveDraft | null>(() => {
+    if (!saving || !picked) return null;
+    const username = savedValue(picked.username);
+    const password = savedValue(picked.password);
+    // 둘 다 비었으면 담을 것이 없다. 빈 항목을 만들어 두면 목록만 지저분해진다.
+    if (!username && !password) return null;
+    return { service: request?.askingLabel ?? request?.webDomain ?? '', username, password };
+  }, [saving, picked, request]);
+
   // 못 맞히면 금고에 담긴 차례 그대로다. 섞어 놓으면 더 헷갈린다.
   const ordered = request
     ? rankForRequest(records, { packageName: request.askingPackage, webDomain: request.webDomain })
@@ -196,24 +219,53 @@ export default function FillApp() {
       <View style={styles.outer}>
         <SafeAreaView style={styles.safe}>
           <StatusBar style={colors.statusBar} />
-          <Screen title={t('fill.title')}>
+          <Screen title={t(saving ? 'save.title' : 'fill.title')}>
             {request ? (
               <>
-                <Title>{asking ? t('fill.asking', { app: asking }) : t('fill.askingUnknown')}</Title>
+                <Title>
+                  {saving
+                    ? asking
+                      ? t('save.asking', { app: asking })
+                      : t('save.askingUnknown')
+                    : asking
+                      ? t('fill.asking', { app: asking })
+                      : t('fill.askingUnknown')}
+                </Title>
                 {/*
                   브라우저 안에서는 꾸러미 이름이 브라우저다. 그래서 주소도 같이
                   보여 준다. 이것 없이 꾸러미만 보면 아무 사이트나 같아 보인다.
                 */}
                 {request.webDomain ? <Body dim>{t('fill.site', { domain: request.webDomain })}</Body> : null}
-                <Notice>{t('fill.check')}</Notice>
+                {/*
+                  채우기에서만 "이 앱이 맞는지 보세요" 를 띄운다. 담기는 값이
+                  나가는 게 아니라 들어오는 것이라, 가짜 앱에 속아 넘어갈 위험이
+                  없다. 담고 나서 안 쓰면 그만이다.
+                */}
+                {saving ? null : <Notice>{t('fill.check')}</Notice>}
                 <View style={styles.gap} />
-                <Content stage={stage} records={ordered} onPick={fill} />
+                {saving ? (
+                  stage.name === 'pick' ? (
+                    draft ? (
+                      <SaveOffer draft={draft} onDone={finishSave} />
+                    ) : (
+                      <Notice>{t('save.nothing')}</Notice>
+                    )
+                  ) : (
+                    <Content stage={stage} records={ordered} onPick={fill} />
+                  )
+                ) : (
+                  <Content stage={stage} records={ordered} onPick={fill} />
+                )}
               </>
             ) : (
               <Body>{t('fill.noRequest')}</Body>
             )}
             <View style={styles.gap} />
-            <BigButton label={t('fill.close')} tone="plain" onPress={cancelFill} />
+            <BigButton
+              label={t(saving ? 'save.dontKeep' : 'fill.close')}
+              tone="plain"
+              onPress={cancelFill}
+            />
             {/*
               칸 정보 — 개발용 빌드에서만. 남의 앱 화면 구조를 보여 주는 자리라
               배포판에는 없다. `FieldInspector` 맨 위에 왜 있는지 적었다.

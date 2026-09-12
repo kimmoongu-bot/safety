@@ -21,6 +21,9 @@ type Native = {
    */
   getRequest(): string | null;
   respond(payload: string): boolean;
+  /** 담기 요청에서 그 칸에 들어 있던 글자. 자리 번호도 글로 넘긴다. */
+  savedValue(index: string): string | null;
+  finishSave(): boolean;
   cancelFill(): boolean;
 };
 
@@ -41,7 +44,16 @@ export function openAutofillSettings(): boolean {
   return native?.openSettings() ?? false;
 }
 
+/**
+ * 이 화면이 왜 떴나.
+ *
+ *  - `fill` — 다른 앱이 아이디·비밀번호를 달라고 한다
+ *  - `save` — 다른 앱에 방금 넣은 것을 담을지 묻는다 (docs/자동완성.md 22장)
+ */
+export type FillMode = 'fill' | 'save';
+
 export type FillRequest = {
+  mode: FillMode;
   fields: CandidateField[];
   /**
    * 코틀린이 긁어 온 단서 **원문**.
@@ -71,6 +83,7 @@ export function getFillRequest(): FillRequest | null {
   try {
     const parsed = JSON.parse(raw) as {
       fields: string;
+      mode: string;
       askingPackage: string;
       webDomain: string | null;
       askingLabel: string | null;
@@ -78,6 +91,8 @@ export function getFillRequest(): FillRequest | null {
     const fields = JSON.parse(parsed.fields) as CandidateField[];
     if (!Array.isArray(fields)) return null;
     return {
+      // 모르는 값이 오면 채우기로 본다. 담기가 아닌 화면에서 담기를 하면 안 된다.
+      mode: parsed.mode === 'save' ? 'save' : 'fill',
       fields,
       rawFields: parsed.fields,
       askingPackage: parsed.askingPackage,
@@ -119,4 +134,21 @@ export function respondWithFill(answer: FillAnswer): boolean {
       password: answer.password,
     }),
   );
+}
+
+/**
+ * 담기 요청에서 그 칸에 들어 있던 글자 (docs/자동완성.md 22장).
+ *
+ * **고른 칸만 물어본다.** 화면에 있던 글자를 통째로 가져오지 않는다 — 남의 앱
+ * 화면에 사람이 친 것이라, 우리가 담을 두 개 말고는 자바스크립트로 넘어올 이유가
+ * 없다 (명세 5.5).
+ */
+export function savedValue(index: number | null): string {
+  if (index === null || !native) return '';
+  return native.savedValue(String(index)) ?? '';
+}
+
+/** 담기를 마치고 화면을 닫는다. 들고 있던 글자도 함께 지운다. */
+export function finishSave(): void {
+  native?.finishSave();
 }

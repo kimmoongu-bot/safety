@@ -40,6 +40,27 @@ class LoginFields private constructor(
   /** 웹이면 주소. 브라우저 안에서는 꾸러미 이름이 브라우저라 이것이 있어야 한다. */
   val webDomain: String?,
   /**
+   * 비밀번호 칸의 번호. 없으면 `null`.
+   *
+   * 담기 제안(docs/자동완성.md 22장)에 쓴다. 안드로이드에 "이 칸이 바뀌면 담을지
+   * 물어봐 달라" 고 알려 주려면 **채우기를 내놓을 때** 그 칸을 지목해야 하는데,
+   * 그 시점에는 자바스크립트가 없다. 그래서 이것만은 코틀린이 고른다.
+   *
+   * 낱말은 여전히 안 본다 — 구조로 드러나는 것만 본다(`isPasswordSignal`).
+   * "어느 칸이 아이디인가" 는 그대로 자바스크립트가 정한다.
+   */
+  val passwordId: AutofillId?,
+  /**
+   * 칸에 **들어 있는 글자**. 자리 번호가 `ids` 와 같다.
+   *
+   * **담기 요청에서만 채운다.** 채우기 요청에서는 통째로 비어 있다 — 남의 앱
+   * 화면에 적힌 글자를 이유 없이 들고 있을 까닭이 없다 (명세 5.5).
+   *
+   * 여기 담긴 것도 인텐트로 넘기지 않는다. `SaveHandoff` 를 거쳐 우리 화면이
+   * **고른 두 개만** 가져간다.
+   */
+  val values: List<String?>,
+  /**
    * 이 화면이 **로그인 화면처럼 보이나.**
    *
    * 아니면 아무것도 내놓지 않는다. 처음에는 칸이 하나라도 있으면 무조건 손을
@@ -63,6 +84,12 @@ class LoginFields private constructor(
 
       그래서 구조만 본다. 안드로이드가 정해 둔 이름들이라 말과 상관없다.
     */
+    /** 비밀번호 칸이라는 표시. 안드로이드 이름과 웹 이름을 같이 본다. */
+    private val PASSWORD_HINTS = setOf(
+      "password", "newPassword",
+      "current-password", "new-password",
+    )
+
     private val LOGIN_HINTS = setOf(
       // 비밀번호 칸. 로그인 화면이라는 가장 확실한 표시다.
       "password", "newPassword",
@@ -84,12 +111,21 @@ class LoginFields private constructor(
       */
     )
 
-    fun from(structure: AssistStructure): LoginFields {
+    /**
+     * 화면을 훑어 단서를 모은다.
+     *
+     * `withValues` 는 **담기 요청에서만** 참이다. 그때만 칸에 든 글자를 함께
+     * 담는다. 같은 훑기에서 담으므로 자리 번호가 어긋날 수 없다 — 따로 한 번 더
+     * 훑으면 두 목록이 소리 없이 엇갈릴 수 있다.
+     */
+    fun from(structure: AssistStructure, withValues: Boolean = false): LoginFields {
       val fields = JSONArray()
       val ids = mutableListOf<AutofillId>()
       val anyIds = mutableListOf<AutofillId>()
+      val values = mutableListOf<String?>()
       var domain: String? = null
       var login = false
+      var passwordId: AutofillId? = null
 
       /*
         `visible` 은 **위에서 내려온다.** 안 보이는 상자 안에 든 칸은 저 혼자
@@ -113,13 +149,28 @@ class LoginFields private constructor(
           if (node.autofillType == View.AUTOFILL_TYPE_TEXT) {
             fields.put(describe(node, ids.size, here))
             ids.add(id)
+            values.add(if (withValues) textOf(node) else null)
+            // 여럿이면 맨 앞의 것. 가입 화면의 "비밀번호 / 다시 입력" 에서 앞이 진짜다.
+            if (passwordId == null && here && isPasswordSignal(node)) passwordId = id
           }
         }
         for (i in 0 until node.childCount) visit(node.getChildAt(i), here)
       }
 
       for (i in 0 until structure.windowNodeCount) visit(structure.getWindowNodeAt(i).rootViewNode, true)
-      return LoginFields(fields.toString(), ids, anyIds, domain, login)
+      return LoginFields(fields.toString(), ids, anyIds, domain, passwordId, values, login)
+    }
+
+    /**
+     * 칸에 들어 있는 글자.
+     *
+     * 두 군데를 본다. `autofillValue` 가 제 것이지만, 그것을 안 채우고 보이는
+     * 글자만 두는 앱이 있다.
+     */
+    private fun textOf(node: AssistStructure.ViewNode): String? {
+      val value = node.autofillValue
+      if (value != null && value.isText) return value.textValue?.toString()
+      return node.text?.toString()
     }
 
     /**
@@ -141,6 +192,18 @@ class LoginFields private constructor(
      */
     private fun isLoginSignal(node: AssistStructure.ViewNode): Boolean {
       if (node.autofillHints?.any { LOGIN_HINTS.contains(it) } == true) return true
+      return isPasswordSignal(node)
+    }
+
+    /**
+     * 이 칸이 **비밀번호 칸**이라고 말해 주나.
+     *
+     * 위 `isLoginSignal` 은 아이디 칸 표시까지 받아 주지만, 이쪽은 비밀번호만
+     * 본다. 담기 제안에서 "이 칸이 바뀌면 물어봐 달라" 고 지목할 칸이라, 아이디
+     * 칸을 지목하면 아이디만 고치고 나가도 담을지 묻게 된다.
+     */
+    private fun isPasswordSignal(node: AssistStructure.ViewNode): Boolean {
+      if (node.autofillHints?.any { PASSWORD_HINTS.contains(it) } == true) return true
 
       val html = node.htmlInfo
       if (html != null && html.tag == "input") {

@@ -255,6 +255,14 @@ export const en = {
   'settings.wipeWhy':
     'When on, entering the wrong PIN 10 times erases the whole vault. Without a backup file it cannot be brought back.',
   // ── Autofill ────────────────────────────────────────────────────────────
+  // ── Save offer ──────────────────────────────────────────────────────────
+  'save.title': 'Save',
+  'save.asking': 'Save what you just entered in {app} to Jamgim?',
+  'save.askingUnknown': 'Save what you just entered to Jamgim?',
+  'save.nothing': 'Nothing was found to save.',
+  'save.keep': 'Save',
+  'save.dontKeep': "Don't save",
+  'save.check': 'Check the details below and change anything that is wrong.',
   'settings.autofillHeading': 'Autofill',
   'settings.autofillWhy':
     'Tap a login box in another app and Jamgim appears above the keyboard. Tap it and Jamgim fills in your ID and password.',
