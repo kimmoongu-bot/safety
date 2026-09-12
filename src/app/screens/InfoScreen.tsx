@@ -21,7 +21,7 @@ import { font, space } from '../theme/index.ts';
 type View_ = 'home' | 'privacy' | 'licenses';
 
 /** 처리방침을 마지막으로 손본 날. 내용을 고치면 **반드시** 같이 고친다. */
-const PRIVACY_UPDATED = '2026-09-09';
+const PRIVACY_UPDATED = '2026-09-12';
 
 export function InfoScreen() {
   const styles = useStyles();
