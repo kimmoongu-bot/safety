@@ -20,7 +20,11 @@ const { resolve } = require_('../app.config.js') as {
   resolve: (
     config: Record<string, unknown>,
     env?: Record<string, string | undefined>,
-  ) => { name?: string; android?: { package?: string; permissions?: string[]; blockedPermissions?: string[] } };
+  ) => {
+    name?: string;
+    extra?: { devBuild?: unknown };
+    android?: { package?: string; permissions?: string[]; blockedPermissions?: string[] };
+  };
 };
 
 const INTERNET = 'android.permission.INTERNET';
@@ -87,4 +91,35 @@ test('app.json 자체는 언제나 인터넷을 막아 둔다', () => {
   const android = appJson.expo.android as { blockedPermissions?: string[]; permissions?: string[] };
   assert.ok(android.blockedPermissions?.includes(INTERNET), 'app.json 에서 인터넷을 막아야 한다');
   assert.deepEqual(android.permissions, [], 'app.json 은 어떤 권한도 요청하지 않는다');
+});
+
+/**
+ * 개발용에만 보이는 것이 배포판에 새어 나가면 안 된다.
+ *
+ * 지금 이 표시로 가리는 것은 채우기 화면의 '칸 정보' 다 (docs/자동완성.md 19장).
+ * **남의 앱 화면 구조**를 보여 주는 자리라 배포판에 있으면 안 된다. 앞으로
+ * 개발용 편의를 더 붙여도 전부 이 표시 하나에 걸린다.
+ *
+ * 보안 규칙(명세 5장)은 이 표시로 켜고 끄지 않는다. 배포판에서 꺼지는 보안은
+ * 보안이 아니다.
+ */
+test('개발용 표시(extra.devBuild)는 개발용 빌드에만 들어간다', () => {
+  assert.equal(
+    resolve(appJson.expo, { JAMGIM_DEV_BUILD: '1' }).extra?.devBuild,
+    true,
+    '개발용에는 있어야 칸 정보를 볼 수 있다',
+  );
+  for (const env of closed) {
+    assert.notEqual(
+      resolve(appJson.expo, env).extra?.devBuild,
+      true,
+      `${JSON.stringify(env)} 에서 개발용 표시가 새어 나갔다`,
+    );
+  }
+});
+
+test('app.json 자체에는 개발용 표시가 없다', () => {
+  // 여기 박아 두면 app.config.js 를 거치지 않는 길로도 새어 나간다.
+  const extra = appJson.expo.extra as { devBuild?: unknown } | undefined;
+  assert.equal(extra?.devBuild, undefined);
 });

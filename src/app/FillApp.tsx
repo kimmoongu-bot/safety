@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +11,8 @@ import { rankForRequest } from '../core/autofillMatch.ts';
 import { FIELD_WORDS } from './i18n/autofillWords.ts';
 import { useT } from './i18n/index.ts';
 import { boot } from './boot.ts';
+import { IS_DEV_BUILD } from './devBuild.ts';
+import { FieldInspector } from './components/FieldInspector.tsx';
 import { setStoreTranslator, useVaultStore } from './state/vaultStore.ts';
 import { enableScreenGuard } from './platform/screenGuard.ts';
 import { space, useColors } from './theme/index.ts';
@@ -130,11 +132,22 @@ export default function FillApp() {
     void useVaultStore.getState().refresh();
   }, [stage.name]);
 
+  /*
+    어느 칸에 넣을지는 **한 번만** 정한다.
+
+    개발용 빌드의 '칸 정보' 화면도 이 값을 보여 준다. 그쪽에서 따로 계산하면
+    화면에 보이는 것과 실제로 채우는 것이 다를 수 있다 — 그러면 그 화면은
+    거짓말을 하는 셈이고, 보러 만든 것이 오히려 헷갈리게 만든다.
+  */
+  const picked = useMemo(
+    () => (request ? pickFields(request.fields, FIELD_WORDS) : null),
+    [request],
+  );
+
   const fill = useCallback(
     (id: string) => {
       const record = records.find((r) => r.id === id);
-      if (!record || !request) return;
-      const picked = pickFields(request.fields, FIELD_WORDS);
+      if (!record || !picked) return;
       if (picked.username === null && picked.password === null) {
         setStage({ name: 'no-field' });
         return;
@@ -148,7 +161,7 @@ export default function FillApp() {
       // 조용히 닫히면 왜 안 채워졌는지 알 길이 없다.
       if (!ok) showToast(t('fill.failed'), 'bad');
     },
-    [records, request, showToast, t],
+    [records, picked, showToast, t],
   );
 
   const asking = request?.askingLabel ?? request?.askingPackage ?? '';
@@ -201,6 +214,13 @@ export default function FillApp() {
             )}
             <View style={styles.gap} />
             <BigButton label={t('fill.close')} tone="plain" onPress={cancelFill} />
+            {/*
+              칸 정보 — 개발용 빌드에서만. 남의 앱 화면 구조를 보여 주는 자리라
+              배포판에는 없다. `FieldInspector` 맨 위에 왜 있는지 적었다.
+            */}
+            {IS_DEV_BUILD && request && picked ? (
+              <FieldInspector raw={request.rawFields} pick={picked} />
+            ) : null}
           </Screen>
         </SafeAreaView>
         <ToastHost />

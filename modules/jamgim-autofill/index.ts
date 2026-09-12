@@ -43,6 +43,17 @@ export function openAutofillSettings(): boolean {
 
 export type FillRequest = {
   fields: CandidateField[];
+  /**
+   * 코틀린이 긁어 온 단서 **원문**.
+   *
+   * `fields` 는 판단에 쓰는 것만 골라 담은 것이고, 이쪽은 온 것을 그대로 둔 것이다.
+   * 개발용 빌드의 '칸 정보' 화면이 이것을 보여 준다 (docs/자동완성.md 19장).
+   *
+   * **왜 따로 두나.** 보기용으로 쓰는 표시(`importantForAutofill`, 웹 칸의
+   * `readonly` 같은 것)를 `CandidateField` 에 넣으면, 판단에 안 쓰는 것이 판단
+   * 자리에 쌓인다. 코어는 고르는 데 필요한 것만 안다.
+   */
+  rawFields: string;
   askingPackage: string;
   webDomain: string | null;
   askingLabel: string | null;
@@ -68,6 +79,7 @@ export function getFillRequest(): FillRequest | null {
     if (!Array.isArray(fields)) return null;
     return {
       fields,
+      rawFields: parsed.fields,
       askingPackage: parsed.askingPackage,
       webDomain: parsed.webDomain,
       askingLabel: parsed.askingLabel,

@@ -1,6 +1,7 @@
 package app.jamgim.autofill
 
 import android.app.assist.AssistStructure
+import android.os.Build
 import android.text.InputType
 import android.view.View
 import android.view.autofill.AutofillId
@@ -159,13 +160,21 @@ class LoginFields private constructor(
       val html = node.htmlInfo
       var htmlType: String? = null
       var htmlName: String? = null
+      /*
+        웹 입력 칸의 **모든** 표시를 그대로 담는다. 판단에는 안 쓰고 개발용 빌드의
+        '칸 정보' 화면에서 눈으로 보기 위한 것이다 (docs/자동완성.md 19장).
+        `readonly` 처럼 우리가 아직 안 보는 표시가 있는지 알려면 다 보여야 한다.
+      */
+      val htmlAttrs = JSONObject()
       if (html != null && html.tag == "input") {
         /*
           `android.util.Pair` 다. 코틀린 `Pair` 가 아니라서 `for ((a, b) in ...)` 로
           풀 수 없다 — component1/component2 가 없다. 컴파일이 거기서 멎는다.
         */
         html.attributes?.forEach { attr ->
-          when (attr.first) {
+          val key = attr.first
+          if (key != null) htmlAttrs.put(key, attr.second ?: JSONObject.NULL)
+          when (key) {
             "type" -> htmlType = attr.second?.lowercase()
             "name" -> htmlName = attr.second
           }
@@ -191,6 +200,42 @@ class LoginFields private constructor(
           닫히기만 하고 아무 일도 안 일어난 것처럼 보인다.
         */
         put("isVisible", visible)
+
+        /*
+          아래는 **판단에 안 쓴다.** 개발용 빌드의 '칸 정보' 화면에서 보기 위한
+          것이다 (docs/자동완성.md 19장). 손택스처럼 채워도 소용없는 칸을 어떻게
+          가려낼지 정하려면 앱이 그 칸을 어떻게 신고하는지부터 봐야 한다.
+
+          **칸에 든 글자는 담지 않는다.** 여기 오는 것은 남의 앱 화면이다
+          (명세 5.5). 이름표와 표시만 본다.
+        */
+        put("className", node.className ?: JSONObject.NULL)
+        put("inputType", node.inputType)
+        put("isFocused", node.isFocused)
+        put("htmlAttrs", htmlAttrs)
+        put("importantForAutofill", importance(node))
+      }
+    }
+
+    /**
+     * 안드로이드가 이 칸을 자동 완성 대상으로 보는가.
+     *
+     * 앱이 `importantForAutofill="no"` 를 붙여 두면 "여기는 자동 완성하지 마라"
+     * 는 뜻이다. 지금은 **보기만 하고 판단에는 안 쓴다** — 실기기에서 어떤 값이
+     * 오는지 확인한 뒤에 쓸지 정한다.
+     *
+     * 안드로이드 9.0(API 28)부터 읽을 수 있다. 그 아래에서는 알 수 없으므로
+     * `null` 이다. 모르는 것을 "auto" 로 적으면 확인한 것처럼 보인다.
+     */
+    private fun importance(node: AssistStructure.ViewNode): Any {
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return JSONObject.NULL
+      return when (node.importantForAutofill) {
+        View.IMPORTANT_FOR_AUTOFILL_AUTO -> "auto"
+        View.IMPORTANT_FOR_AUTOFILL_YES -> "yes"
+        View.IMPORTANT_FOR_AUTOFILL_NO -> "no"
+        View.IMPORTANT_FOR_AUTOFILL_YES_EXCLUDE_DESCENDANTS -> "yesExcludeDescendants"
+        View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS -> "noExcludeDescendants"
+        else -> node.importantForAutofill.toString()
       }
     }
 
