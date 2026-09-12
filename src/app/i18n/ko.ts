@@ -236,6 +236,17 @@ export const ko = {
   'settings.wipe': '10번 틀리면 금고 지우기',
   'settings.wipeWhy':
     '켜면 PIN(핀)을 10번 잘못 누를 때 금고를 통째로 지웁니다. 백업 파일이 없으면 되살릴 수 없습니다.',
+  // ── 자동 완성 ───────────────────────────────────────────────────────────
+  'settings.autofillHeading': '자동 완성',
+  'settings.autofillWhy':
+    '다른 앱의 로그인 칸을 누르면 자판 위에 잠김이 뜹니다. 그것을 누르면 아이디와 비밀번호를 대신 넣어 줍니다.',
+  'settings.autofillOn': '지금 켜져 있습니다.',
+  'settings.autofillOff': '지금 꺼져 있습니다.',
+  'settings.autofillTurnOn': '자동 완성 켜기',
+  'settings.autofillChange': '자동 완성 바꾸기',
+  'settings.autofillHow': '폰 설정이 열립니다. 목록에서 잠김을 고르고 돌아오세요.',
+  'settings.autofillNoScreen': '이 폰에서는 그 설정 화면을 열 수 없습니다.',
+  'settings.autofillNotWorking': '되지 않는 앱도 있습니다. 은행이나 관공서 앱처럼 자기 자판을 쓰는 곳입니다.',
   'settings.recoveryHeading': '복구 코드',
   'settings.recoveryHide': '다시 숨기기',
   'settings.recoveryShow': '복구 코드 다시 보기',

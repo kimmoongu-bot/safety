@@ -240,6 +240,17 @@ export const ja = {
   'settings.wipe': '10回まちがえたら金庫を消す',
   'settings.wipeWhy':
     'onにすると、暗証番号を10回まちがえたときに金庫をまるごと消します。バックアップファイルがないと元に戻せません。',
+  // ── 自動入力 ────────────────────────────────────────────────────────────
+  'settings.autofillHeading': '自動入力',
+  'settings.autofillWhy':
+    'ほかのアプリのログイン欄をタップすると、キーボードの上にチャムギムが出ます。それを押すと、IDとパスワードを代わりに入れます。',
+  'settings.autofillOn': '現在オンです。',
+  'settings.autofillOff': '現在オフです。',
+  'settings.autofillTurnOn': '自動入力をオンにする',
+  'settings.autofillChange': '自動入力を変える',
+  'settings.autofillHow': 'スマホの設定が開きます。一覧からチャムギムを選んで戻ってください。',
+  'settings.autofillNoScreen': 'このスマホではその設定画面を開けません。',
+  'settings.autofillNotWorking': '使えないアプリもあります。独自のキーパッドを使う銀行や役所のアプリです。',
   'settings.recoveryHeading': '復旧コード',
   'settings.recoveryHide': 'もう一度隠す',
   'settings.recoveryShow': '復旧コードをもう一度見る',

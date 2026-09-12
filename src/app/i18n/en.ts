@@ -254,6 +254,17 @@ export const en = {
   'settings.wipe': 'Erase the vault after 10 wrong tries',
   'settings.wipeWhy':
     'When on, entering the wrong PIN 10 times erases the whole vault. Without a backup file it cannot be brought back.',
+  // ── Autofill ────────────────────────────────────────────────────────────
+  'settings.autofillHeading': 'Autofill',
+  'settings.autofillWhy':
+    'Tap a login box in another app and Jamgim appears above the keyboard. Tap it and Jamgim fills in your ID and password.',
+  'settings.autofillOn': 'Currently on.',
+  'settings.autofillOff': 'Currently off.',
+  'settings.autofillTurnOn': 'Turn on autofill',
+  'settings.autofillChange': 'Change autofill',
+  'settings.autofillHow': 'Your phone settings will open. Pick Jamgim from the list, then come back.',
+  'settings.autofillNoScreen': 'This phone cannot open that settings screen.',
+  'settings.autofillNotWorking': 'Some apps will not accept it — banking and government apps that use their own keypad.',
   'settings.recoveryHeading': 'Recovery code',
   'settings.recoveryHide': 'Hide again',
   'settings.recoveryShow': 'Show recovery code again',
