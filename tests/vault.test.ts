@@ -229,3 +229,60 @@ test('레코드 nonce 는 서로 다르다', async () => {
   assert.equal(nonces.size, 50 + meta.wraps.length);
   assert.ok(!nonces.has(toBase64(new Uint8Array(12))));
 });
+
+// ── 쓴 자리를 기억하기 (docs/자동완성.md 24장) ─────────────────────────────
+
+test('쓴 자리를 적어 두면 항목에 남는다', async () => {
+  const h = makeHarness();
+  await h.vault.create({ pin: PIN });
+  const made = await h.vault.addRecord({ ...SAMPLE });
+
+  await h.vault.rememberSite(made.id, 'web:naver.com');
+
+  const [read] = await h.vault.listOpenRecords();
+  assert.deepEqual(read?.sites, ['web:naver.com']);
+});
+
+/**
+ * **쓰는 것은 고치는 것이 아니다.**
+ *
+ * 자동 완성으로 한 번 채웠다고 목록에서 "방금 고침" 으로 올라오면 안 된다.
+ * 그래서 `updateRecord` 를 쓰지 않고 따로 두었다.
+ */
+test('자리를 적어도 고친 시각은 그대로다', async () => {
+  const h = makeHarness();
+  await h.vault.create({ pin: PIN });
+  const made = await h.vault.addRecord({ ...SAMPLE });
+
+  h.clock.advance(60_000);
+  await h.vault.rememberSite(made.id, 'app:com.example');
+
+  const [read] = await h.vault.listOpenRecords();
+  assert.equal(read?.updatedAt, made.updatedAt, '쓰기만 했는데 고친 시각이 바뀌었다');
+});
+
+test('같은 자리를 또 적어도 금고를 다시 쓰지 않는다', async () => {
+  const h = makeHarness();
+  await h.vault.create({ pin: PIN });
+  const made = await h.vault.addRecord({ ...SAMPLE });
+  await h.vault.rememberSite(made.id, 'web:naver.com');
+
+  const before = (await h.recordStore.list())[0]?.cipher.ciphertext;
+  await h.vault.rememberSite(made.id, 'web:naver.com');
+  const after = (await h.recordStore.list())[0]?.cipher.ciphertext;
+
+  assert.equal(after, before, '같은 값을 다시 암호화해 저장했다');
+});
+
+/**
+ * 예전에 담아 둔 항목에는 이 자리가 아예 없다. 구조 번호를 안 올린 이유다.
+ * 없는 채로 잘 열리고, 적으면 그때 생긴다.
+ */
+test('자리를 적은 적 없는 항목은 그 자리가 없다', async () => {
+  const h = makeHarness();
+  await h.vault.create({ pin: PIN });
+  await h.vault.addRecord({ ...SAMPLE });
+
+  const [read] = await h.vault.listOpenRecords();
+  assert.equal(read?.sites, undefined, '빈 목록을 적어 두면 안 된다');
+});

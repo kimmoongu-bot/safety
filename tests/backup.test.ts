@@ -227,3 +227,41 @@ test('잠긴 금고는 내보낼 수 없다', async () => {
     (e: unknown) => isVaultError(e, 'VAULT_LOCKED'),
   );
 });
+
+/**
+ * 6단계에서 항목에 "쓰는 곳" 자리가 하나 늘었다 (docs/자동완성.md 24장).
+ * 백업은 항목 내용을 통째로 실어 나르므로 그것도 따라와야 한다.
+ *
+ * 구조 번호를 안 올렸기 때문에 **옛 백업 파일도 그대로 열린다** — 그 파일의
+ * 항목에는 이 자리가 없을 뿐이다. 아래 두 번째 검사가 그것이다.
+ */
+test('되살리면 쓰는 곳도 따라온다', async () => {
+  const h = makeHarness();
+  await h.vault.create({ pin: PIN });
+  const made = await h.vault.addRecord({ ...SAMPLE });
+  await h.vault.rememberSite(made.id, 'web:silson24.or.kr');
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
+
+  const fresh = makeHarness();
+  await fresh.vault.create({ pin: '999999' });
+  await restoreBackup(fresh.vault, contents, BACKUP_PW);
+
+  const [read] = await fresh.vault.listOpenRecords();
+  assert.deepEqual(read?.sites, ['web:silson24.or.kr']);
+});
+
+test('쓰는 곳이 없는 항목도 그대로 되살아난다', async () => {
+  const h = makeHarness();
+  await h.vault.create({ pin: PIN });
+  await h.vault.addRecord({ ...SAMPLE });
+  const { contents } = await exportBackup(h.vault, BACKUP_PW, h.clock.now(), NAME_PREFIX);
+
+  const fresh = makeHarness();
+  await fresh.vault.create({ pin: '999999' });
+  const { restored } = await restoreBackup(fresh.vault, contents, BACKUP_PW);
+
+  assert.equal(restored, 1);
+  const [read] = await fresh.vault.listOpenRecords();
+  assert.equal(read?.sites, undefined);
+  assert.equal(read?.password, SAMPLE.password);
+});

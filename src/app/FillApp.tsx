@@ -7,7 +7,7 @@ import { RecordCard } from './components/RecordCard.tsx';
 import { LockScreen } from './screens/LockScreen.tsx';
 import { ToastHost } from './components/Toast.tsx';
 import { pickFields } from '../core/autofill.ts';
-import { rankForRequest } from '../core/autofillMatch.ts';
+import { rankForRequest, siteKey } from '../core/autofillMatch.ts';
 import { FIELD_WORDS } from './i18n/autofillWords.ts';
 import { useT } from './i18n/index.ts';
 import { boot } from './boot.ts';
@@ -61,6 +61,7 @@ export default function FillApp() {
   const [stage, setStage] = useState<Stage>({ name: 'loading' });
 
   const records = useVaultStore((s) => s.records);
+  const vault = useVaultStore((s) => s.vault);
   const showToast = useVaultStore((s) => s.showToast);
 
   // 저장소는 화면 밖이라 훅을 쓸 수 없다. 번역기를 넘겨 준다.
@@ -148,13 +149,32 @@ export default function FillApp() {
   );
 
   const fill = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const record = records.find((r) => r.id === id);
-      if (!record || !picked) return;
+      if (!record || !picked || !request) return;
       if (picked.username === null && picked.password === null) {
         setStage({ name: 'no-field' });
         return;
       }
+
+      /*
+        **고른 것을 기억한다** (docs/자동완성.md 24장).
+
+        채우기 **전에** 적는다. `respondWithFill` 은 이 화면을 곧바로 닫으므로,
+        뒤에 두면 적히다 말고 화면이 사라진다.
+
+        실패해도 채우기는 그대로 한다. 기억은 다음에 편하자고 하는 것이지,
+        지금 채우는 일의 조건이 아니다. 사용자는 값을 넣으러 온 것이다.
+      */
+      const here = siteKey({ packageName: request.askingPackage, webDomain: request.webDomain });
+      if (here && vault) {
+        try {
+          await vault.rememberSite(id, here);
+        } catch {
+          // 기억하지 못했을 뿐이다. 다음에 한 번 더 고르시면 된다.
+        }
+      }
+
       const ok = respondWithFill({
         usernameIndex: picked.username,
         passwordIndex: picked.password,
@@ -164,7 +184,7 @@ export default function FillApp() {
       // 조용히 닫히면 왜 안 채워졌는지 알 길이 없다.
       if (!ok) showToast(t('fill.failed'), 'bad');
     },
-    [records, picked, showToast, t],
+    [records, picked, request, vault, showToast, t],
   );
 
   const asking = request?.askingLabel ?? request?.askingPackage ?? '';
@@ -185,7 +205,14 @@ export default function FillApp() {
     const password = savedValue(picked.password);
     // 둘 다 비었으면 담을 것이 없다. 빈 항목을 만들어 두면 목록만 지저분해진다.
     if (!username && !password) return null;
-    return { service: request?.askingLabel ?? request?.webDomain ?? '', username, password };
+    return {
+      service: request?.askingLabel ?? request?.webDomain ?? '',
+      username,
+      password,
+      site: request
+        ? siteKey({ packageName: request.askingPackage, webDomain: request.webDomain })
+        : null,
+    };
   }, [saving, picked, request]);
 
   // 못 맞히면 금고에 담긴 차례 그대로다. 섞어 놓으면 더 헷갈린다.
@@ -251,10 +278,10 @@ export default function FillApp() {
                       <Notice>{t('save.nothing')}</Notice>
                     )
                   ) : (
-                    <Content stage={stage} records={ordered} onPick={fill} />
+                    <Content stage={stage} records={ordered} onPick={(id) => void fill(id)} />
                   )
                 ) : (
-                  <Content stage={stage} records={ordered} onPick={fill} />
+                  <Content stage={stage} records={ordered} onPick={(id) => void fill(id)} />
                 )}
               </>
             ) : (

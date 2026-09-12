@@ -14,6 +14,7 @@ import {
 import { GuardStore, WIPE_FAILURE_THRESHOLD, remainingWaitMs, type GuardState } from './lockout.ts';
 import type { Clock, MetaStore, RecordStore, SecureKeyStore } from './ports.ts';
 import { systemClock } from './ports.ts';
+import { withSite } from './autofillMatch.ts';
 import { decryptRecord, encryptPayload } from './records.ts';
 import { generateRecoveryCode, recoveryCodeToSecret } from './recoveryCode.ts';
 import {
@@ -455,6 +456,48 @@ export class Vault {
     );
     await this.recordStore.put(record);
     return toOpenRecord(record, next);
+  }
+
+  /**
+   * 이 항목을 **어디에서 썼는지** 적어 둔다 (docs/자동완성.md 24장).
+   *
+   * 자동 완성에서 사용자가 고르면 그 자리를 기억한다. 다음부터 같은 곳에서
+   * 이 항목이 맨 위에 온다.
+   *
+   * ## 고치는 것이 아니다
+   *
+   * `updatedAt` 을 **건드리지 않는다.** 자동 완성으로 한 번 썼다고 목록에서
+   * "방금 고침" 으로 올라오면 안 된다. 쓰는 것과 고치는 것은 다르다.
+   * `updateRecord` 를 쓰지 않고 따로 둔 이유가 그것이다.
+   *
+   * 구조 번호도 그대로 둔다. 쓰기만 했는데 조용히 새 구조로 옮겨 놓지 않는다.
+   *
+   * 이미 적혀 있으면 **아무것도 하지 않는다.** 채울 때마다 다시 암호화해 저장하면
+   * 쓰지도 않은 값을 계속 갈아 쓰는 셈이다.
+   */
+  async rememberSite(id: string, site: string): Promise<void> {
+    const dek = this.requireDek();
+    const existing = await this.recordStore.get(id);
+    if (!existing) throw new VaultError('VAULT_NOT_FOUND', 'RECORD_NOT_FOUND');
+    const current = await decryptRecord(this.provider, dek, existing);
+
+    const next = withSite(current.sites, site);
+    if (next === null) return;
+
+    const record = await encryptPayload(
+      this.provider,
+      this.nonces,
+      dek,
+      {
+        id: existing.id,
+        createdAt: existing.createdAt,
+        updatedAt: existing.updatedAt,
+        favorite: existing.favorite,
+        schemaVersion: existing.schemaVersion,
+      },
+      { ...current, sites: next },
+    );
+    await this.recordStore.put(record);
   }
 
   async removeRecord(id: string): Promise<void> {

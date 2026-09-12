@@ -5,7 +5,18 @@ import { useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { space } from '../theme/index.ts';
 
-export type SaveDraft = { service: string; username: string; password: string };
+export type SaveDraft = {
+  service: string;
+  username: string;
+  password: string;
+  /**
+   * 어디에서 담았는지 (`autofillMatch.siteKey`). 모르면 `null`.
+   *
+   * 담을 때 함께 적어 둔다. 그러면 **다음에 그 앱에 갔을 때 바로 맨 위에 온다** —
+   * 한 번 더 고를 필요가 없다.
+   */
+  site: string | null;
+};
 
 /**
  * 담기 제안 (docs/자동완성.md 22장).
@@ -45,6 +56,8 @@ export function SaveOffer({ draft, onDone }: { draft: SaveDraft; onDone: () => v
         password,
         memo: '',
         category: '',
+        // 담은 자리를 함께 적어 둔다 (docs/자동완성.md 24장).
+        ...(draft.site ? { sites: [draft.site] } : {}),
         // 방금 만든 비밀번호다. 오늘로 적어야 "바꾼 지 오래됨" 이 제대로 센다.
         pwChangedAt: Date.now(),
       });

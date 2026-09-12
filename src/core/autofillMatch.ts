@@ -21,11 +21,12 @@
  * 엉뚱한 항목을 맨 위에 올린다.
  *
  * **진짜 답은 사용자가 한 번 고른 것을 기억하는 것이다.** 남들이 다 그렇게 한다.
- * 그러려면 항목에 "어느 앱·어느 주소의 것인가" 를 적어 둘 자리가 있어야 하고,
- * 그건 금고 구조를 바꾸는 일이다. 다음 단계로 미룬다.
+ * 이제 그렇게 한다 (`sites`, docs/자동완성.md 24장). 한 번 고르고 나면 이름이
+ * 한글이든 무엇이든 상관없어진다.
  *
- * 그때까지 이 함수는 **영문으로 적어 둔 항목에만** 쓸모가 있다. 못 맞히면 금고에
- * 담긴 차례 그대로 보여 준다 — 섞어 놓으면 더 헷갈린다.
+ * 이름 견주기는 **그대로 남겨 둔다.** 처음 한 번은 기억해 둔 것이 없기 때문이다.
+ * 그 한 번을 도와주는 것이 이 함수의 남은 몫이다. 못 맞히면 금고에 담긴 차례
+ * 그대로 보여 준다 — 섞어 놓으면 더 헷갈린다.
  */
 
 /** 누가 달라고 하는가. */
@@ -36,8 +37,51 @@ export type Asking = {
   webDomain: string | null;
 };
 
-/** 줄 세울 대상. 금고 항목에서 이름만 본다 — 비밀번호는 여기 오지 않는다. */
-export type Named = { id: string; service: string };
+/**
+ * 줄 세울 대상.
+ *
+ * 금고 항목에서 **이름과 쓰는 곳만** 본다. 비밀번호는 여기 오지 않는다.
+ */
+export type Named = { id: string; service: string; sites?: readonly string[] };
+
+/**
+ * 이 요청을 적어 둘 이름. 적을 것이 없으면 `null`.
+ *
+ * **주소가 있으면 주소를 쓴다.** 앱 안에 웹을 띄운 경우 꾸러미 이름은 그 앱
+ * 하나인데 그 안에서 여러 사이트에 로그인할 수 있다. 꾸러미로 적어 두면
+ * 같은 앱의 다른 사이트에서도 엉뚱한 항목이 맨 위에 온다.
+ *
+ * 주소는 앞의 `www.` 만 뗀다. 더 떼고 싶어지지만(`mob.` `m.`) 그러면 어디까지
+ * 떼야 하는지를 우리가 정하게 된다. 사용자가 늘 같은 자리에서 로그인하는 한
+ * 그대로 두는 편이 어긋날 일이 없다.
+ */
+export function siteKey(asking: Asking): string | null {
+  const domain = asking.webDomain?.trim().toLowerCase().replace(/^www\./, '');
+  if (domain) return `web:${domain}`;
+  const app = asking.packageName?.trim().toLowerCase();
+  if (app) return `app:${app}`;
+  return null;
+}
+
+/** 한 항목이 들고 있을 수 있는 자리의 수. */
+const SITE_LIMIT = 8;
+
+/**
+ * 적어 둔 자리에 하나를 더한다. **더할 것이 없으면 `null`.**
+ *
+ * `null` 을 돌려주는 것이 중요하다. 이미 있는 자리를 또 적겠다고 금고에 쓰면,
+ * 채울 때마다 항목을 다시 암호화해 저장하게 된다. 쓰는 것은 고치는 것이 아니다.
+ *
+ * 오래된 것부터 밀어낸다. 앱을 바꿔 가며 쓰는 사람의 항목이 끝없이 커지지 않게.
+ */
+export function withSite(
+  sites: readonly string[] | undefined,
+  key: string,
+): string[] | null {
+  const current = sites ?? [];
+  if (current.includes(key)) return null;
+  return [...current, key].slice(-SITE_LIMIT);
+}
 
 /**
  * 이름에서 **알맹이만** 남긴다.
@@ -103,7 +147,13 @@ export function rankForRequest<T extends Named>(
     .map(coreName)
     .filter((v) => v.length > 0);
 
+  /*
+    **적어 둔 자리가 있으면 그것이 이깁니다.** 이름 견주기보다 언제나 위다 —
+    사용자가 직접 알려 준 것이고, 우리 짐작보다 정확하다.
+  */
+  const here = siteKey(asking);
   const scored = records.map((record) => {
+    if (here && record.sites?.includes(here)) return { record, score: 10 };
     const name = coreName(record.service);
     const score = wanted.reduce((best, w) => Math.max(best, closeness(name, w)), 0);
     return { record, score };
@@ -121,6 +171,15 @@ export function rankForRequest<T extends Named>(
  * 보여 준다 — 엉뚱한 것을 짚어 주면 사용자가 그것을 믿는다.
  */
 export function isConfident<T extends Named>(records: readonly T[], asking: Asking): boolean {
+  // 적어 둔 자리로 걸린 것이 하나면 그것이다. 이름 견주기는 볼 것도 없다.
+  const here = siteKey(asking);
+  if (here) {
+    const remembered = records.filter((r) => r.sites?.includes(here));
+    if (remembered.length === 1) return true;
+    // 둘 이상이면 사용자가 골라야 한다. 같은 곳에 계정이 둘인 사람이 있다.
+    if (remembered.length > 1) return false;
+  }
+
   const wanted = [asking.webDomain, asking.packageName]
     .filter((v): v is string => !!v)
     .map(coreName);

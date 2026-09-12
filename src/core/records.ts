@@ -29,6 +29,11 @@ function normalizePayload(payload: VaultPayload): VaultPayload {
     pwChangedAt: payload.pwChangedAt ?? 0,
   };
   if (payload.prevPassword) out.prevPassword = payload.prevPassword;
+  /*
+    빈 목록은 아예 안 적는다. 예전 항목에는 이 자리가 없는데, 빈 목록을 적어 두면
+    "적어 둔 적 없음" 과 "적었다가 다 지움" 이 구별되지 않고 암호문만 커진다.
+  */
+  if (payload.sites && payload.sites.length > 0) out.sites = [...payload.sites];
   return out;
 }
 
