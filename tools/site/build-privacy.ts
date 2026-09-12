@@ -5,7 +5,7 @@
  * `docs/개인정보처리방침.md` 다. 웹 페이지를 손으로 따로 쓰면 사본이 하나 더
  * 생기고, 언젠가 한쪽만 고친다. 그래서 **원본에서 만들어 낸다.**
  *
- *     node tools/site/build-privacy.mjs
+ *     node --experimental-strip-types tools/site/build-privacy.ts
  *
  * `tests/site.test.ts` 가 만들어 둔 것과 지금 만든 것이 같은지 본다. 원본을
  * 고치고 이걸 안 돌리면 검사가 걸린다.
@@ -27,12 +27,12 @@ import { join } from 'node:path';
 const SOURCE = join('docs', '개인정보처리방침.md');
 const TARGET = join('site', 'index.html');
 
-function escapeHtml(text) {
+function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /** 굵은 글씨와 메일 주소. 그 밖의 표시는 위에 적은 대로 멎게 한다. */
-function inline(text) {
+function inline(text: string): string {
   const unknown = /`|\[[^\]]*\]\(|^\s*[-*]\s|^\s*\|/.exec(text);
   if (unknown) throw new Error(`옮길 줄 모르는 표시가 있다: ${text.trim()}`);
   return escapeHtml(text)
@@ -40,9 +40,11 @@ function inline(text) {
     .replace(/([\w.+-]+@[\w-]+\.[\w.]+)/g, '<a href="mailto:$1">$1</a>');
 }
 
-function blocks(markdown) {
-  const out = [];
-  let paragraph = [];
+type Block = { kind: 'h1' | 'h2' | 'p'; text: string };
+
+function blocks(markdown: string): Block[] {
+  const out: Block[] = [];
+  let paragraph: string[] = [];
 
   const flush = () => {
     if (paragraph.length === 0) return;
@@ -100,7 +102,7 @@ strong { font-weight: 600; }
 }
 `.trim();
 
-function page(parts) {
+function page(parts: readonly Block[]): string {
   const title = parts.find((b) => b.kind === 'h1')?.text ?? '개인정보 처리방침';
   const body = parts
     .map((b) => `    <${b.kind}>${inline(b.text)}</${b.kind}>`)
@@ -122,7 +124,7 @@ ${body}
 `;
 }
 
-export function buildPrivacyHtml(markdown) {
+export function buildPrivacyHtml(markdown: string): string {
   return page(blocks(markdown));
 }
 
@@ -130,7 +132,7 @@ export const PRIVACY_SOURCE = SOURCE;
 export const PRIVACY_TARGET = TARGET;
 
 // 직접 부르면 파일을 쓴다. 검사에서 부르면 글만 돌려받는다.
-if (process.argv[1] && process.argv[1].endsWith('build-privacy.mjs')) {
+if (process.argv[1]?.endsWith('build-privacy.ts')) {
   const html = buildPrivacyHtml(readFileSync(SOURCE, 'utf8'));
   writeFileSync(TARGET, html);
   console.log(`${TARGET} — ${html.length}자`);

@@ -6,7 +6,7 @@ import {
   buildPrivacyHtml,
   PRIVACY_SOURCE,
   PRIVACY_TARGET,
-} from '../tools/site/build-privacy.mjs';
+} from '../tools/site/build-privacy.ts';
 
 /**
  * 스토어는 개인정보 처리방침을 볼 수 있는 **웹 주소**를 요구한다.
@@ -24,7 +24,7 @@ test('올려 둔 웹 한 장이 방침 원본과 맞는다', () => {
   assert.equal(
     kept,
     made,
-    `방침을 고치고 다시 만들지 않았다 — node tools/site/build-privacy.mjs`,
+    '방침을 고치고 다시 만들지 않았다 — node --experimental-strip-types tools/site/build-privacy.ts',
   );
 });
 
