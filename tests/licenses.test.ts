@@ -61,3 +61,21 @@ test('문의 주소를 적었다면 주소 꼴이어야 한다', () => {
   if (!CONTACT_EMAIL) return;
   assert.match(CONTACT_EMAIL, /^[^\s@]+@[^\s@]+\.[^\s@]+$/, '주소 꼴이 아니다');
 });
+
+/**
+ * 앱과 개인정보처리방침에 적힌 주소가 같아야 한다.
+ *
+ * 스토어는 방침 문서를 걸어 두게 하고, 심사에서 그 안의 연락처를 본다. 앱에는
+ * 이 주소, 문서에는 저 주소면 "연락이 닿지 않는다" 로 걸린다. 무엇보다 사용자가
+ * 어느 쪽으로 보내야 할지 모르게 된다.
+ *
+ * 두 곳을 사람이 맞춰 두는 규칙은 언젠가 어긋난다. 그래서 검사가 본다.
+ */
+test('앱과 개인정보처리방침의 문의 주소가 같다', () => {
+  if (!CONTACT_EMAIL) return;
+  const policy = readFileSync(join('docs', '개인정보처리방침.md'), 'utf8');
+  assert.ok(
+    policy.includes(CONTACT_EMAIL),
+    `개인정보처리방침에 ${CONTACT_EMAIL} 이 없다 — 두 곳이 어긋났다`,
+  );
+});
