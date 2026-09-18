@@ -246,6 +246,7 @@ export const en = {
     Number(seconds) === 1 ? 'After 1 second' : `After ${seconds} seconds`,
   'settings.screenGuard': 'Block screenshots',
   'settings.screenGuardWhy': 'Blocks screenshots and the preview in your recent apps. The fill screen stays blocked even when this is off.',
+  'settings.unreadable': 'Could not read your settings. What you see may not match what is in effect.',
   'settings.screenGuardOn': 'Screenshots are blocked.',
   'settings.screenGuardOff': 'Screenshot blocking is off.',
   'settings.screenGuardFailed': 'Could not block the screen. ({reason})',

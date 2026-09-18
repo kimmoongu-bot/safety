@@ -257,6 +257,7 @@ export const ru = {
     `Через ${seconds} ${plural(seconds, 'секунду', 'секунды', 'секунд')}`,
   'settings.screenGuard': 'Запретить снимки экрана',
   'settings.screenGuardWhy': 'Запрещает снимки экрана и показ в списке недавних приложений. Экран заполнения защищён всегда, даже когда выключено.',
+  'settings.unreadable': 'Не удалось прочитать настройки. То, что на экране, может не совпадать с действительностью.',
   'settings.screenGuardOn': 'Снимки экрана запрещены.',
   'settings.screenGuardOff': 'Запрет снимков экрана выключен.',
   'settings.screenGuardFailed': 'Не удалось закрыть экран. ({reason})',

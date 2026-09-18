@@ -232,6 +232,7 @@ export const ja = {
   'settings.clipboardAfter': '{seconds}秒後',
   'settings.screenGuard': '画面の撮影を防ぐ',
   'settings.screenGuardWhy': 'スクリーンショットと、最近使ったアプリのプレビューを防ぎます。入力画面はオフにしても防ぎます。',
+  'settings.unreadable': '設定を読み込めませんでした。画面のとおりではないことがあります。',
   'settings.screenGuardOn': '画面の撮影を防いでいます。',
   'settings.screenGuardOff': '画面の撮影を防ぐ設定をoffにしました。',
   'settings.screenGuardFailed': '画面を隠せませんでした。（{reason}）',

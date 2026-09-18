@@ -93,7 +93,7 @@ type Actions = {
 type ErrorKey = `error.${VaultErrorCode | VaultErrorDetail}`;
 
 type Translator = (
-  key: 'common.failed' | 'common.failedWhy' | ErrorKey,
+  key: 'common.failed' | 'common.failedWhy' | 'settings.unreadable' | ErrorKey,
   params?: Record<string, string | number>,
 ) => string;
 let translate: Translator = (key) => key;
@@ -160,7 +160,18 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
     if (!vault || !vault.isUnlocked) return;
     // 둘을 갈라 놓는다. 목록 읽기가 실패해도 설정은 읽히고, 그 반대도 마찬가지다.
     try {
-      set({ settings: await vault.readSettings() });
+      /*
+        못 읽었으면 알린다. `GuardStore.read` 는 실패해도 예외를 던지지 않고
+        기본값을 돌려주면서 `integrity` 에 사정을 적어 준다. 그 표시를 버리면
+        **파일에 "꺼짐" 이 들어 있는데 화면에는 "켜짐" 이 뜬다.** 그리고 그
+        기본값 그대로 화면 찍기가 걸린다. 설정을 못 믿게 되는 자리다.
+        'missing' 은 알리지 않는다 — 금고를 아직 안 만든 사람에게는 정상이다.
+      */
+      const guard = await vault.readGuardState();
+      set({ settings: guard.settings });
+      if (guard.integrity === 'unreadable') {
+        get().showToast(translate('settings.unreadable'), 'bad');
+      }
     } catch {
       // 설정은 못 읽어도 기본값으로 쓸 수 있다.
     }
@@ -240,7 +251,18 @@ export const useVaultStore = create<State & Actions>((set, get) => ({
     const vault = get().vault;
     if (!vault) return;
     try {
-      set({ settings: await vault.readSettings() });
+      /*
+        못 읽었으면 알린다. `GuardStore.read` 는 실패해도 예외를 던지지 않고
+        기본값을 돌려주면서 `integrity` 에 사정을 적어 준다. 그 표시를 버리면
+        **파일에 "꺼짐" 이 들어 있는데 화면에는 "켜짐" 이 뜬다.** 그리고 그
+        기본값 그대로 화면 찍기가 걸린다. 설정을 못 믿게 되는 자리다.
+        'missing' 은 알리지 않는다 — 금고를 아직 안 만든 사람에게는 정상이다.
+      */
+      const guard = await vault.readGuardState();
+      set({ settings: guard.settings });
+      if (guard.integrity === 'unreadable') {
+        get().showToast(translate('settings.unreadable'), 'bad');
+      }
     } catch {
       // 아직 금고가 없거나 읽을 수 없으면 기본값 그대로 둔다.
     }
