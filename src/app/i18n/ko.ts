@@ -335,7 +335,7 @@ export const ko = {
   'fill.noField': '이 화면에서는 채울 칸을 찾지 못했습니다.',
   'fill.failed': '채우지 못했습니다. 직접 입력해 주세요.',
   'fill.title': '채우기',
-  'fill.asking': '{app} 에서 아이디와 비밀번호를 달라고 합니다.',
+  'fill.asking': '{app}에서 아이디와 비밀번호를 달라고 합니다.',
   'fill.askingUnknown': '어떤 앱이 달라고 하는지 알 수 없습니다.',
   'fill.site': '주소: {domain}',
   'fill.check': '이 앱이 맞는지 보세요. 모르는 앱이면 닫으세요.',

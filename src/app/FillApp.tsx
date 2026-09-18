@@ -128,6 +128,15 @@ export default function FillApp() {
   const route = useVaultStore((s) => s.stack[s.stack.length - 1]);
   useEffect(() => {
     if (stage.name === 'locked' && route?.name === 'list') setStage({ name: 'pick' });
+    /*
+      그리고 잠기면 잠금 화면으로 돌아간다.
+
+      이 줄이 없어서, 뒤로 물러나 잠긴 뒤에도 화면은 열려 있다고 믿었다.
+      lock() 이 항목 목록을 비우므로 **"금고에 넣어 둔 것이 없습니다"** 가 떴다.
+      잠겼다고 말해야 할 자리에서 비었다고 말한 것이다. 비밀번호 금고에서
+      그 문장은 사람을 놀라게 한다.
+    */
+    if (stage.name === 'pick' && route?.name === 'lock') setStage({ name: 'locked' });
   }, [stage.name, route?.name]);
 
   // 금고를 열었으면 항목을 읽어 온다.
