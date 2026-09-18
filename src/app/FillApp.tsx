@@ -78,6 +78,18 @@ export default function FillApp() {
   */
   useEffect(() => {
     void enableScreenGuard();
+    /*
+      **다시 앞으로 나올 때 한 번 더 건다.** 본 화면이 같은 이름표를 쓰므로,
+      그쪽에서 "꺼짐" 을 적용하면 여기 걸어 둔 것까지 떼어진다. 한 번만 걸고
+      말면 다시 걸 기회가 없다.
+
+      본 화면은 처음부터 이렇게 하고 있었다 (App.tsx). 더 민감한 이 화면이
+      더 약했다. 2026-09-18 에 이 화면이 한 번 찍혔다 — docs/자동완성.md 25장.
+    */
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') void enableScreenGuard();
+    });
+    return () => sub.remove();
   }, []);
 
   // 시작: 금고를 세우고 어느 화면을 보여 줄지 정한다.

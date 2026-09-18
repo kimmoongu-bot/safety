@@ -231,7 +231,7 @@ export const ja = {
   'settings.clipboard': 'コピーした内容をいつ消しますか？',
   'settings.clipboardAfter': '{seconds}秒後',
   'settings.screenGuard': '画面の撮影を防ぐ',
-  'settings.screenGuardWhy': 'スクリーンショットと、最近使ったアプリのプレビューを防ぎます。',
+  'settings.screenGuardWhy': 'スクリーンショットと、最近使ったアプリのプレビューを防ぎます。入力画面はオフにしても防ぎます。',
   'settings.screenGuardOn': '画面の撮影を防いでいます。',
   'settings.screenGuardOff': '画面の撮影を防ぐ設定をoffにしました。',
   'settings.screenGuardFailed': '画面を隠せませんでした。（{reason}）',

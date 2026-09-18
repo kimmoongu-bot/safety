@@ -227,7 +227,7 @@ export const ko = {
   'settings.clipboard': '복사한 내용을 언제 지울까요?',
   'settings.clipboardAfter': '{seconds}초 뒤',
   'settings.screenGuard': '화면 찍기 막기',
-  'settings.screenGuardWhy': '캡처와 최근 앱 목록 미리보기를 막습니다.',
+  'settings.screenGuardWhy': '캡처와 최근 앱 목록 미리보기를 막습니다. 채우기 화면은 꺼 두어도 늘 막습니다.',
   'settings.screenGuardOn': '화면 찍기를 막습니다.',
   'settings.screenGuardOff': '화면 찍기 막기를 껐습니다.',
   'settings.screenGuardFailed': '화면 가리기를 걸지 못했습니다. ({reason})',

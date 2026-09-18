@@ -256,7 +256,7 @@ export const ru = {
   'settings.clipboardAfter': ({ seconds }) =>
     `Через ${seconds} ${plural(seconds, 'секунду', 'секунды', 'секунд')}`,
   'settings.screenGuard': 'Запретить снимки экрана',
-  'settings.screenGuardWhy': 'Запрещает снимки экрана и показ в списке недавних приложений.',
+  'settings.screenGuardWhy': 'Запрещает снимки экрана и показ в списке недавних приложений. Экран заполнения защищён всегда, даже когда выключено.',
   'settings.screenGuardOn': 'Снимки экрана запрещены.',
   'settings.screenGuardOff': 'Запрет снимков экрана выключен.',
   'settings.screenGuardFailed': 'Не удалось закрыть экран. ({reason})',
