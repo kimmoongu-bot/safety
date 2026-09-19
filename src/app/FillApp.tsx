@@ -18,6 +18,7 @@ import { enableScreenGuard } from './platform/screenGuard.ts';
 import { space, useColors } from './theme/index.ts';
 import { createStyles } from './theme/useStyles.ts';
 import { SaveOffer, type SaveDraft } from './components/SaveOffer.tsx';
+import { isMaskOnly } from '../core/maskedValue.ts';
 import {
   cancelFill,
   finishSave,
@@ -220,13 +221,20 @@ export default function FillApp() {
   const draft = useMemo<SaveDraft | null>(() => {
     if (!saving || !picked) return null;
     const username = savedValue(picked.username);
-    const password = savedValue(picked.password);
+    /*
+      보안 키패드를 쓰는 앱은 비밀번호 칸에 별표만 넣어 둔다. 그걸 비밀번호로 담으면
+      나중에 넣어 보고서야 틀린 줄 안다. 비워 두고 직접 넣게 한다 (core/maskedValue.ts).
+    */
+    const received = savedValue(picked.password);
+    const passwordHidden = isMaskOnly(received);
+    const password = passwordHidden ? '' : received;
     // 둘 다 비었으면 담을 것이 없다. 빈 항목을 만들어 두면 목록만 지저분해진다.
     if (!username && !password) return null;
     return {
       service: request?.askingLabel ?? request?.webDomain ?? '',
       username,
       password,
+      passwordHidden,
       site: request
         ? siteKey({ packageName: request.askingPackage, webDomain: request.webDomain })
         : null,

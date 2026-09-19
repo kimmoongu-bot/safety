@@ -16,6 +16,8 @@ export type SaveDraft = {
    * 한 번 더 고를 필요가 없다.
    */
   site: string | null;
+  /** 앱이 비밀번호 대신 가린 글자만 줬다. 칸을 비워 두었고, 직접 넣으라고 알린다. */
+  passwordHidden?: boolean;
 };
 
 /**
@@ -79,6 +81,7 @@ export function SaveOffer({ draft, onDone }: { draft: SaveDraft; onDone: () => v
         onChangeText={setService}
       />
       <Field label={t('edit.username')} value={username} onChangeText={setUsername} />
+      {draft.passwordHidden ? <Notice>{t('save.passwordHidden')}</Notice> : null}
       <Field label={t('edit.password')} value={password} onChangeText={setPassword} />
       <View style={{ height: space.sm }} />
       <BigButton label={t('save.keep')} disabled={busy} onPress={() => void keep()} />

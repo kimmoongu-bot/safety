@@ -259,6 +259,7 @@ export const en = {
   // ── Save offer ──────────────────────────────────────────────────────────
   'save.title': 'Save',
   'save.asking': 'Save what you just entered in {app} to Jamgim?',
+  'save.passwordHidden': 'This app does not pass on the password. Please type it in yourself.',
   'save.askingUnknown': 'Save what you just entered to Jamgim?',
   'save.nothing': 'Nothing was found to save.',
   'save.keep': 'Save',
