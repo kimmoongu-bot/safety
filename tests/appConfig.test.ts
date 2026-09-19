@@ -94,19 +94,29 @@ test('app.json 자체는 언제나 인터넷을 막아 둔다', () => {
 });
 
 /**
- * 푸시 알림 받기 권한은 막아 둔다.
+ * 쓰지 않는 권한은 막아 둔다.
  *
- * 알림 라이브러리(expo-notifications)가 딸려 넣는다. 우리가 쓰는 것은 백업하라고
- * 알려 주는 **기기 안의 알림** 하나뿐이고, 밖에서 오는 푸시는 받지 않는다 —
- * 받을 서버도 없다. 쓰지도 않는 것이 스토어 권한 목록에 인터넷과 엮인 모양으로
- * 뜨면 "인터넷 권한을 요청하지 않습니다" 가 의심받는다.
+ * 스토어 문구가 "권한 목록에서 확인해 보세요" 라고 말한다. 확인하러 간 사람이 보는
+ * 것이 이 목록이다. 라이브러리가 딸려 넣었을 뿐 우리가 쓰지 않는 것이, 비밀번호
+ * 앱에 붙어 있으면 이상하게 보이는 모양으로 거기 뜬다.
+ *
+ * - 푸시 받기: 알림 라이브러리가 넣는다. 우리는 기기 안의 백업 알림만 쓰고 받을
+ *   서버도 없다. 인터넷과 엮인 모양으로 뜨면 "인터넷 권한 없음" 이 의심받는다.
+ * - 다른 앱 위에 표시: Expo 기본 틀이 넣는다. 자동 완성은 시스템 창을 쓰므로
+ *   필요 없다. 비밀번호 앱에 이게 붙어 있으면 좋게 안 본다.
+ * - 설치 경로 알아내기: 알림 라이브러리가 끌고 온 expo-application 이 넣는다.
+ *   광고 추적에 쓰이는 종류다. 우리 코드는 부르지 않는다.
  */
-test('푸시 알림 받기 권한은 막아 둔다', () => {
+const UNUSED_PERMISSIONS = [
+  'com.google.android.c2dm.permission.RECEIVE',
+  'android.permission.SYSTEM_ALERT_WINDOW',
+  'com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE',
+];
+
+test('쓰지 않는 권한은 막아 둔다', () => {
   const android = appJson.expo.android as { blockedPermissions?: string[] };
-  assert.ok(
-    android.blockedPermissions?.includes('com.google.android.c2dm.permission.RECEIVE'),
-    '쓰지 않는 푸시 권한이 열려 있다',
-  );
+  const open = UNUSED_PERMISSIONS.filter((p) => !android.blockedPermissions?.includes(p));
+  assert.deepEqual(open, [], `쓰지 않는 권한이 열려 있다:\n  ${open.join('\n  ')}`);
 });
 
 /**
