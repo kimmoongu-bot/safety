@@ -74,6 +74,43 @@ function withActivityEntry(config) {
   });
 }
 
+/**
+ * 홈 화면에 아이콘이 있는 앱은 보이게 해 달라고 적어 둔다 (docs/자동완성.md 27장).
+ *
+ * **왜.** 채우기·담기 화면은 "누가 달라고 하는지" 를 앱 이름으로 보여 준다. 가짜 앱을
+ * 거르는 것은 결국 사람 눈이다. 그런데 안드로이드 11부터 앱은 허락받은 다른 앱만 볼 수
+ * 있어서, 이름을 물으면 "그런 앱 없다" 가 온다. 다시 깔고 나면 손택스가 그랬다 —
+ * 제목에 `kr.go.nts.android` 가 떴다.
+ *
+ * **왜 이 방법인가.** 모든 앱을 보는 권한(QUERY_ALL_PACKAGES)도 있지만, 그건 권한
+ * 목록에 "설치된 앱 전부 보기" 로 뜬다. 스토어 문구가 "권한 목록에서 확인해 보세요"
+ * 라고 하는 앱이다. 이쪽은 권한이 아니라 **조건**이라 목록에 아무것도 늘지 않는다.
+ * 자동 완성 요청에 딸려 오는 창 제목도 봤지만 앱 이름이 아니라 내부 이름이었다.
+ *
+ * **대가.** 이 앱이 폰에 무엇이 깔렸는지 알 수 있게 된다. 쓰는 곳은 요청한 앱의 이름을
+ * 읽는 한 곳뿐이고, 인터넷이 없어 어디로도 보낼 수 없다. 위협 모델에 적었다.
+ */
+function withLauncherQueries(config) {
+  return withAndroidManifest(config, (cfg) => {
+    const manifest = cfg.modResults.manifest;
+    manifest.queries = manifest.queries ?? [{}];
+    const queries = manifest.queries[0];
+    queries.intent = queries.intent ?? [];
+    const has = queries.intent.some(
+      (i) =>
+        i.action?.some((a) => a.$['android:name'] === 'android.intent.action.MAIN') &&
+        i.category?.some((c) => c.$['android:name'] === 'android.intent.category.LAUNCHER'),
+    );
+    if (!has) {
+      queries.intent.push({
+        action: [{ $: { 'android:name': 'android.intent.action.MAIN' } }],
+        category: [{ $: { 'android:name': 'android.intent.category.LAUNCHER' } }],
+      });
+    }
+    return cfg;
+  });
+}
+
 module.exports = function withJamgimAutofill(config) {
-  return withActivityEntry(withActivitySource(config));
+  return withLauncherQueries(withActivityEntry(withActivitySource(config)));
 };
