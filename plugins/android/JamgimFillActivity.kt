@@ -1,6 +1,7 @@
 package app.jamgim.vault
 
 import android.os.Bundle
+import android.view.WindowManager
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -73,6 +74,30 @@ class JamgimFillActivity : ReactActivity() {
       번호로 채우려 드는** 일이 생긴다.
     */
     super.onCreate(null)
+    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+  }
+
+  /*
+    **이 화면은 무슨 일이 있어도 화면 찍기를 막는다.** 설정과도 상관없다.
+
+    전에는 자바스크립트(expo-screen-capture)에만 맡겼다. 그런데 본 화면과 이
+    화면이 이름표 하나를 나눠 쓰고, 본 화면에서 "꺼짐" 을 적용하면 이 화면의
+    막기까지 떨어졌다. 2026-09-19 에 재현했다 — 채우기 화면을 띄운 채 본 화면에서
+    끄고, 같은 채우기 화면으로 돌아오니 그대로 찍혔다 (docs/자동완성.md 25장).
+
+    "앞에 나올 때 다시 건다" 는 자바스크립트 고침은 막지 못했다. 거는 쪽과 푸는
+    쪽이 줄을 서는데, 푸는 쪽이 나중에 도착하면 진다.
+
+    그래서 창 자체에 못을 박는다. 창 설정이 바뀔 때마다 이 자리를 지나가는데,
+    막기가 풀려 있으면 **그 자리에서** 다시 건다. 누가 어떤 순서로 풀든 상관없다.
+    다시 거는 것도 창 설정을 바꾸는 일이라 이 자리를 한 번 더 지나가지만, 그때는
+    막기가 걸려 있으므로 거기서 멈춘다.
+  */
+  override fun onWindowAttributesChanged(params: WindowManager.LayoutParams) {
+    super.onWindowAttributesChanged(params)
+    if ((params.flags and WindowManager.LayoutParams.FLAG_SECURE) == 0) {
+      window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    }
   }
 
   override fun onDestroy() {
