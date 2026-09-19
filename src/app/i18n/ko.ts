@@ -112,8 +112,8 @@ export const ko = {
   'setup.codeCheckTitle': '적어 둔 복구 코드를 입력해 주세요',
   'setup.codeCheckHelp': '대문자·소문자, 띄어쓰기는 신경 쓰지 않아도 됩니다.',
   'setup.lastWarnWithBiometric':
-    ({ how }) => `${ro(String(how))}도 열 수 있게 해 두었습니다. PIN(핀)·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다.`,
-  'setup.lastWarn': 'PIN(핀)·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다.',
+    ({ how }) => `${ro(String(how))}도 열 수 있게 해 두었습니다. PIN(핀)·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다.`,
+  'setup.lastWarn': 'PIN(핀)·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다.',
   'setup.finish': '확인하고 시작하기',
   'setup.codeMismatch': '복구 코드가 다릅니다. 적어 둔 것을 다시 보세요.',
   'setup.done': '금고를 만들었습니다.',
@@ -270,7 +270,7 @@ export const ko = {
   'settings.backupGo': '백업 파일 만들기 / 가져오기',
   'settings.wipeHeading': '금고 초기화',
   'settings.wipeExplain':
-    'PIN(핀)·지문·복구 코드·백업 파일이 모두 없으면 금고를 열 수 없습니다. 그럴 때는 금고를 지우고 새로 시작할 수 있지만, 넣어 둔 내용은 되살아나지 않습니다.',
+    'PIN(핀)·지문·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다. 그럴 때는 금고를 지우고 새로 시작할 수 있지만, 넣어 둔 내용은 되살아나지 않습니다.',
   'settings.wipeStart': '금고 지우고 새로 시작',
   'settings.wipeAsksTwice': '지우기 전에 두 번 물어봅니다.',
   'settings.wipe1Title': '정말 지울까요? (1/2)',

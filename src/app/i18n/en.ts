@@ -121,9 +121,9 @@ export const en = {
   'setup.codeCheckTitle': 'Enter the recovery code you wrote down',
   'setup.codeCheckHelp': 'Capital letters and spaces do not matter.',
   'setup.lastWarnWithBiometric': ({ how }) =>
-    `You can also open the vault with ${how}. If your PIN, recovery code and backup file are all gone, the vault cannot be opened.`,
+    `You can also open the vault with ${how}. If your PIN, recovery code and backup file (with its password) are all gone, the vault cannot be opened.`,
   'setup.lastWarn':
-    'If your PIN, recovery code and backup file are all gone, the vault cannot be opened.',
+    'If your PIN, recovery code and backup file (with its password) are all gone, the vault cannot be opened.',
   'setup.finish': 'I understand — start',
   'setup.codeMismatch': 'That recovery code does not match. Check what you wrote down.',
   'setup.done': 'Your vault is ready.',
@@ -288,7 +288,7 @@ export const en = {
   'settings.backupGo': 'Make a backup file / restore from one',
   'settings.wipeHeading': 'Erase the vault',
   'settings.wipeExplain':
-    'If your PIN, fingerprint, recovery code and backup file are all gone, the vault cannot be opened. You can erase it and start over, but what was inside will not come back.',
+    'If your PIN, fingerprint, recovery code and backup file (with its password) are all gone, the vault cannot be opened. You can erase it and start over, but what was inside will not come back.',
   'settings.wipeStart': 'Erase the vault and start over',
   'settings.wipeAsksTwice': 'You will be asked twice before anything is erased.',
   'settings.wipe1Title': 'Really erase it? (1 of 2)',
