@@ -29,7 +29,8 @@
       "permissions": [],
       "blockedPermissions": [
         "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE"
+        "android.permission.ACCESS_NETWORK_STATE",
+        "com.google.android.c2dm.permission.RECEIVE"
       ],
       "versionCode": 1
     },

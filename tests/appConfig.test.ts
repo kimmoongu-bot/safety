@@ -94,6 +94,22 @@ test('app.json 자체는 언제나 인터넷을 막아 둔다', () => {
 });
 
 /**
+ * 푸시 알림 받기 권한은 막아 둔다.
+ *
+ * 알림 라이브러리(expo-notifications)가 딸려 넣는다. 우리가 쓰는 것은 백업하라고
+ * 알려 주는 **기기 안의 알림** 하나뿐이고, 밖에서 오는 푸시는 받지 않는다 —
+ * 받을 서버도 없다. 쓰지도 않는 것이 스토어 권한 목록에 인터넷과 엮인 모양으로
+ * 뜨면 "인터넷 권한을 요청하지 않습니다" 가 의심받는다.
+ */
+test('푸시 알림 받기 권한은 막아 둔다', () => {
+  const android = appJson.expo.android as { blockedPermissions?: string[] };
+  assert.ok(
+    android.blockedPermissions?.includes('com.google.android.c2dm.permission.RECEIVE'),
+    '쓰지 않는 푸시 권한이 열려 있다',
+  );
+});
+
+/**
  * 개발용에만 보이는 것이 배포판에 새어 나가면 안 된다.
  *
  * 지금 이 표시로 가리는 것은 채우기 화면의 '칸 정보' 다 (docs/자동완성.md 19장).
