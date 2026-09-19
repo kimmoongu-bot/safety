@@ -206,7 +206,16 @@ export default function FillApp() {
     [records, picked, request, vault, showToast, t],
   );
 
-  const asking = request?.askingLabel ?? request?.askingPackage ?? '';
+  /*
+    누가 달라고 하는지 — 사람이 읽을 수 있는 것부터 고른다. 앱 이름 → 웹 주소 → 내부 이름.
+
+    앱 이름을 늘 읽을 수 있는 것이 아니다. 안드로이드 11부터 앱은 허락받은 다른 앱만
+    볼 수 있고, 손택스는 그 목록에 없다. 다른 앱이 우리를 부르면 잠깐 보이게 해 주지만
+    다시 깔면 그것도 사라진다. 그때 예전에는 `kr.go.nts.android` 가 제목에 떴다.
+    "이 앱이 맞는지 보세요" 라고 해 놓고 읽을 수 없는 이름을 준 셈이다.
+    아래 '어디에서 쓰나요' 칸은 처음부터 웹 주소를 먼저 썼다. 제목도 그 순서에 맞춘다.
+  */
+  const asking = request?.askingLabel ?? request?.webDomain ?? request?.askingPackage ?? '';
   const saving = request?.mode === 'save';
 
   /**
