@@ -529,6 +529,7 @@ const useStyles = createStyles((colors, fonts) =>
     },
     fieldActionText: { fontFamily: fonts.familyBold, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.accent },
     row: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
+    /** 켜고 끄는 줄. 바깥 네모를 없앴다 — 고르는 칸과 같은 이유다. */
     toggle: {
       minHeight: TOUCH + 8,
       flexDirection: 'row',
@@ -536,47 +537,58 @@ const useStyles = createStyles((colors, fonts) =>
       justifyContent: 'space-between',
       gap: space.md,
       paddingVertical: space.sm,
-      paddingHorizontal: space.md,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
     },
     toggleText: { flex: 1, gap: 2 },
+    /**
+     * 켜짐/꺼짐 — 글자 밑에 줄.
+     *
+     * 켜져 있을 때만 밑줄이 그어진다. 꺼짐에도 줄을 그으면 둘 다 "골라진" 것처럼
+     * 보인다. 누를 자리는 48dp 를 지킨다.
+     */
     knobTrack: {
-      minWidth: 76,
-      minHeight: TOUCH - 8,
-      borderRadius: radius.lg,
-      borderWidth: 2,
-      borderColor: colors.border,
+      minWidth: 64,
+      minHeight: TOUCH,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: space.sm,
-      backgroundColor: colors.surface,
+      paddingHorizontal: space.xs,
+      borderBottomWidth: 3,
+      borderBottomColor: 'transparent',
     },
-    knobTrackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+    knobTrackOn: { borderBottomColor: colors.text },
     // 켬/끔 단추도 크기를 정해 둔 상자다. 숫자판과 같은 이유로 CENTER_GLYPH 를 준다.
     knobLabel: {
-      fontFamily: fonts.familyBold,
-      fontSize: font.bodySmall,
+      fontFamily: fonts.family,
+      fontSize: font.body,
       fontWeight: WEIGHT,
-      color: colors.text,
+      color: colors.textDim,
       ...CENTER_GLYPH,
     },
-    knobLabelOn: { color: colors.primaryText },
-    choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+    knobLabelOn: { fontFamily: fonts.familyBold, color: colors.text },
+    choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.lg },
+    /**
+     * 고르는 칸 — **네모 없이 글자만.**
+     *
+     * 고른 것은 글자 밑에 굵은 줄을 긋는다. 네모를 두르면 설정 한 화면에 네모가
+     * 열 개 넘게 서서 무엇이 골라진 것인지보다 네모가 먼저 보였다.
+     *
+     * 테두리가 없어도 **누를 자리는 그대로 48dp 다.** 보이는 것이 작아졌다고
+     * 손가락이 작아지지는 않는다 (명세 3장).
+     *
+     * 밑줄은 `borderBottomWidth` 로 긋는다. 글자에 밑줄(textDecorationLine)을
+     * 넣으면 글자에 딱 붙어 가늘게 그려지고, 안드로이드에서 글꼴에 따라 자리가
+     * 흔들린다. 상자 아래쪽에 그으면 어느 글꼴에서나 같은 자리다.
+     */
     choice: {
       minHeight: TOUCH,
       justifyContent: 'center',
-      paddingHorizontal: space.md,
-      borderRadius: radius.md,
-      borderWidth: 2,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      paddingHorizontal: space.xs,
+      borderBottomWidth: 3,
+      borderBottomColor: 'transparent',
     },
-    choiceOn: { borderColor: colors.primary, backgroundColor: colors.primary },
-    choiceText: { fontFamily: fonts.familyBold, fontSize: font.body, fontWeight: WEIGHT, color: colors.text },
-    choiceTextOn: { color: colors.primaryText },
+    choiceOn: { borderBottomColor: colors.text },
+    choiceText: { fontFamily: fonts.family, fontSize: font.body, fontWeight: WEIGHT, color: colors.textDim },
+    /** 고른 것만 진한 글자에 굵은 꼴. 색만으로 가르지 않는다 — 색을 못 보는 사람도 있다. */
+    choiceTextOn: { fontFamily: fonts.familyBold, color: colors.text },
   }),
 );
 

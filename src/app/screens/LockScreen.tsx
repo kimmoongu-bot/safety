@@ -123,7 +123,7 @@ export function LockScreen() {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.top}>
-          <AppMark size={56} />
+          <AppMark size={64} />
           <View style={styles.titleBlock}>
             <Text style={styles.title}>{t('lock.title')}</Text>
             <Text style={styles.tagline}>{t('lock.tagline')}</Text>
@@ -176,13 +176,18 @@ const useStyles = createStyles((colors, fonts) =>
     top: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     titleBlock: { flexShrink: 1 },
     title: { fontFamily: fonts.familyBold, fontSize: font.logo, fontWeight: WEIGHT, color: colors.text },
-    tagline: { fontFamily: fonts.family, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.textDim, marginTop: 2 },
+    tagline: { fontFamily: fonts.family, fontSize: font.body, fontWeight: WEIGHT, color: colors.textDim, marginTop: 2 },
     /**
      * 가운데. 남는 높이를 **전부** 가져가고 그 한가운데에 입력 표시를 놓는다.
      * 빈 공간이 아래에 몰리지 않고 여기로 모인다.
      */
     middle: { flex: 1, justifyContent: 'center', gap: space.md, paddingVertical: space.md },
-    /** 아래. 엄지가 닿는 곳. 숫자판과 버튼들이 화면 밑바닥에 붙는다. */
-    bottom: { gap: space.sm },
+    /**
+     * 아래. 엄지가 닿는 곳.
+     *
+     * 화면 밑바닥에 딱 붙이지 않고 한 칸 띄운다. 붙여 놓으면 숫자판이 화면 밖으로
+     * 흘러내리는 것처럼 보였다. 띄운 만큼 위로 올라와 위아래가 맞는다.
+     */
+    bottom: { gap: space.sm, marginBottom: space.lg },
   }),
 );

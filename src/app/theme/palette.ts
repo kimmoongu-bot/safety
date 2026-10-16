@@ -47,7 +47,7 @@ export const lightColors: Palette = {
   border: '#000000', // 검정 줄. 이 색이 화면의 뼈대다
   text: '#000000', // 21:1
   textDim: '#4A4A4A', // 9.0:1
-  primary: '#000000', // 기본 버튼 바탕. 그 위 흰 글자 21:1
+  primary: '#2B2B2B', // 기본 버튼 바탕 — 먹색. 그 위 흰 글자 14.8:1
   primaryText: '#FFFFFF',
   secondary: '#000000', // 이름표 네모. 검정 바탕에 흰 글자
   accent: '#000000', // 21:1
@@ -79,7 +79,7 @@ export const darkColors: Palette = {
   border: '#FFFFFF', // 밝은 데서 검정이던 줄이 여기서는 흰 줄이다
   text: '#FFFFFF', // 21:1
   textDim: '#B5B5B5', // 10.3:1
-  primary: '#FFFFFF', // 밝은 버튼. 그 위 검정 글자 21:1
+  primary: '#F2F2F2', // 밝은 버튼 — 어두운 데서는 먹색을 뒤집은 것. 그 위 검정 글자 18.6:1
   primaryText: '#000000',
   secondary: '#FFFFFF',
   accent: '#FFFFFF',
