@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { font, frame, radius, space, WEIGHT } from '../theme/index.ts';
+import { font, radius, space, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
 
@@ -31,7 +31,7 @@ export function ToastHost() {
         styles.toast,
         // 시계·배터리가 있는 상태 표시줄을 비켜 가고, 앱 상자 안쪽에 앉힌다.
         // 기기가 상태 표시줄 높이를 안 알려 주면 24 를 쓴다.
-        { top: (insets.top || 24) + frame.inset + space.sm },
+        { top: (insets.top || 24) + space.sm },
         toast.tone === 'bad' ? styles.bad : styles.ok,
       ]}
       pointerEvents="none"
@@ -47,8 +47,8 @@ const useStyles = createStyles((colors, fonts) =>
       // 위쪽에 띄운다. 아래쪽은 버튼과 폰 내비게이션 바에 가려 잘린다.
       // top 은 위에서 기기별 상태 표시줄 높이를 더해 넣는다.
       position: 'absolute',
-      left: frame.inset + space.md,
-      right: frame.inset + space.md,
+      left: space.md,
+      right: space.md,
       padding: space.md,
       borderRadius: radius.md,
       borderWidth: 2,
