@@ -477,7 +477,7 @@ const useStyles = createStyles((colors, fonts) =>
       borderWidth: 2,
       borderColor: colors.border,
       borderRadius: radius.md,
-      // 크림 바탕 위의 흰 입력창. 같은 색이면 입력하는 자리가 어디인지 안 보인다.
+      // 바탕과 같은 흰색. 입력하는 자리는 위의 검정 줄이 알려 준다.
       backgroundColor: colors.surface,
       overflow: 'hidden',
     },

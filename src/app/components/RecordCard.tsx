@@ -107,7 +107,7 @@ const useStyles = createStyles((colors, fonts) =>
       borderColor: colors.border,
       borderRadius: radius.md,
       padding: space.md,
-      // 크림 바탕 위의 흰 카드. 바탕과 같은 색이면 카드 경계가 사라진다.
+      // 바탕과 같은 흰색이다. 카드의 경계는 위의 검정 줄이 말한다.
       backgroundColor: colors.surface,
     },
     pressed: { opacity: 0.75, backgroundColor: colors.bg },
@@ -125,18 +125,30 @@ const useStyles = createStyles((colors, fonts) =>
     service: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text },
     username: { fontFamily: fonts.family, fontSize: font.bodySmall, color: colors.textDim },
     badges: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
+    /**
+     * 갈래·경고 같은 작은 쪽지.
+     *
+     * 예전에는 카드와 **다른 색으로 칠해서** 구분했다. 이제 바탕도 카드도 같은
+     * 흰색이라 칠할 색이 없다. 줄로 두른다 — 이 디자인에서 구분은 전부 줄이 한다.
+     */
     badge: {
       fontFamily: fonts.family,
       fontSize: font.caption,
       color: colors.text,
-      // 흰 카드 위에 얹히므로 크림색이어야 보인다.
-      backgroundColor: colors.bg,
+      borderWidth: 1,
+      borderColor: colors.border,
       borderRadius: radius.sm,
       paddingHorizontal: space.sm,
       paddingVertical: 2,
       overflow: 'hidden',
     },
-    badgeWarn: { backgroundColor: colors.warnBg, color: colors.warnText },
+    /**
+     * "비밀번호 바꾼 지 오래됨" 쪽지.
+     *
+     * 이것만 빨간 줄로 두른다. 검정 줄 사이에서 혼자 빨가면 눈에 걸린다 —
+     * 알아차리라고 있는 쪽지라 그래야 한다.
+     */
+    badgeWarn: { borderColor: colors.danger, color: colors.danger },
     star: {
       minWidth: TOUCH,
       minHeight: TOUCH,

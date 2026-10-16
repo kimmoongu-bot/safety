@@ -53,7 +53,7 @@ const useStyles = createStyles((colors, fonts) =>
       borderRadius: radius.md,
       borderWidth: 2,
     },
-    // 크림 바탕에 얹히는 색이다. 흰 바탕 시절 색을 그대로 두면 혼자 튄다.
+    // 바탕은 흰색이고 줄만 색을 가진다. 잘됨은 초록 줄, 오류는 빨간 줄.
     ok: { backgroundColor: colors.toastOkBg, borderColor: colors.ok },
     bad: { backgroundColor: colors.toastBadBg, borderColor: colors.danger },
     text: { fontFamily: fonts.familyBold, fontSize: font.body, color: colors.text, fontWeight: WEIGHT, lineHeight: font.body * 1.4 },

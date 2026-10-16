@@ -31,63 +31,68 @@ export type Palette = {
 };
 
 /**
- * 밝은 색 — 디자인 시안의 색 체계.
+ * 밝은 색 — **흰 바탕에 검정 줄.**
  *
- * 옆에 적은 비율은 바탕 위에서 잰 값이다. 명세는 4.5:1 이상을 요구한다.
- * 시안의 강조색 #8A6A45 는 크림 바탕에서 4.48:1 로 아슬하게 미달이라 조금 어둡게 했다.
+ * 바탕과 카드가 **같은 흰색**이다. 그래서 무엇이 어디까지인지는 전부 `border`
+ * 가 그리는 검정 줄이 말한다. 줄이 화면의 뼈대다.
+ *
+ * 색으로 꾸미지 않는다. 다만 **뜻을 가진 색 둘은 남겼다** — `danger`(지우기)와
+ * `ok`(잘됨). 지우는 단추가 다른 단추와 똑같아 보이면 안 된다.
+ *
+ * 옆에 적은 비율은 흰 바탕 위에서 잰 값이다. 명세는 4.5:1 이상을 요구한다.
  */
 export const lightColors: Palette = {
-  bg: '#F6F3EC', // 크림 — 화면 바탕
-  surface: '#FFFFFF', // 입력창·카드
-  border: '#D6D0C4', // 따뜻한 회색 테두리 (글자가 아니라 대비 규칙 밖)
-  text: '#202124', // 14.5:1
-  textDim: '#5A5750', // 6.5:1
-  primary: '#202124', // 기본 버튼 바탕. 그 위 흰 글자 16.1:1
+  bg: '#FFFFFF', // 흰 종이
+  surface: '#FFFFFF', // 카드·입력창도 같은 흰색 — 구분은 줄이 한다
+  border: '#000000', // 검정 줄. 이 색이 화면의 뼈대다
+  text: '#000000', // 21:1
+  textDim: '#4A4A4A', // 9.0:1
+  primary: '#000000', // 기본 버튼 바탕. 그 위 흰 글자 21:1
   primaryText: '#FFFFFF',
-  secondary: '#3C4A3B', // 짙은 초록 8.5:1
-  accent: '#7D5F3C', // 시안 #8A6A45 를 4.5:1 넘도록 조정 → 5.3:1
+  secondary: '#000000', // 이름표 네모. 검정 바탕에 흰 글자
+  accent: '#000000', // 21:1
   accentText: '#FFFFFF',
-  danger: '#9B2226', // 7.2:1
-  ok: '#2E5E3E', // 6.8:1
-  warnBg: '#F6EEDC',
-  warnText: '#5C4718',
-  warnBorder: '#D8C08A',
-  favorite: '#7D5F3C',
-  frame: '#202124',
-  toastOkBg: '#E7EFE6',
-  toastBadBg: '#F6E4E2',
-  statusBar: 'light', // 액자 바깥이 어두우므로 시계는 밝게
+  danger: '#9B2226', // 7.9:1 — 지우기는 색이 뜻을 가진다
+  ok: '#2E5E3E', // 7.5:1
+  warnBg: '#FFFFFF',
+  warnText: '#000000',
+  warnBorder: '#000000',
+  favorite: '#000000',
+  frame: '#FFFFFF', // 상자 바깥도 흰색. 상자는 검정 줄로 드러난다
+  toastOkBg: '#FFFFFF',
+  toastBadBg: '#FFFFFF',
+  statusBar: 'dark', // 바깥이 흰색이므로 시계는 어둡게
 };
 
 /**
- * 어두운 색.
+ * 어두운 색 — **검정 바탕에 흰 줄.**
  *
- * 밝을 때 통과한 색은 어두운 바탕에서 대부분 실패한다. 전부 다시 재서 넣었다.
- * 옆의 비율은 바탕 #16191D 위에서 잰 값이다.
+ * 밝은 것을 그대로 뒤집은 것이다. 흰 바탕에 검정 줄이면, 어두운 데서는 검정
+ * 바탕에 흰 줄이어야 같은 생김새가 된다.
  *
- * 기본 버튼을 **뒤집는다.** 밝을 때는 먹색 바탕에 흰 글자였지만, 어두운 바탕에서
- * 먹색 버튼은 바탕에 묻혀 보이지 않는다. 밝은 바탕에 먹색 글자로 바꾼다.
+ * 뜻을 가진 색 둘(`danger`·`ok`)만 어두운 바탕에서 보이도록 따로 골랐다.
+ * 밝을 때 쓰던 짙은 빨강·초록은 검정 위에서 안 보인다.
  */
 export const darkColors: Palette = {
-  bg: '#16191D',
-  surface: '#22262B',
-  border: '#39404A',
-  text: '#F3F0E8', // 15.5:1
-  textDim: '#A8A29A', // 7.0:1
-  primary: '#EDE8DC', // 밝은 버튼. 그 위 먹색 글자 14.4:1
-  primaryText: '#16191D',
-  secondary: '#7FA37B', // 6.2:1
-  accent: '#C79A62', // 6.9:1
-  accentText: '#16191D', // 갈색 버튼 위에는 먹색 글자가 더 잘 보인다 6.9:1
-  danger: '#E88A8A', // 7.1:1
-  ok: '#7FC49A', // 8.6:1
-  warnBg: '#2E2716',
-  warnText: '#E8D9A8',
-  warnBorder: '#6B5A2E',
-  favorite: '#C79A62',
-  frame: '#0E1013', // 액자는 바탕보다 한 겹 더 어둡게
-  toastOkBg: '#1D2A22',
-  toastBadBg: '#2E1D1D',
+  bg: '#000000',
+  surface: '#000000',
+  border: '#FFFFFF', // 밝은 데서 검정이던 줄이 여기서는 흰 줄이다
+  text: '#FFFFFF', // 21:1
+  textDim: '#B5B5B5', // 10.3:1
+  primary: '#FFFFFF', // 밝은 버튼. 그 위 검정 글자 21:1
+  primaryText: '#000000',
+  secondary: '#FFFFFF',
+  accent: '#FFFFFF',
+  accentText: '#000000',
+  danger: '#E88A8A', // 8.2:1
+  ok: '#7FC49A', // 10.1:1
+  warnBg: '#000000',
+  warnText: '#FFFFFF',
+  warnBorder: '#FFFFFF',
+  favorite: '#FFFFFF',
+  frame: '#000000',
+  toastOkBg: '#000000',
+  toastBadBg: '#000000',
   statusBar: 'light',
 };
 
