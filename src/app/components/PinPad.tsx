@@ -18,8 +18,26 @@ export const PIN_MAX_LENGTH = 12;
  */
 const ERASE = 'erase';
 
-/** 숫자 한 칸의 한 변. 최소 터치 크기(48dp)보다 넉넉하다. */
-const KEY = 66;
+/**
+ * 숫자 한 칸의 높이. 최소 터치 크기(48dp)보다 넉넉하다.
+ *
+ * 너비는 정하지 않는다. 한 줄의 칸들이 남는 폭을 똑같이 나눠 가지므로, 화면이
+ * 넓든 좁든 가로로 긴 직사각형이 되고 넘치지도 않는다.
+ */
+const KEY_HEIGHT = 60;
+
+/**
+ * 줄마다 어떤 칸이 들어가는지.
+ *
+ * 마지막 줄은 **둘뿐이다.** 둘이 남는 폭을 반씩 나눠 가져서, 위의 세 칸짜리 줄과
+ * 전체 너비가 똑같이 맞는다.
+ */
+const ROWS: readonly (readonly string[])[] = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  ['0', ERASE],
+];
 
 export function PinDots({ length }: { length: number }) {
   const styles = useStyles();
@@ -50,27 +68,26 @@ export function PinPad({
     else if (value.length < PIN_MAX_LENGTH) onChange(value + key);
   };
 
-  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ERASE];
   return (
     <View style={styles.pad}>
-      {keys.map((key, index) =>
-        key === '' ? (
-          <View key={`gap-${index}`} style={styles.key} />
-        ) : (
-          <Pressable
-            key={key}
-            accessibilityRole="button"
-            accessibilityLabel={key === ERASE ? t('pinpad.eraseOne') : t('pinpad.digit', { digit: key })}
-            disabled={disabled}
-            onPress={() => press(key)}
-            style={({ pressed }) => [styles.key, styles.keyBox, pressed && styles.pressed, disabled && styles.off]}
-          >
-            <Text style={key === ERASE ? styles.keyTextSmall : styles.keyText}>
-              {key === ERASE ? t('pinpad.erase') : key}
-            </Text>
-          </Pressable>
-        ),
-      )}
+      {ROWS.map((row, rowIndex) => (
+        <View key={rowIndex} style={styles.row}>
+          {row.map((key) => (
+            <Pressable
+              key={key}
+              accessibilityRole="button"
+              accessibilityLabel={key === ERASE ? t('pinpad.eraseOne') : t('pinpad.digit', { digit: key })}
+              disabled={disabled}
+              onPress={() => press(key)}
+              style={({ pressed }) => [styles.key, pressed && styles.pressed, disabled && styles.off]}
+            >
+              <Text style={key === ERASE ? styles.keyTextSmall : styles.keyText}>
+                {key === ERASE ? t('pinpad.erase') : key}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ))}
     </View>
   );
 }
@@ -82,35 +99,37 @@ const useStyles = createStyles((colors, fonts) =>
     dot: { width: 18, height: 18, borderRadius: radius.sm / 2, borderWidth: 2, borderColor: colors.border },
     dotOn: { backgroundColor: colors.primary, borderColor: colors.primary },
     /**
-     * 숫자판은 **한 줄에 셋**이다.
+     * 숫자판은 **줄 단위로 쌓는다.**
      *
-     * 칸 너비를 비율(%)이 아니라 고정값으로 준다. 그런데 줄 너비를 안 묶어 뒀더니
-     * 넓은 화면에서 한 줄에 넷이 들어가 1234 / 5678 / 9 0 지움 으로 흐트러졌다.
-     * 실기기에서 그렇게 나왔다.
-     *
-     * 그래서 판 자체의 너비를 '셋 + 사이 둘' 로 못박는다. 화면이 아무리 넓어도
-     * 넷째는 자리가 없어 다음 줄로 내려간다.
+     * 예전에는 칸 너비를 고정하고 줄바꿈(flexWrap)에 맡겼는데, 넓은 화면에서 한 줄에
+     * 넷이 들어가 1234 / 5678 / 9 0 지움 으로 흐트러졌다. 실기기에서 그렇게 나왔다.
+     * 지금은 줄을 직접 나누므로 그 일이 구조상 일어날 수 없다.
      */
-    pad: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: space.sm,
-      width: KEY * 3 + space.sm * 2,
-      alignSelf: 'center',
-    },
+    pad: { gap: space.sm, alignSelf: 'stretch' },
+    row: { flexDirection: 'row', gap: space.sm },
     /**
-     * 네모난 숫자판.
+     * 가로로 긴 직사각형.
      *
-     * 한 변을 고정한다. 폭을 비율(%)로 주면 가로세로를 같게 만들 수 없다 — 높이를
-     * 폭에 맞춰야 하는데 비율은 실행할 때 정해지기 때문이다.
+     * 높이만 정하고 너비는 `flex: 1` 로 **남는 폭을 똑같이 나눠 갖게** 한다.
+     * 고정 너비를 주면 좁은 폰에서 넘치고 넓은 폰에서는 가운데만 쓰게 된다.
+     * 나눠 갖게 하면 어느 폰에서든 꽉 차고, 마지막 줄의 둘은 각각 위 세 칸짜리
+     * 줄의 절반씩을 차지해 전체 너비가 저절로 맞는다.
      *
-     * 66 은 손가락이 닿는 최소 크기(48dp)보다 넉넉하면서, 네 줄에 아래 버튼 세 개까지
-     * 한 화면에 들어가는 크기다. 더 키우면 스크롤이 생겨 실패 안내가 밀려난다.
+     * 60 은 손가락이 닿는 최소 크기(48dp)보다 넉넉하면서, 네 줄에 아래 버튼까지
+     * 한 화면에 들어가는 높이다. 더 키우면 스크롤이 생겨 실패 안내가 밀려난다.
+     *
+     * 모서리는 살짝만 둥글린다. 완전히 각지면 줄이 만나는 자리가 거칠어 보인다.
      */
-    key: { width: KEY, height: KEY, alignItems: 'center', justifyContent: 'center' },
-    // 모서리를 살짝만 둥글린다. 완전히 각지면 줄이 만나는 자리가 거칠어 보인다.
-    keyBox: { borderRadius: radius.sm, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
+    key: {
+      flex: 1,
+      height: KEY_HEIGHT,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.sm,
+      borderWidth: 2,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
     pressed: { opacity: 0.7, backgroundColor: colors.surface },
     off: { opacity: 0.5 },
     // 네모 한가운데. CENTER_GLYPH 가 없으면 글꼴에 따라 숫자가 아래로 처진다.
