@@ -6,6 +6,8 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start --dev-client",
+    "dev": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tools/dev/start.ts",
+    "dev:phone": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tools/dev/phone.ts",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "prebuild": "expo prebuild",
