@@ -61,20 +61,12 @@ type ButtonTone = 'primary' | 'plain' | 'accent' | 'danger' | 'text';
 
 export function BigButton({
   label,
-  sub,
   onPress,
   tone = 'primary',
   disabled,
   busy,
 }: {
   label: string;
-  /**
-   * 버튼 글자 **아래** 작은 한 줄.
-   *
-   * 한 줄에 다 넣으면 ("잠금 번호를 잊었어요 (복구 코드)") 핵심과 방법이 같은
-   * 크기로 뒤섞인다. 큰 줄은 **무엇을 하려는지**, 작은 줄은 **어떻게 되는지**다.
-   */
-  sub?: string;
   onPress: () => void;
   tone?: ButtonTone;
   disabled?: boolean;
@@ -107,32 +99,8 @@ export function BigButton({
       style={({ pressed }) => [styles.btn, box, pressed && styles.btnPressed, disabled && styles.btnDisabled]}
     >
       {busy ? <ActivityIndicator color={spinner} /> : null}
-      <View style={styles.btnLabelBlock}>
-        <Text style={textStyle}>{label}</Text>
-        {sub ? <Text style={[styles.btnSub, tone === 'primary' || tone === 'accent' ? styles.btnSubOnFill : null]}>{sub}</Text> : null}
-      </View>
+      <Text style={textStyle}>{label}</Text>
     </Pressable>
-  );
-}
-
-/**
- * 앱 얼굴이 되는 자물쇠 그림.
- *
- * **64 를 넘기지 않는다.** 그림 파일이 192×192 이고, 가장 촘촘한 화면은 1dp 를
- * 3픽셀로 그린다. 64 를 넘으면 192픽셀로 모자라 흐려진다. 더 키우려면 파일부터
- * 다시 만들어야 한다 (`tools/logo/`).
- *
- * 크기를 픽셀로 고정하므로 글꼴을 200% 로 키워도 이 그림은 그대로다.
- * 장식이라 화면 낭독기에는 옆의 제목만 읽히면 된다.
- */
-export function AppMark({ size = 56 }: { size?: number }) {
-  return (
-    <Image
-      source={LOCK_MARK}
-      style={{ width: Math.min(size, 64), height: Math.min(size, 64), flexShrink: 0 }}
-      accessibilityElementsHidden
-      importantForAccessibility="no"
-    />
   );
 }
 
@@ -240,6 +208,7 @@ export function Screen({
   onBack,
   children,
   footer,
+  mark,
 }: {
   title: string;
   /**
@@ -250,6 +219,8 @@ export function Screen({
   onBack?: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** 제목 앞에 자물쇠 표시를 넣는다. 잠금 화면처럼 앱 얼굴이 되는 화면에서만 쓴다. */
+  mark?: boolean;
 }) {
   const styles = useStyles();
   const t = useT();
@@ -315,8 +286,12 @@ export function Screen({
           </Pressable>
         ) : null}
         <View style={styles.titleRow}>
+          {mark ? (
+            // 그림은 장식이다. 화면 낭독기에는 옆의 제목만 읽히면 된다.
+            <Image source={LOCK_MARK} style={styles.mark} accessibilityElementsHidden importantForAccessibility="no" />
+          ) : null}
           <View style={styles.titleBlock}>
-            <Text style={styles.headerTitle} numberOfLines={2}>
+            <Text style={[styles.headerTitle, mark && styles.headerTitleLogo]} numberOfLines={2}>
               {title}
             </Text>
             {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
@@ -428,9 +403,23 @@ const useStyles = createStyles((colors, fonts) =>
       backgroundColor: colors.bg,
     },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-    /** 제목과 그 아래 한 줄. */
+    /**
+     * 자물쇠 표시. 앱 얼굴이므로 크게 둔다.
+     *
+     * 크기를 픽셀로 고정한다. 글꼴 설정을 따라 커지지 않으므로, 200% 확대에서도
+     * 이 그림은 그대로다. 로고를 키우고 싶을 때 글자 대신 여기를 키우는 이유다.
+     * flexShrink: 0 이라 글자가 길어져도 그림이 먼저 찌그러지지 않는다.
+     *
+     * **64 를 넘기지 않는다.** 그림 파일이 192×192 이고, 가장 촘촘한 화면은 1dp 를
+     * 3픽셀로 그린다. 64 를 넘으면 192픽셀로 모자라 흐려진다. 더 키우려면 파일부터
+     * 다시 만들어야 한다 (`tools/logo/`).
+     */
+    mark: { width: 56, height: 56, flexShrink: 0 },
+    /** 제목과 그 아래 한 줄. 자물쇠 표시 옆에 통째로 놓인다. */
     titleBlock: { flexShrink: 1 },
     headerTitle: { fontFamily: fonts.familyBold, fontSize: font.title, fontWeight: WEIGHT, color: colors.text },
+    /** 앱 얼굴이 되는 화면에서만 크게. 다른 화면 제목까지 커지면 화면마다 크기가 달라 보인다. */
+    headerTitleLogo: { fontFamily: fonts.familyBold, fontSize: font.logo },
     /** 제목 아래 한 줄. 흐린 글자색도 대비 6.5:1 이라 명세 3장을 넘는다. */
     headerSubtitle: { fontFamily: fonts.family, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.textDim, marginTop: 2 },
     back: { minHeight: TOUCH, justifyContent: 'center' },
@@ -474,18 +463,6 @@ const useStyles = createStyles((colors, fonts) =>
     btnLabelPlain: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.text, textAlign: 'center' },
     btnLabelDanger: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.danger, textAlign: 'center' },
     btnLabelText: { fontFamily: fonts.familyBold, fontSize: font.big, fontWeight: WEIGHT, color: colors.accent, textAlign: 'center' },
-    /** 큰 줄과 작은 줄을 세로로 묶는다. 버튼 자체는 가로줄이라 묶지 않으면 옆으로 선다. */
-    btnLabelBlock: { flexShrink: 1 },
-    btnSub: {
-      fontFamily: fonts.family,
-      fontSize: font.caption,
-      fontWeight: WEIGHT,
-      color: colors.textDim,
-      textAlign: 'center',
-      marginTop: 2,
-    },
-    /** 색이 찬 버튼 위에서는 흐린 회색이 안 보인다. */
-    btnSubOnFill: { color: colors.primaryText },
     field: { gap: space.xs, marginBottom: space.sm },
     fieldLabel: { fontFamily: fonts.familyBold, fontSize: font.label, fontWeight: WEIGHT, color: colors.text },
     fieldHint: { fontFamily: fonts.family, fontSize: font.bodySmall, color: colors.textDim, lineHeight: font.bodySmall * 1.4 },

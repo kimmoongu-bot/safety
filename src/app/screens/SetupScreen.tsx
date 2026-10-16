@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { BigButton, Body, Field, Notice, Screen, Title } from '../components/Basics.tsx';
-import { PIN_LENGTH, PinDots, PinPad } from '../components/PinPad.tsx';
+import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useT } from '../i18n/index.ts';
 import { useVaultStore } from '../state/vaultStore.ts';
+import { NEW_PIN_MIN_LENGTH } from '../../core/vault.ts';
 import { type BiometricKind, checkBiometricSupport } from '../platform/biometrics.ts';
 import { normalizeRecoveryCode } from '../../core/recoveryCode.ts';
 import { RecoveryCodeView } from '../components/RecoveryCodeView.tsx';
@@ -72,7 +73,7 @@ export function SetupScreen() {
         <View style={{ height: space.md }} />
         <BigButton
           label={t('setup.next')}
-          disabled={value.length !== PIN_LENGTH}
+          disabled={value.length < NEW_PIN_MIN_LENGTH}
           onPress={() => {
             if (step === 'pin') {
               setStep('pin-again');

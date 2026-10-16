@@ -33,10 +33,9 @@ export const ko = {
   'lock.tagline': '나만의 비밀번호 보관함',
   'lock.open': '금고 열기',
   'lock.openWithBiometric': ({ how }) => `${ro(String(how))} 열기`,
-  'lock.forgotPin': '잠금 번호를 잊었어요',
-  'lock.forgotPinSub': '복구 코드로 열기',
-  'lock.failures': '잠금 번호를 {count}번 잘못 눌렀습니다.',
-  'lock.failuresWithWait': '잠금 번호를 {count}번 잘못 눌렀습니다. {wait}.',
+  'lock.forgotPin': 'PIN(핀)을 잊었어요 (복구 코드)',
+  'lock.failures': 'PIN(핀)을 {count}번 잘못 눌렀습니다.',
+  'lock.failuresWithWait': 'PIN(핀)을 {count}번 잘못 눌렀습니다. {wait}.',
   'lock.waitSeconds': '{seconds}초 뒤에 다시 해 주세요',
   'lock.waitMinutes': '{minutes}분 뒤에 다시 해 주세요',
   'lock.recoveryTitle': '복구 코드로 열기',
@@ -49,12 +48,12 @@ export const ko = {
   'setup.biometricTitle': ({ how }) => `${ro(String(how))}도 열까요?`,
   'setup.biometricYes': ({ how }) => `${ro(String(how))}도 열기`,
   'setup.biometricWhy': ({ how }) =>
-    `${eul(String(how))} 쓰면 매번 잠금 번호를 누르지 않아도 됩니다. 나중에 설정에서 바꿀 수 있습니다.`,
+    `${eul(String(how))} 쓰면 매번 PIN(핀)을 누르지 않아도 됩니다. 나중에 설정에서 바꿀 수 있습니다.`,
   'setup.biometricUnavailable': ({ how }) =>
     fill('이 기기에는 {how} 확인이 준비되어 있지 않습니다. 숫자로만 열 수 있습니다.', { how: String(how) }),
 
   // ── 숫자판 ────────────────────────────────────────────────
-  'pinpad.erase': '지우기',
+  'pinpad.erase': '지움',
   'pinpad.eraseOne': '한 글자 지우기',
   'pinpad.digit': '숫자 {digit}',
   'pinpad.entered': '{count}자리 입력함',
@@ -67,7 +66,7 @@ export const ko = {
   'biometric.both': '지문·얼굴',
   'biometric.reason': '금고를 열려면 확인이 필요합니다',
   'biometric.cancel': '취소',
-  'biometric.fallback': '잠금 번호로 열기',
+  'biometric.fallback': 'PIN(핀)으로 열기',
 
   // ── 내 금고 (목록) ────────────────────────────────────────
   'list.title': '내 금고',
@@ -97,24 +96,24 @@ export const ko = {
   'card.favoriteRemove': '자주 쓰는 것에서 빼기',
 
   // ── 최초 설정 (이어서) ────────────────────────────────────
-  'setup.pinTitle': '잠금 번호 만들기',
+  'setup.pinTitle': 'PIN(핀) 만들기',
   'setup.pinAgainTitle': '한 번 더 눌러 주세요',
-  'setup.pinHelp': '금고를 열 때 쓸 숫자를 정합니다. 여섯 자리입니다.',
+  'setup.pinHelp': '금고를 열 때 쓸 숫자를 정합니다. 6자리 이상으로 정해 주세요.',
   'setup.pinWhy': '짧으면 남이 찍어 맞힐 수 있습니다. 폰을 잃어버렸을 때 이 숫자가 마지막 벽입니다.',
-  'setup.pinAgainHelp': '방금 정한 잠금 번호를 한 번 더 눌러 주세요.',
+  'setup.pinAgainHelp': '방금 정한 PIN(핀)을 한 번 더 눌러 주세요.',
   'setup.next': '다음',
-  'setup.pinMismatch': '두 번 누른 잠금 번호가 다릅니다. 처음부터 다시 정해 주세요.',
+  'setup.pinMismatch': '두 번 누른 PIN(핀)이 다릅니다. 처음부터 다시 정해 주세요.',
   'setup.pinOnly': '숫자로만 열기',
   'setup.codeTitle': '복구 코드를 적어 두세요',
   'setup.codeWarn':
-    '잠금 번호를 잊었을 때 금고를 열 수 있는 유일한 방법입니다. 종이에 적어 폰과 다른 곳에 두세요. 화면을 캡처하지 마세요.',
+    'PIN(핀)을 잊었을 때 금고를 열 수 있는 유일한 방법입니다. 종이에 적어 폰과 다른 곳에 두세요. 화면을 캡처하지 마세요.',
   'setup.codeNext': '다음 화면에서 이 코드를 직접 입력해 확인합니다.',
   'setup.codeWrote': '적었습니다. 다음',
   'setup.codeCheckTitle': '적어 둔 복구 코드를 입력해 주세요',
   'setup.codeCheckHelp': '대문자·소문자, 띄어쓰기는 신경 쓰지 않아도 됩니다.',
   'setup.lastWarnWithBiometric':
-    ({ how }) => `${ro(String(how))}도 열 수 있게 해 두었습니다. 잠금 번호·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다.`,
-  'setup.lastWarn': '잠금 번호·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다.',
+    ({ how }) => `${ro(String(how))}도 열 수 있게 해 두었습니다. PIN(핀)·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다.`,
+  'setup.lastWarn': 'PIN(핀)·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다.',
   'setup.finish': '확인하고 시작하기',
   'setup.codeMismatch': '복구 코드가 다릅니다. 적어 둔 것을 다시 보세요.',
   'setup.done': '금고를 만들었습니다.',
@@ -183,7 +182,7 @@ export const ko = {
 
   // ── 금고 오류 ──────────────────────────────────────────────────────────
   // 코어(src/core)가 코드만 던지고, 말은 여기서 정한다. 열쇠 이름은 코드 그대로다.
-  'error.WRONG_PIN': '잠금 번호가 맞지 않습니다.',
+  'error.WRONG_PIN': 'PIN(핀)이 맞지 않습니다.',
   'error.WRONG_RECOVERY_CODE': '복구 코드가 맞지 않습니다.',
   'error.WRONG_BACKUP_PASSWORD': '백업 비밀번호가 맞지 않습니다.',
   'error.LOCKED_OUT': '여러 번 틀렸습니다. 잠시 뒤에 다시 해 주세요.',
@@ -196,12 +195,12 @@ export const ko = {
   'error.INVALID_INPUT': '입력한 내용을 확인해 주세요.',
 
   // 같은 종류 안에서 해야 할 일이 다른 경우들.
-  'error.BACKUP_PASSWORD_SAME_AS_PIN': '백업 비밀번호는 앱 잠금 번호와 다르게 정해 주세요.',
+  'error.BACKUP_PASSWORD_SAME_AS_PIN': '백업 비밀번호는 앱 PIN(핀)과 다르게 정해 주세요.',
   'error.BACKUP_PASSWORD_TOO_SHORT': '백업 비밀번호는 {count}자 이상으로 정해 주세요.',
-  'error.PIN_TOO_SHORT': '잠금 번호는 {count}자리 이상으로 정해 주세요. 짧으면 남이 찍어 맞힐 수 있습니다.',
+  'error.PIN_TOO_SHORT': 'PIN(핀)은 {count}자리 이상으로 정해 주세요. 짧으면 남이 찍어 맞힐 수 있습니다.',
   'error.WIPED_AFTER_FAILURES': '실패가 10번 넘어 금고를 지웠습니다.',
-  'error.BIOMETRIC_NOT_SET_UP': '이 기기에서는 지문·얼굴로 열 수 없습니다. 잠금 번호를 입력해 주세요.',
-  'error.BIOMETRIC_CHANGED': '지문·얼굴 정보가 바뀌었습니다. 잠금 번호로 열어 주세요.',
+  'error.BIOMETRIC_NOT_SET_UP': '이 기기에서는 지문·얼굴로 열 수 없습니다. PIN(핀)을 입력해 주세요.',
+  'error.BIOMETRIC_CHANGED': '지문·얼굴 정보가 바뀌었습니다. PIN(핀)으로 열어 주세요.',
   'error.RECORD_NOT_FOUND': '항목을 찾지 못했습니다.',
   'error.NO_RECOVERY_CODE_COPY': '복구 코드 사본이 없습니다. 새 복구 코드를 만들어 주세요.',
 
@@ -221,7 +220,7 @@ export const ko = {
   'settings.autoLock1m': '1분',
   'settings.autoLock5m': '5분',
   'settings.biometric': '지문·얼굴로 열기',
-  'settings.biometricWhy': '켜면 잠금 번호를 누르지 않아도 열 수 있습니다.',
+  'settings.biometricWhy': '켜면 PIN(핀)을 누르지 않아도 열 수 있습니다.',
   'settings.biometricNone': '이 기기에는 지문·얼굴 확인이 준비되어 있지 않습니다.',
   'settings.biometricOn': '지문·얼굴로 열 수 있습니다.',
   'settings.biometricOff': '지문·얼굴 열기를 껐습니다.',
@@ -237,7 +236,7 @@ export const ko = {
   'settings.keepPrevWhy': '새 비밀번호가 안 될 때 되돌리는 용도입니다.',
   'settings.wipe': '10번 틀리면 금고 지우기',
   'settings.wipeWhy':
-    '켜면 잠금 번호를 10번 잘못 누를 때 금고를 통째로 지웁니다. 백업 파일이 없으면 되살릴 수 없습니다.',
+    '켜면 PIN(핀)을 10번 잘못 누를 때 금고를 통째로 지웁니다. 백업 파일이 없으면 되살릴 수 없습니다.',
   // ── 자동 완성 ───────────────────────────────────────────────────────────
   // ── 담기 제안 ───────────────────────────────────────────────────────────
   'save.title': '담기',
@@ -261,18 +260,18 @@ export const ko = {
   'settings.recoveryHeading': '복구 코드',
   'settings.recoveryHide': '다시 숨기기',
   'settings.recoveryShow': '복구 코드 다시 보기',
-  'settings.pinHeading': '잠금 번호 바꾸기',
-  'settings.pinCurrent': '지금 쓰는 잠금 번호',
-  'settings.pinNext': '새로 쓸 잠금 번호',
-  'settings.pinNextHint': '{count}자리 숫자',
+  'settings.pinHeading': 'PIN(핀) 바꾸기',
+  'settings.pinCurrent': '지금 쓰는 PIN(핀)',
+  'settings.pinNext': '새로 쓸 PIN(핀)',
+  'settings.pinNextHint': '{count}자리 이상 숫자',
   'settings.pinChange': '바꾸기',
-  'settings.pinChanged': '잠금 번호를 바꿨습니다.',
+  'settings.pinChanged': 'PIN(핀)을 바꿨습니다.',
   'settings.cancel': '그만두기',
   'settings.backupHeading': '백업',
   'settings.backupGo': '백업 파일 만들기 / 가져오기',
   'settings.wipeHeading': '금고 초기화',
   'settings.wipeExplain':
-    '잠금 번호·지문·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다. 그럴 때는 금고를 지우고 새로 시작할 수 있지만, 넣어 둔 내용은 되살아나지 않습니다.',
+    'PIN(핀)·지문·복구 코드·백업 파일(과 그 비밀번호)이 모두 없으면 금고를 열 수 없습니다. 그럴 때는 금고를 지우고 새로 시작할 수 있지만, 넣어 둔 내용은 되살아나지 않습니다.',
   'settings.wipeStart': '금고 지우고 새로 시작',
   'settings.wipeAsksTwice': '지우기 전에 두 번 물어봅니다.',
   'settings.wipe1Title': '정말 지울까요? (1/2)',
@@ -293,7 +292,7 @@ export const ko = {
   'backup.familyTip':
     '가족(배우자·자녀) 2~3명에게 파일만 나눠 두면 폰을 잃어버려도 되살릴 수 있습니다. 백업 비밀번호는 전달하지 말고 본인만 종이에 적어 폰과 다른 곳에 두세요. 카카오톡 같은 메신저는 기간이 지나면 내려받을 수 없으니, 받은 사람이 폰에 실제로 저장했는지 확인해 주세요.',
   'backup.password': '백업 비밀번호',
-  'backup.passwordHint': '{min}자 이상. 앱을 열 때 쓰는 잠금 번호와 다르게 정해 주세요.',
+  'backup.passwordHint': '{min}자 이상. 앱을 열 때 쓰는 PIN(핀)과 다르게 정해 주세요.',
   'backup.passwordAgain': '백업 비밀번호 한 번 더',
   'backup.mismatch': '두 번 적은 백업 비밀번호가 다릅니다.',
   'backup.make': '백업 파일 만들어 보내기',
@@ -363,7 +362,7 @@ export const ko = {
   'privacy.h1': '1. 모으는 정보',
   'privacy.b1': '없습니다. 이름, 전화번호, 메일 주소, 기기 번호, 광고 번호, 위치, 사용 기록 — 어느 것도 모으지 않습니다. 회원가입도 로그인도 없습니다.',
   'privacy.h2': '2. 저장되는 곳',
-  'privacy.b2': '넣으신 서비스 이름·아이디·비밀번호·메모는 이 기기 안에만 저장됩니다. 저장될 때 모두 암호로 잠깁니다. 잠그는 열쇠는 잠금 번호와 기기의 보안 저장소에서 만들어지며, 만든 사람을 포함해 누구도 그 열쇠를 가지고 있지 않습니다.',
+  'privacy.b2': '넣으신 서비스 이름·아이디·비밀번호·메모는 이 기기 안에만 저장됩니다. 저장될 때 모두 암호로 잠깁니다. 잠그는 열쇠는 PIN(핀)과 기기의 보안 저장소에서 만들어지며, 만든 사람을 포함해 누구도 그 열쇠를 가지고 있지 않습니다.',
   'privacy.h3': '3. 보내는 곳',
   'privacy.b3': '없습니다. 이 앱은 인터넷 권한을 아예 요청하지 않고, 서버가 존재하지 않습니다. 광고도, 사용 기록을 재는 도구도, 오류 자동 신고도 넣지 않았습니다.',
   'privacy.h4': '4. 백업 파일',

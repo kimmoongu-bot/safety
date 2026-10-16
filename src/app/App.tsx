@@ -24,7 +24,7 @@ import { SearchResultsScreen } from './screens/SearchResultsScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import { SetupScreen } from './screens/SetupScreen.tsx';
 import { VaultListScreen } from './screens/VaultListScreen.tsx';
-import { useColors } from './theme/index.ts';
+import { frame, useColors } from './theme/index.ts';
 import { createStyles } from './theme/useStyles.ts';
 
 /** 화면 하나만 고른다. 화면 수가 8개뿐이라 별도 네비게이션 라이브러리를 두지 않는다. */
@@ -222,7 +222,7 @@ export default function App() {
         <SafeAreaView style={styles.safe} onTouchStart={() => useVaultStore.getState().touch()}>
           {/* 액자 바깥 색에 맞춰 시계·배터리를 밝게/어둡게 그린다. */}
           <StatusBar style={colors.statusBar} />
-          <View style={styles.content}>
+          <View style={styles.card}>
             {ready ? <Router /> : (
               <View style={styles.center}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -239,17 +239,28 @@ export default function App() {
 
 const useStyles = createStyles((colors) =>
   StyleSheet.create({
-    /** 화면 끝까지 채운다. */
-    outer: { flex: 1, backgroundColor: colors.bg },
+    /** 상자 바깥. 화면 끝까지 채운다. */
+    outer: { flex: 1, backgroundColor: colors.frame },
     safe: { flex: 1 },
     /**
-     * 화면 내용.
-     *
-     * 예전에는 둘레에 여백을 두고 모서리 둥근 상자(액자) 안에 담았는데, 액자를 없앴다.
-     * 액자는 둘레를 한 겹 깎아먹으면서 아무것도 알려 주지 않았다 — 특히 잠금 화면처럼
-     * 아래쪽까지 꽉 써야 하는 화면에서 숫자판이 그만큼 좁아졌다.
+     * 앱 상자. 둘레에 여백을 두고 모서리를 둥글린다.
+     * overflow: 'hidden' 이 있어야 안쪽 화면이 둥근 모서리 밖으로 삐져나오지 않는다.
      */
-    content: { flex: 1, backgroundColor: colors.bg },
+    card: {
+      flex: 1,
+      margin: frame.inset,
+      borderRadius: frame.radius,
+      backgroundColor: colors.bg,
+      /*
+        상자에 줄을 두른다.
+
+        바깥(`frame`)과 안(`bg`)이 **같은 흰색**이라, 줄이 없으면 둥근 모서리도
+        상자도 보이지 않는다. 이 디자인에서 무엇이 어디까지인지는 전부 줄이 말한다.
+      */
+      borderWidth: 2,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     /** 밝기 설정을 읽는 동안. 색을 칠하지 않아야 나중에 바뀌는 것이 안 보인다. */
     blank: { flex: 1 },
