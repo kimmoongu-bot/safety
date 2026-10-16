@@ -17,10 +17,13 @@ import { usePrefsStore } from '../state/prefsStore.ts';
 import { darkColors, lightColors, type Palette } from './palette.ts';
 
 /**
- * 색 — 디자인 시안의 색 체계.
+ * 색 — **흰 바탕에 검정 줄.**
  *
- * 옆에 적은 비율은 크림 바탕(#F6F3EC) 위에서 잰 값이다. 명세는 4.5:1 이상을 요구한다.
- * 시안의 강조색 #8A6A45 는 4.48:1 로 아슬하게 미달이라 조금 어둡게 했다.
+ * 바탕과 카드가 같은 흰색이라, 무엇이 어디까지인지는 전부 줄이 말한다.
+ * 어두운 화면에서는 그대로 뒤집힌다 — 검정 바탕에 흰 줄.
+ *
+ * 뜻을 가진 색 둘만 남겼다: `danger`(지우기)와 `ok`(잘됨).
+ * 대비는 `tests/palette.test.ts` 가 두 벌 모두 재고, 명세는 4.5:1 이상을 요구한다.
  */
 export { type Palette, lightColors, darkColors, colors } from './palette.ts';
 

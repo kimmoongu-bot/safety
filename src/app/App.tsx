@@ -251,6 +251,14 @@ const useStyles = createStyles((colors) =>
       margin: frame.inset,
       borderRadius: frame.radius,
       backgroundColor: colors.bg,
+      /*
+        상자에 줄을 두른다.
+
+        바깥(`frame`)과 안(`bg`)이 **같은 흰색**이라, 줄이 없으면 둥근 모서리도
+        상자도 보이지 않는다. 이 디자인에서 무엇이 어디까지인지는 전부 줄이 말한다.
+      */
+      borderWidth: 2,
+      borderColor: colors.border,
       overflow: 'hidden',
     },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },

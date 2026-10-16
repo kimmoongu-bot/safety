@@ -1,7 +1,7 @@
 import React from 'react';
 import { useT } from '../i18n/index.ts';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { CENTER_GLYPH, font, space, WEIGHT } from '../theme/index.ts';
+import { CENTER_GLYPH, font, radius, space, WEIGHT } from '../theme/index.ts';
 import { createStyles } from '../theme/useStyles.ts';
 
 /**
@@ -18,7 +18,7 @@ export const PIN_MAX_LENGTH = 12;
  */
 const ERASE = 'erase';
 
-/** 숫자 하나의 지름. 최소 터치 크기(48dp)보다 넉넉하다. */
+/** 숫자 한 칸의 한 변. 최소 터치 크기(48dp)보다 넉넉하다. */
 const KEY = 66;
 
 export function PinDots({ length }: { length: number }) {
@@ -78,14 +78,15 @@ export function PinPad({
 const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
     dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.sm },
-    dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
+    // 숫자판이 네모라 점도 네모다. 하나만 동그라미면 거기만 튄다.
+    dot: { width: 18, height: 18, borderRadius: radius.sm / 2, borderWidth: 2, borderColor: colors.border },
     dotOn: { backgroundColor: colors.primary, borderColor: colors.primary },
     /**
      * 숫자판은 **한 줄에 셋**이다.
      *
-     * 칸 너비를 비율(%)에서 고정값으로 바꾸면서(동그라미를 만들려면 가로세로가 같아야
-     * 한다) 줄 너비를 안 묶어 뒀더니, 넓은 화면에서 한 줄에 넷이 들어가
-     * 1234 / 5678 / 9 0 지움 으로 흐트러졌다. 실기기에서 그렇게 나왔다.
+     * 칸 너비를 비율(%)이 아니라 고정값으로 준다. 그런데 줄 너비를 안 묶어 뒀더니
+     * 넓은 화면에서 한 줄에 넷이 들어가 1234 / 5678 / 9 0 지움 으로 흐트러졌다.
+     * 실기기에서 그렇게 나왔다.
      *
      * 그래서 판 자체의 너비를 '셋 + 사이 둘' 로 못박는다. 화면이 아무리 넓어도
      * 넷째는 자리가 없어 다음 줄로 내려간다.
@@ -99,19 +100,20 @@ const useStyles = createStyles((colors, fonts) =>
       alignSelf: 'center',
     },
     /**
-     * 동그란 숫자판.
+     * 네모난 숫자판.
      *
-     * 지름을 고정한다. 폭을 비율(%)로 주면 동그라미를 만들 수 없다 — 높이를 폭에
-     * 맞춰야 하는데 비율은 실행할 때 정해지기 때문이다.
+     * 한 변을 고정한다. 폭을 비율(%)로 주면 가로세로를 같게 만들 수 없다 — 높이를
+     * 폭에 맞춰야 하는데 비율은 실행할 때 정해지기 때문이다.
      *
      * 66 은 손가락이 닿는 최소 크기(48dp)보다 넉넉하면서, 네 줄에 아래 버튼 세 개까지
      * 한 화면에 들어가는 크기다. 더 키우면 스크롤이 생겨 실패 안내가 밀려난다.
      */
     key: { width: KEY, height: KEY, alignItems: 'center', justifyContent: 'center' },
-    keyBox: { borderRadius: KEY / 2, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
+    // 모서리를 살짝만 둥글린다. 완전히 각지면 줄이 만나는 자리가 거칠어 보인다.
+    keyBox: { borderRadius: radius.sm, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface },
     pressed: { opacity: 0.7, backgroundColor: colors.surface },
     off: { opacity: 0.5 },
-    // 동그라미 한가운데. CENTER_GLYPH 가 없으면 글꼴에 따라 숫자가 아래로 처진다.
+    // 네모 한가운데. CENTER_GLYPH 가 없으면 글꼴에 따라 숫자가 아래로 처진다.
     keyText: {
       fontFamily: fonts.familyBold,
       fontSize: font.huge,
