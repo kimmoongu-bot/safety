@@ -3,7 +3,7 @@
     "name": "잠김",
     "slug": "jamgim",
     "owner": "az52aa",
-    "version": "1.02",
+    "version": "1.0.2",
     "icon": "./assets/icon.png",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
