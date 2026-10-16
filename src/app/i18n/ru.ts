@@ -43,7 +43,7 @@ function plural(n: unknown, one: string, few: string, many: string): string {
 export const ru = {
   // ── Экран блокировки ──────────────────────────────────────
   /** Название приложения. Оставлено латиницей: это марка, а строка ниже поясняет. */
-  'lock.title': 'Jamgim',
+  'lock.title': 'Kepta',
   'lock.tagline': 'Ваше личное хранилище паролей',
   'lock.open': 'Открыть хранилище',
   'lock.openWithBiometric': ({ how }) => `Открыть по ${how}`,
@@ -201,7 +201,7 @@ export const ru = {
    * Это то, что видно в файловом менеджере. «не_удалять» — чтобы не стереть случайно.
    * Не использовать символы, недопустимые в именах файлов: \ / : * ? " < > |
    */
-  'backup.fileNamePrefix': 'Jamgim_Копия_не_удалять',
+  'backup.fileNamePrefix': 'Kepta_Копия_не_удалять',
 
   // ── Ошибки хранилища ──────────────────────────────────────
   // Ядро (src/core) бросает только коды; слова живут здесь.
@@ -212,7 +212,7 @@ export const ru = {
   'error.VAULT_NOT_FOUND': 'Хранилища ещё нет.',
   'error.VAULT_ALREADY_EXISTS': 'Хранилище уже есть.',
   'error.DATA_DAMAGED': 'Сохранённые данные повреждены.',
-  'error.UNSUPPORTED_FORMAT': 'Это не файл резервной копии Jamgim или другая версия.',
+  'error.UNSUPPORTED_FORMAT': 'Это не файл резервной копии Kepta или другая версия.',
   'error.CRYPTO_UNAVAILABLE': 'На этом телефоне нельзя безопасно вести хранилище.',
   'error.VAULT_LOCKED': 'Хранилище закрыто.',
   'error.INVALID_INPUT': 'Проверьте, что вы ввели.',
@@ -270,21 +270,21 @@ export const ru = {
   // ── Автозаполнение ──────────────────────────────────────────────────────
   // ── Предложение сохранить ───────────────────────────────────────────────
   'save.title': 'Сохранить',
-  'save.asking': 'Сохранить в Jamgim то, что вы только что ввели в {app}?',
+  'save.asking': 'Сохранить в Kepta то, что вы только что ввели в {app}?',
   'save.passwordHidden': 'Это приложение не передаёт пароль. Введите его, пожалуйста, сами.',
-  'save.askingUnknown': 'Сохранить в Jamgim то, что вы только что ввели?',
+  'save.askingUnknown': 'Сохранить в Kepta то, что вы только что ввели?',
   'save.nothing': 'Нечего сохранять.',
   'save.keep': 'Сохранить',
   'save.dontKeep': 'Не сохранять',
   'save.check': 'Посмотрите данные ниже и исправьте, если что-то не так.',
   'settings.autofillHeading': 'Автозаполнение',
   'settings.autofillWhy':
-    'Нажмите поле входа в другом приложении — над клавиатурой появится Jamgim. Нажмите его, и логин с паролем подставятся сами.',
+    'Нажмите поле входа в другом приложении — над клавиатурой появится Kepta. Нажмите его, и логин с паролем подставятся сами.',
   'settings.autofillOn': 'Сейчас включено.',
   'settings.autofillOff': 'Сейчас выключено.',
   'settings.autofillTurnOn': 'Включить автозаполнение',
   'settings.autofillChange': 'Изменить автозаполнение',
-  'settings.autofillHow': 'Откроются настройки телефона. Выберите Jamgim в списке и вернитесь.',
+  'settings.autofillHow': 'Откроются настройки телефона. Выберите Kepta в списке и вернитесь.',
   'settings.autofillNoScreen': 'На этом телефоне такой экран настроек не открывается.',
   'settings.autofillNotWorking': 'Некоторые приложения его не примут — банки и госуслуги со своей клавиатурой.',
   'settings.recoveryHeading': 'Код восстановления',
@@ -355,7 +355,7 @@ export const ru = {
   'common.cancel': 'Не надо',
   'common.on': 'Вкл.',
   'common.off': 'Выкл.',
-  'common.appName': 'Jamgim',
+  'common.appName': 'Kepta',
   'common.recoveryCodeLabel': 'Код восстановления {code}',
   'common.failed': 'Не получилось. Попробуйте ещё раз.',
   'common.failedWhy': 'Не получилось. ({why})',
@@ -363,7 +363,7 @@ export const ru = {
 
   // ── Системные окна и уведомления ──────────────────────────
   'system.shareBackup': 'Отправить файл резервной копии',
-  'system.reminderTitle': 'Jamgim — пора сделать резервную копию',
+  'system.reminderTitle': 'Kepta — пора сделать резервную копию',
   'system.reminderBody': 'С последней копии прошло 90 дней. Сделайте новую.',
   'system.guardUnsupported': 'На этом телефоне нельзя закрыть экран.',
 

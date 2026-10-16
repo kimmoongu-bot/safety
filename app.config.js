@@ -24,6 +24,15 @@ const INTERNET = 'android.permission.INTERNET';
 const DEV_SUFFIX = '.dev';
 
 /**
+ * 개발용 앱의 이름 꼬리.
+ *
+ * 홈 화면에서 진짜 앱과 구분하려고 붙인다. **한국어 이름을 만드는 플러그인도 이 값을
+ * 쓴다** (`plugins/withJamgimAppName.js`) — 두 군데 적으면 한쪽만 고쳐져서 홈 화면에
+ * `Kepta (개발)` 과 `잠김` 이 섞여 나온다.
+ */
+const DEV_NAME_SUFFIX = ' (개발)';
+
+/**
  * 개발용 빌드인지 판단한다.
  *
  * `JAMGIM_DEV_BUILD` 는 eas.json 의 development 프로필에만 적어 둔 우리 표시다.
@@ -43,7 +52,7 @@ function resolve(config, env = {}) {
   return {
     ...config,
     // 홈 화면에서 둘을 구분할 수 있어야 한다.
-    name: `${config.name} (개발)`,
+    name: `${config.name}${DEV_NAME_SUFFIX}`,
     /**
      * 앱이 스스로 "나는 개발용" 이라고 알 수 있게 한다.
      *
@@ -79,3 +88,4 @@ function resolve(config, env = {}) {
 module.exports = ({ config }) => resolve(config, process.env);
 module.exports.resolve = resolve;
 module.exports.isDevBuild = isDevBuild;
+module.exports.DEV_NAME_SUFFIX = DEV_NAME_SUFFIX;

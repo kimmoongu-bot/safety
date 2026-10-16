@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "잠김",
+    "name": "Kepta",
     "slug": "jamgim",
     "owner": "az52aa",
     "version": "1.0.2",
@@ -57,7 +57,8 @@
           "color": "#202124"
         }
       ],
-      "./plugins/withJamgimSecurity",
+      "./plugins/withJamgimAppName",
+    "./plugins/withJamgimSecurity",
       "./plugins/withJamgimAutofill"
     ],
     "extra": {

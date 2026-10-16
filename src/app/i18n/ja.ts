@@ -29,7 +29,7 @@ import type { MessageKey } from './ko.ts';
 export const ja = {
   // ── ロック画面 ────────────────────────────────────────────
   /** アプリの名前。ローマ字のままにした。すぐ下の一行が何のアプリかを説明する。 */
-  'lock.title': 'Jamgim',
+  'lock.title': 'Kepta',
   'lock.tagline': '自分だけのパスワード保管庫',
   'lock.open': '金庫を開く',
   'lock.openWithBiometric': ({ how }) => `${how}で開く`,
@@ -179,7 +179,7 @@ export const ja = {
    * ファイルアプリに表示される名前。「削除禁止」は、うっかり消さないために入れた。
    * ファイル名に使えない文字（\ / : * ? " < > |）は入れないこと。
    */
-  'backup.fileNamePrefix': 'Jamgim_バックアップ_削除禁止',
+  'backup.fileNamePrefix': 'Kepta_バックアップ_削除禁止',
 
   // ── 金庫のエラー ──────────────────────────────────────────
   // コア（src/core）はコードだけを投げ、言葉はここで決める。
@@ -191,7 +191,7 @@ export const ja = {
   'error.VAULT_ALREADY_EXISTS': 'すでに金庫があります。',
   'error.DATA_DAMAGED': '保存された内容が壊れています。',
   'error.UNSUPPORTED_FORMAT':
-    'このファイルは Jamgim のバックアップファイルではないか、版がちがいます。',
+    'このファイルは Kepta のバックアップファイルではないか、版がちがいます。',
   'error.CRYPTO_UNAVAILABLE': 'この端末では金庫を安全に使えません。',
   'error.VAULT_LOCKED': '金庫は閉じています。',
   'error.INVALID_INPUT': '入力した内容をご確認ください。',
@@ -327,7 +327,7 @@ export const ja = {
   'common.cancel': 'やめる',
   'common.on': 'on',
   'common.off': 'off',
-  'common.appName': 'Jamgim',
+  'common.appName': 'Kepta',
   'common.recoveryCodeLabel': '復旧コード {code}',
   'common.failed': 'うまくいきませんでした。もう一度お試しください。',
   'common.failedWhy': 'うまくいきませんでした。（{why}）',
@@ -335,7 +335,7 @@ export const ja = {
 
   // ── システムの画面・通知 ──────────────────────────────────
   'system.shareBackup': 'バックアップファイルを送る',
-  'system.reminderTitle': 'Jamgim — バックアップの時期です',
+  'system.reminderTitle': 'Kepta — バックアップの時期です',
   'system.reminderBody':
     '最後のバックアップから90日が過ぎました。新しいバックアップファイルを作っておいてください。',
   'system.guardUnsupported': 'この端末では画面を隠せません。',

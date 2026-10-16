@@ -31,7 +31,7 @@ export const en = {
    * Left as the romanised Korean name. It is a brand, and the tagline below it
    * says what the app is. Change this one line if the name changes.
    */
-  'lock.title': 'Jamgim',
+  'lock.title': 'Kepta',
   'lock.tagline': 'Your private vault.',
   'lock.open': 'Open vault',
   'lock.openWithBiometric': ({ how }) => `Open with ${how}`,
@@ -193,7 +193,7 @@ export const en = {
    * clearing it out by mistake.
    * Do not use characters a file name cannot hold: \ / : * ? " < > |
    */
-  'backup.fileNamePrefix': 'Jamgim_Backup_DoNotDelete',
+  'backup.fileNamePrefix': 'Kepta_Backup_DoNotDelete',
 
   // ── Vault errors ──────────────────────────────────────────
   // The core (src/core) throws codes only; the wording lives here.
@@ -204,7 +204,7 @@ export const en = {
   'error.VAULT_NOT_FOUND': 'There is no vault yet.',
   'error.VAULT_ALREADY_EXISTS': 'There is already a vault.',
   'error.DATA_DAMAGED': 'What was saved has been damaged.',
-  'error.UNSUPPORTED_FORMAT': 'This is not a Jamgim backup file, or it is a different version.',
+  'error.UNSUPPORTED_FORMAT': 'This is not a Kepta backup file, or it is a different version.',
   'error.CRYPTO_UNAVAILABLE': 'This phone cannot keep a vault safely.',
   'error.VAULT_LOCKED': 'The vault is locked.',
   'error.INVALID_INPUT': 'Please check what you entered.',
@@ -259,21 +259,21 @@ export const en = {
   // ── Autofill ────────────────────────────────────────────────────────────
   // ── Save offer ──────────────────────────────────────────────────────────
   'save.title': 'Save',
-  'save.asking': 'Save what you just entered in {app} to Jamgim?',
+  'save.asking': 'Save what you just entered in {app} to Kepta?',
   'save.passwordHidden': 'This app does not pass on the password. Please type it in yourself.',
-  'save.askingUnknown': 'Save what you just entered to Jamgim?',
+  'save.askingUnknown': 'Save what you just entered to Kepta?',
   'save.nothing': 'Nothing was found to save.',
   'save.keep': 'Save',
   'save.dontKeep': "Don't save",
   'save.check': 'Check the details below and change anything that is wrong.',
   'settings.autofillHeading': 'Autofill',
   'settings.autofillWhy':
-    'Tap a login box in another app and Jamgim appears above the keyboard. Tap it and Jamgim fills in your ID and password.',
+    'Tap a login box in another app and Kepta appears above the keyboard. Tap it and Kepta fills in your ID and password.',
   'settings.autofillOn': 'Currently on.',
   'settings.autofillOff': 'Currently off.',
   'settings.autofillTurnOn': 'Turn on autofill',
   'settings.autofillChange': 'Change autofill',
-  'settings.autofillHow': 'Your phone settings will open. Pick Jamgim from the list, then come back.',
+  'settings.autofillHow': 'Your phone settings will open. Pick Kepta from the list, then come back.',
   'settings.autofillNoScreen': 'This phone cannot open that settings screen.',
   'settings.autofillNotWorking': 'Some apps will not accept it — banking and government apps that use their own keypad.',
   'settings.recoveryHeading': 'Recovery code',
@@ -345,7 +345,7 @@ export const en = {
   'common.cancel': 'Never mind',
   'common.on': 'On',
   'common.off': 'Off',
-  'common.appName': 'Jamgim',
+  'common.appName': 'Kepta',
   'common.recoveryCodeLabel': 'Recovery code {code}',
   'common.failed': 'That did not work. Please try again.',
   'common.failedWhy': 'That did not work. ({why})',
@@ -353,14 +353,14 @@ export const en = {
 
   // ── System dialogs and notifications ──────────────────────
   'system.shareBackup': 'Send the backup file',
-  'system.reminderTitle': 'Jamgim — time to back up',
+  'system.reminderTitle': 'Kepta — time to back up',
   'system.reminderBody':
     'It has been 90 days since your last backup. Please make a new backup file.',
   'system.guardUnsupported': 'This phone cannot block the screen.',
 
   // ── 채우기 화면 (자동 완성) ──
   'fill.pick': 'Which one shall we use?',
-  'fill.noVault': 'There is no vault yet. Open Jamgim and create one first.',
+  'fill.noVault': 'There is no vault yet. Open Kepta and create one first.',
   'fill.empty': 'There is nothing saved in your vault.',
   'fill.noField': 'We could not find a field to fill in on this screen.',
   'fill.failed': 'We could not fill it in. Please type it yourself.',
@@ -386,7 +386,7 @@ export const en = {
   'info.oflNote': 'The license below is left in its original wording. Translating it could change its effect.',
   'privacy.title': 'Privacy policy',
   'privacy.updated': 'Last updated {date}',
-  'privacy.summary': 'Jamgim collects none of your information and sends it nowhere.',
+  'privacy.summary': 'Kepta collects none of your information and sends it nowhere.',
   'privacy.h1': '1. What we collect',
   'privacy.b1': 'Nothing. No name, phone number, email address, device identifier, advertising identifier, location, or usage history. There is no sign-up and no login.',
   'privacy.h2': '2. Where things are stored',
