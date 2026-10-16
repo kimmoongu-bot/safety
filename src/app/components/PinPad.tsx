@@ -8,7 +8,20 @@ import { createStyles } from '../theme/useStyles.ts';
  * 큰 숫자 패드 (명세 3장: 터치 타깃 48dp 이상, 한 화면의 핵심 행동 1~2개).
  * 입력한 자릿수는 점으로만 보여 준다.
  */
-export const PIN_MAX_LENGTH = 12;
+
+/**
+ * 잠금 번호는 **여섯 자리로 못박는다.**
+ *
+ * 핵심은 잠금 화면이다. 여섯 자리를 다 누르면 '열기' 를 따로 누르지 않고 저절로
+ * 열리는데, 그러려면 몇 자리인지 미리 알아야 한다. 길이를 모르면 여섯 번째에서
+ * 한 번 시도해 버리고, 번호가 일곱 자리인 사람은 그게 **틀린 시도로 세어져**
+ * 영영 못 연다.
+ *
+ * 금고 속(core)은 여전히 여섯 자리 이상이면 다 받는다 (`NEW_PIN_MIN_LENGTH`).
+ * 여기서 묶는 것은 **화면에서 만들고 누르는 길이**뿐이다.
+ */
+export const PIN_LENGTH = 6;
+export const PIN_MAX_LENGTH = PIN_LENGTH;
 
 /**
  * 지우기 칸을 가리키는 표시.
@@ -44,7 +57,7 @@ export function PinDots({ length }: { length: number }) {
   const t = useT();
   return (
     <View style={styles.dots} accessibilityLabel={t('pinpad.entered', { count: length })}>
-      {Array.from({ length: Math.max(6, length) }).map((_, i) => (
+      {Array.from({ length: PIN_LENGTH }).map((_, i) => (
         <View key={i} style={[styles.dot, i < length && styles.dotOn]} />
       ))}
     </View>
@@ -81,9 +94,13 @@ export function PinPad({
               onPress={() => press(key)}
               style={({ pressed }) => [styles.key, pressed && styles.pressed, disabled && styles.off]}
             >
-              <Text style={key === ERASE ? styles.keyTextSmall : styles.keyText}>
-                {key === ERASE ? t('pinpad.erase') : key}
-              </Text>
+              {({ pressed }) => (
+                <Text
+                  style={[key === ERASE ? styles.keyTextSmall : styles.keyText, pressed && styles.keyTextPressed]}
+                >
+                  {key === ERASE ? t('pinpad.erase') : key}
+                </Text>
+              )}
             </Pressable>
           ))}
         </View>
@@ -94,10 +111,15 @@ export function PinPad({
 
 const useStyles = createStyles((colors, fonts) =>
   StyleSheet.create({
-    dots: { flexDirection: 'row', gap: space.sm, justifyContent: 'center', marginVertical: space.sm },
-    // 숫자판이 네모라 점도 네모다. 하나만 동그라미면 거기만 튄다.
-    dot: { width: 18, height: 18, borderRadius: radius.sm / 2, borderWidth: 2, borderColor: colors.border },
-    dotOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+    dots: { flexDirection: 'row', gap: space.md, justifyContent: 'center', marginVertical: space.sm },
+    /**
+     * 몇 자리를 눌렀는지 알려 주는 동그라미 여섯.
+     *
+     * 빈 것은 테두리만, 채운 것은 속까지 강조색이다. 멀리서 봐도 "몇 개 찼는지"가
+     * 한눈에 들어와야 한다 — 이 화면에서 글자 없이 상태를 말하는 유일한 자리다.
+     */
+    dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: colors.textDim },
+    dotOn: { backgroundColor: colors.accent, borderColor: colors.accent },
     /**
      * 숫자판은 **줄 단위로 쌓는다.**
      *
@@ -118,7 +140,10 @@ const useStyles = createStyles((colors, fonts) =>
      * 60 은 손가락이 닿는 최소 크기(48dp)보다 넉넉하면서, 네 줄에 아래 버튼까지
      * 한 화면에 들어가는 높이다. 더 키우면 스크롤이 생겨 실패 안내가 밀려난다.
      *
-     * 모서리는 살짝만 둥글린다. 완전히 각지면 줄이 만나는 자리가 거칠어 보인다.
+     * 테두리를 두르지 않고 **바탕만 살짝 띄운다.** 열두 칸에 전부 줄을 두르면 화면이
+     * 줄로 뒤덮여, 정작 봐야 할 동그라미 여섯이 묻힌다.
+     *
+     * 모서리는 살짝만 둥글린다. 완전히 각지면 모서리가 날카로워 보인다.
      */
     key: {
       flex: 1,
@@ -126,11 +151,16 @@ const useStyles = createStyles((colors, fonts) =>
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: radius.sm,
-      borderWidth: 2,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.keyFill,
     },
-    pressed: { opacity: 0.7, backgroundColor: colors.surface },
+    /**
+     * 눌린 동안.
+     *
+     * 흐리게(opacity) 처리하지 않는다. 칸 바탕이 이미 흰색에 가까워서 흐려 봐야
+     * 눌렸는지 알 수 없다. 대신 **강조색으로 꽉 채운다.** 손가락이 칸을 가려도
+     * 둘레가 파래지는 것이 보인다.
+     */
+    pressed: { backgroundColor: colors.accent },
     off: { opacity: 0.5 },
     // 네모 한가운데. CENTER_GLYPH 가 없으면 글꼴에 따라 숫자가 아래로 처진다.
     keyText: {
@@ -142,10 +172,12 @@ const useStyles = createStyles((colors, fonts) =>
     },
     keyTextSmall: {
       fontFamily: fonts.familyBold,
-      fontSize: font.body,
+      fontSize: font.big,
       fontWeight: WEIGHT,
       color: colors.accent,
       ...CENTER_GLYPH,
     },
+    /** 눌린 칸은 강조색으로 차므로 글자가 뒤집힌다. */
+    keyTextPressed: { color: colors.accentText },
   }),
 );

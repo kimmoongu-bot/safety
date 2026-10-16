@@ -35,6 +35,7 @@ function pairs(c: Palette): [string, string, string][] {
   return [
     ['본문 / 바탕', c.text, c.bg],
     ['본문 / 카드', c.text, c.surface],
+    ['숫자판 글자 / 숫자판 바탕', c.text, c.keyFill],
     ['흐린 글자 / 바탕', c.textDim, c.bg],
     ['흐린 글자 / 카드', c.textDim, c.surface],
     ['강조 / 바탕', c.accent, c.bg],
