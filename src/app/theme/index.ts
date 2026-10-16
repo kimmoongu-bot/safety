@@ -22,7 +22,7 @@ import { darkColors, lightColors, type Palette } from './palette.ts';
  * 바탕과 카드가 같은 흰색이라, 무엇이 어디까지인지는 전부 줄이 말한다.
  * 어두운 화면에서는 그대로 뒤집힌다 — 검정 바탕에 흰 줄.
  *
- * 색을 가진 것은 셋뿐이다: `accent`(누를 곳 하나)·`danger`(지우기)·`ok`(잘됨).
+ * 뜻을 가진 색 둘만 남겼다: `danger`(지우기)와 `ok`(잘됨).
  * 대비는 `tests/palette.test.ts` 가 두 벌 모두 재고, 명세는 4.5:1 이상을 요구한다.
  */
 export { type Palette, lightColors, darkColors, colors } from './palette.ts';
@@ -68,13 +68,7 @@ export const space = {
 /** 터치 타깃 최소 크기. 글자가 작아져도 이건 줄이지 않는다. */
 export const TOUCH = 48;
 
-/**
- * 모서리 둥글기.
- *
- * `sm` 은 숫자판처럼 각져 보여야 하는 칸에 쓴다. 4 는 "둥글린 티는 안 나지만
- * 모서리가 날카롭지도 않은" 정도다. 0 으로 두면 줄이 만나는 자리가 거칠어 보인다.
- */
-export const radius = { sm: 4, md: 12, lg: 18 } as const;
+export const radius = { sm: 8, md: 12, lg: 18 } as const;
 
 /**
  * 굵기.
@@ -119,4 +113,10 @@ export function useColors(): Palette {
   return dark ? darkColors : lightColors;
 }
 
-
+/**
+ * 앱 상자 (액자)
+ *
+ * 화면 전체를 채우지 않고, 둘레에 여백을 두고 모서리 둥근 상자 안에 담는다.
+ * 여백을 늘리면 그만큼 쓸 수 있는 화면이 줄어든다.
+ */
+export const frame = { inset: 10, radius: 22 } as const;
