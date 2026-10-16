@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { BigButton, Body, Field, Notice, Screen } from '../components/Basics.tsx';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppMark, BigButton, Body, Field, Notice, Screen } from '../components/Basics.tsx';
 import { PinDots, PinPad } from '../components/PinPad.tsx';
 import { useVaultStore } from '../state/vaultStore.ts';
 import { authenticate, type BiometricKind, checkBiometricSupport } from '../platform/biometrics.ts';
 import { useT } from '../i18n/index.ts';
-import { space } from '../theme/index.ts';
+import { font, space, WEIGHT } from '../theme/index.ts';
+import { createStyles } from '../theme/useStyles.ts';
 
 /**
- * 02 잠금 화면 — 생체인증 버튼, PIN 패드, 실패 횟수·대기 표시 (명세 3장)
+ * 02 잠금 화면 — 생체인증 버튼, 숫자판, 실패 횟수·대기 표시 (명세 3장)
  *
- * 한 화면에 담는다. 스크롤이 생기면 "몇 번 틀렸고 얼마나 기다려야 하는지"가
- * 위로 밀려나 보이지 않는다. 제목 줄의 자물쇠 표시와 "잠김"이 로고 노릇을 한다.
+ * 다른 화면과 달리 `Screen` 틀을 쓰지 않는다. `Screen` 은 제목 줄이 위에 붙고 내용이
+ * 그 아래부터 **차례로 쌓이는** 틀이라, 내용이 짧으면 아래가 통째로 비고 숫자판이
+ * 화면 위쪽에 몰린다. 실기기에서 아래 3분의 1이 빈 채로 남았다.
+ *
+ * 그래서 위·가운데·아래 세 덩어리로 직접 짠다. 로고는 위, 입력 표시는 가운데,
+ * **숫자판과 버튼들은 아래** — 폰을 쥔 손의 엄지가 닿는 곳이다.
+ *
+ * 그래도 스크롤은 남긴다. 글꼴을 200% 로 키우면 세 덩어리가 한 화면에 안 들어가는데,
+ * 그때 아래가 잘려 나가면 숫자판을 못 누른다 (명세 3장).
  */
 /** 남은 시간을 문장으로. 분·초를 나누는 것은 언어와 무관한 판단이라 여기서 한다. */
 function waitText(t: (k: 'lock.waitSeconds' | 'lock.waitMinutes', p?: Record<string, string | number>) => string, ms: number): string {
@@ -22,6 +30,7 @@ function waitText(t: (k: 'lock.waitSeconds' | 'lock.waitMinutes', p?: Record<str
 }
 
 export function LockScreen() {
+  const styles = useStyles();
   const { vault, run, reset, refresh, refreshLockState, loadSettings, waitMs, failures, settings } = useVaultStore();
   const t = useT();
   /** 기기가 지원하는 것에 맞는 말. "지문" / "얼굴" / "지문·얼굴" */
@@ -111,26 +120,69 @@ export function LockScreen() {
   }
 
   return (
-    <Screen title={t('lock.title')} subtitle={t('lock.tagline')} mark>
-      {waiting ? (
-        <Notice>{t('lock.failuresWithWait', { count: failures, wait: waitText(t, waitMs) })}</Notice>
-      ) : failures > 0 ? (
-        <Notice>{t('lock.failures', { count: failures })}</Notice>
-      ) : null}
+    <View style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.body}>
+        <View style={styles.top}>
+          <AppMark size={56} />
+          <View style={styles.titleBlock}>
+            <Text style={styles.title}>{t('lock.title')}</Text>
+            <Text style={styles.tagline}>{t('lock.tagline')}</Text>
+          </View>
+        </View>
 
-      <PinDots length={pin.length} />
-      <PinPad value={pin} onChange={setPin} disabled={waiting} />
-      <View style={{ height: space.sm }} />
-      <BigButton label={t('lock.open')} onPress={tryPin} disabled={waiting || pin.length < 4} />
-      {canUseBiometric ? (
-        <BigButton
-          label={t('lock.openWithBiometric', { how: how(biometricKind) })}
-          tone="plain"
-          onPress={tryBiometric}
-          disabled={waiting}
-        />
-      ) : null}
-      <BigButton label={t('lock.forgotPin')} tone="plain" onPress={() => setMode('recovery')} />
-    </Screen>
+        <View style={styles.middle}>
+          <PinDots length={pin.length} />
+          {waiting ? (
+            <Notice>{t('lock.failuresWithWait', { count: failures, wait: waitText(t, waitMs) })}</Notice>
+          ) : failures > 0 ? (
+            <Notice>{t('lock.failures', { count: failures })}</Notice>
+          ) : null}
+        </View>
+
+        <View style={styles.bottom}>
+          <PinPad value={pin} onChange={setPin} disabled={waiting} />
+          <View style={{ height: space.xs }} />
+          <BigButton label={t('lock.open')} onPress={tryPin} disabled={waiting || pin.length < 4} />
+          {canUseBiometric ? (
+            <BigButton
+              label={t('lock.openWithBiometric', { how: how(biometricKind) })}
+              tone="plain"
+              onPress={tryBiometric}
+              disabled={waiting}
+            />
+          ) : null}
+          <BigButton
+            label={t('lock.forgotPin')}
+            sub={t('lock.forgotPinSub')}
+            tone="plain"
+            onPress={() => setMode('recovery')}
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
+
+const useStyles = createStyles((colors, fonts) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.bg },
+    /**
+     * 위·가운데·아래.
+     *
+     * `flexGrow: 1` 이라 내용이 짧으면 화면을 꽉 채우고(가운데가 늘어난다),
+     * 길면 넘친 만큼 스크롤된다. 둘 중 하나만 고르지 않아도 된다.
+     */
+    body: { flexGrow: 1, paddingHorizontal: space.md, paddingTop: space.lg, paddingBottom: space.md },
+    top: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+    titleBlock: { flexShrink: 1 },
+    title: { fontFamily: fonts.familyBold, fontSize: font.logo, fontWeight: WEIGHT, color: colors.text },
+    tagline: { fontFamily: fonts.family, fontSize: font.bodySmall, fontWeight: WEIGHT, color: colors.textDim, marginTop: 2 },
+    /**
+     * 가운데. 남는 높이를 **전부** 가져가고 그 한가운데에 입력 표시를 놓는다.
+     * 빈 공간이 아래에 몰리지 않고 여기로 모인다.
+     */
+    middle: { flex: 1, justifyContent: 'center', gap: space.md, paddingVertical: space.md },
+    /** 아래. 엄지가 닿는 곳. 숫자판과 버튼들이 화면 밑바닥에 붙는다. */
+    bottom: { gap: space.sm },
+  }),
+);

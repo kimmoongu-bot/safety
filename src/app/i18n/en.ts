@@ -19,7 +19,7 @@ import type { MessageKey } from './ko.ts';
  * is a **compile error**, not a blank on someone's screen.
  *
  * Wording follows the same rule as the Korean: plain words, no jargon
- * (spec ch.3). "Open", not "decrypt". "PIN", not "master password".
+ * (spec ch.3). "Open", not "decrypt". "passcode", not "master password".
  */
 
 /** Written for people who are not comfortable with phones. Short sentences. */
@@ -35,11 +35,12 @@ export const en = {
   'lock.tagline': 'Your private vault.',
   'lock.open': 'Open vault',
   'lock.openWithBiometric': ({ how }) => `Open with ${how}`,
-  'lock.forgotPin': 'I forgot my PIN (use recovery code)',
+  'lock.forgotPin': 'I forgot my passcode',
+  'lock.forgotPinSub': 'Open with a recovery code',
   'lock.failures': ({ count }) =>
-    Number(count) === 1 ? 'Wrong PIN, 1 time.' : `Wrong PIN, ${count} times.`,
+    Number(count) === 1 ? 'Wrong passcode, 1 time.' : `Wrong passcode, ${count} times.`,
   'lock.failuresWithWait': ({ count, wait }) =>
-    Number(count) === 1 ? `Wrong PIN, 1 time. ${wait}.` : `Wrong PIN, ${count} times. ${wait}.`,
+    Number(count) === 1 ? `Wrong passcode, 1 time. ${wait}.` : `Wrong passcode, ${count} times. ${wait}.`,
   'lock.waitSeconds': ({ seconds }) =>
     Number(seconds) === 1 ? 'Try again in 1 second' : `Try again in ${seconds} seconds`,
   'lock.waitMinutes': ({ minutes }) =>
@@ -54,9 +55,9 @@ export const en = {
   'setup.biometricTitle': ({ how }) => `Open with ${how} too?`,
   'setup.biometricYes': ({ how }) => `Open with ${how}`,
   'setup.biometricWhy': ({ how }) =>
-    `With ${how} you will not have to enter your PIN every time. You can change this later in Settings.`,
+    `With ${how} you will not have to enter your passcode every time. You can change this later in Settings.`,
   'setup.biometricUnavailable': ({ how }) =>
-    `This phone is not set up for ${how}. You can open the vault with your PIN.`,
+    `This phone is not set up for ${how}. You can open the vault with your passcode.`,
 
   // ── Number pad ────────────────────────────────────────────
   'pinpad.erase': 'Erase',
@@ -72,7 +73,7 @@ export const en = {
   'biometric.both': 'your fingerprint or face',
   'biometric.reason': 'Please confirm it is you to open the vault',
   'biometric.cancel': 'Cancel',
-  'biometric.fallback': 'Use PIN instead',
+  'biometric.fallback': 'Use passcode instead',
 
   // ── My vault (the list) ───────────────────────────────────
   'list.title': 'My vault',
@@ -105,25 +106,25 @@ export const en = {
   'card.favoriteRemove': 'Remove from the ones you use often',
 
   // ── Setting up (continued) ────────────────────────────────
-  'setup.pinTitle': 'Create your PIN',
+  'setup.pinTitle': 'Create your passcode',
   'setup.pinAgainTitle': 'Please enter it once more',
   'setup.pinHelp': 'Choose the numbers you will use to open your vault. At least 6 digits.',
-  'setup.pinWhy': 'A short PIN can be guessed. If you lose your phone, these numbers are the last wall.',
-  'setup.pinAgainHelp': 'Enter the PIN you just chose one more time.',
+  'setup.pinWhy': 'A short passcode can be guessed. If you lose your phone, these numbers are the last wall.',
+  'setup.pinAgainHelp': 'Enter the passcode you just chose one more time.',
   'setup.next': 'Next',
-  'setup.pinMismatch': 'The two PINs do not match. Please start again.',
+  'setup.pinMismatch': 'The two passcodes do not match. Please start again.',
   'setup.pinOnly': 'Use numbers only',
   'setup.codeTitle': 'Write down your recovery code',
   'setup.codeWarn':
-    'This is the only way to open your vault if you forget your PIN. Write it on paper and keep it somewhere other than your phone. Do not take a screenshot.',
+    'This is the only way to open your vault if you forget your passcode. Write it on paper and keep it somewhere other than your phone. Do not take a screenshot.',
   'setup.codeNext': 'On the next screen you will type this code in yourself to confirm.',
   'setup.codeWrote': 'I wrote it down. Next',
   'setup.codeCheckTitle': 'Enter the recovery code you wrote down',
   'setup.codeCheckHelp': 'Capital letters and spaces do not matter.',
   'setup.lastWarnWithBiometric': ({ how }) =>
-    `You can also open the vault with ${how}. If your PIN, recovery code and backup file (with its password) are all gone, the vault cannot be opened.`,
+    `You can also open the vault with ${how}. If your passcode, recovery code and backup file (with its password) are all gone, the vault cannot be opened.`,
   'setup.lastWarn':
-    'If your PIN, recovery code and backup file (with its password) are all gone, the vault cannot be opened.',
+    'If your passcode, recovery code and backup file (with its password) are all gone, the vault cannot be opened.',
   'setup.finish': 'I understand — start',
   'setup.codeMismatch': 'That recovery code does not match. Check what you wrote down.',
   'setup.done': 'Your vault is ready.',
@@ -196,7 +197,7 @@ export const en = {
 
   // ── Vault errors ──────────────────────────────────────────
   // The core (src/core) throws codes only; the wording lives here.
-  'error.WRONG_PIN': 'That PIN is not right.',
+  'error.WRONG_PIN': 'That passcode is not right.',
   'error.WRONG_RECOVERY_CODE': 'That recovery code is not right.',
   'error.WRONG_BACKUP_PASSWORD': 'That backup password is not right.',
   'error.LOCKED_OUT': 'Too many wrong tries. Please wait a moment and try again.',
@@ -209,14 +210,14 @@ export const en = {
   'error.INVALID_INPUT': 'Please check what you entered.',
 
   // Same kind of failure, but what to do about it differs.
-  'error.BACKUP_PASSWORD_SAME_AS_PIN': 'Please make the backup password different from your PIN.',
+  'error.BACKUP_PASSWORD_SAME_AS_PIN': 'Please make the backup password different from your passcode.',
   'error.BACKUP_PASSWORD_TOO_SHORT': 'The backup password must be at least {count} characters.',
-  'error.PIN_TOO_SHORT': 'Please choose a PIN of at least {count} digits. A short one can be guessed.',
+  'error.PIN_TOO_SHORT': 'Please choose a passcode of at least {count} digits. A short one can be guessed.',
   'error.WIPED_AFTER_FAILURES': 'The vault was erased after 10 wrong tries.',
   'error.BIOMETRIC_NOT_SET_UP':
-    'This phone cannot open the vault with a fingerprint or face. Please enter your PIN.',
+    'This phone cannot open the vault with a fingerprint or face. Please enter your passcode.',
   'error.BIOMETRIC_CHANGED':
-    'The fingerprint or face on this phone has changed. Please open with your PIN.',
+    'The fingerprint or face on this phone has changed. Please open with your passcode.',
   'error.RECORD_NOT_FOUND': 'That item was not found.',
   'error.NO_RECOVERY_CODE_COPY': 'There is no copy of the recovery code. Please make a new one.',
 
@@ -237,7 +238,7 @@ export const en = {
   'settings.autoLock1m': '1 minute',
   'settings.autoLock5m': '5 minutes',
   'settings.biometric': 'Open with fingerprint or face',
-  'settings.biometricWhy': 'When on, you can open the vault without entering your PIN.',
+  'settings.biometricWhy': 'When on, you can open the vault without entering your passcode.',
   'settings.biometricNone': 'This phone is not set up for fingerprint or face.',
   'settings.biometricOn': 'You can now open with your fingerprint or face.',
   'settings.biometricOff': 'Opening with fingerprint or face is off.',
@@ -254,7 +255,7 @@ export const en = {
   'settings.keepPrevWhy': 'So you can go back if the new password does not work.',
   'settings.wipe': 'Erase the vault after 10 wrong tries',
   'settings.wipeWhy':
-    'When on, entering the wrong PIN 10 times erases the whole vault. Without a backup file it cannot be brought back.',
+    'When on, entering the wrong passcode 10 times erases the whole vault. Without a backup file it cannot be brought back.',
   // ── Autofill ────────────────────────────────────────────────────────────
   // ── Save offer ──────────────────────────────────────────────────────────
   'save.title': 'Save',
@@ -278,18 +279,18 @@ export const en = {
   'settings.recoveryHeading': 'Recovery code',
   'settings.recoveryHide': 'Hide again',
   'settings.recoveryShow': 'Show recovery code again',
-  'settings.pinHeading': 'Change your PIN',
-  'settings.pinCurrent': 'Current PIN',
-  'settings.pinNext': 'New PIN',
+  'settings.pinHeading': 'Change your passcode',
+  'settings.pinCurrent': 'Current passcode',
+  'settings.pinNext': 'New passcode',
   'settings.pinNextHint': 'At least {count} digits',
   'settings.pinChange': 'Change',
-  'settings.pinChanged': 'Your PIN has been changed.',
+  'settings.pinChanged': 'Your passcode has been changed.',
   'settings.cancel': 'Never mind',
   'settings.backupHeading': 'Backup',
   'settings.backupGo': 'Make a backup file / restore from one',
   'settings.wipeHeading': 'Erase the vault',
   'settings.wipeExplain':
-    'If your PIN, fingerprint, recovery code and backup file (with its password) are all gone, the vault cannot be opened. You can erase it and start over, but what was inside will not come back.',
+    'If your passcode, fingerprint, recovery code and backup file (with its password) are all gone, the vault cannot be opened. You can erase it and start over, but what was inside will not come back.',
   'settings.wipeStart': 'Erase the vault and start over',
   'settings.wipeAsksTwice': 'You will be asked twice before anything is erased.',
   'settings.wipe1Title': 'Really erase it? (1 of 2)',
@@ -313,7 +314,7 @@ export const en = {
   'backup.familyTip':
     'Giving the file alone to two or three family members means you can restore it even if you lose your phone. Do not pass on the backup password — write it on paper yourself and keep it somewhere other than your phone. Messaging apps often stop letting you download a file after a while, so check that the person actually saved it on their phone.',
   'backup.password': 'Backup password',
-  'backup.passwordHint': 'At least {min} characters. Make it different from the PIN you open the app with.',
+  'backup.passwordHint': 'At least {min} characters. Make it different from the passcode you open the app with.',
   'backup.passwordAgain': 'Backup password once more',
   'backup.mismatch': 'The two backup passwords do not match.',
   'backup.make': 'Make the backup file and send it',
@@ -389,7 +390,7 @@ export const en = {
   'privacy.h1': '1. What we collect',
   'privacy.b1': 'Nothing. No name, phone number, email address, device identifier, advertising identifier, location, or usage history. There is no sign-up and no login.',
   'privacy.h2': '2. Where things are stored',
-  'privacy.b2': 'The service names, usernames, passwords and notes you enter are stored only on this device. Everything is encrypted before it is stored. The key is made from your PIN and the secure storage built into the device; nobody holds that key, including the developer.',
+  'privacy.b2': 'The service names, usernames, passwords and notes you enter are stored only on this device. Everything is encrypted before it is stored. The key is made from your passcode and the secure storage built into the device; nobody holds that key, including the developer.',
   'privacy.h3': '3. Where things are sent',
   'privacy.b3': 'Nowhere. This app does not request internet permission at all, and no server exists. There are no ads, no usage tracking, and no automatic crash reporting.',
   'privacy.h4': '4. Backup files',
