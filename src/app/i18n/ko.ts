@@ -134,7 +134,7 @@ export const ko = {
   'edit.titleEdit': '고치기',
   'edit.save': '저장하기',
   'edit.service': '어디에서 쓰나요?',
-  'edit.serviceHint': '예: 국민은행, 현대카드, 쿠팡',
+  'edit.serviceHint': '예: 내 은행, 신용카드, 쇼핑몰',
   'edit.username': '아이디',
   'edit.password': '비밀번호',
   'edit.show': '보기',

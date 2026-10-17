@@ -131,6 +131,37 @@ test('조사가 앞말에 따라 바뀐다', () => {
   assert.equal(translate(ko, 'lock.openWithBiometric', { how: '얼굴' }), '얼굴로 열기');
 });
 
+test('화면에 남의 상표가 들어 있지 않다', () => {
+  /**
+   * 화면 문구는 **스토어 사진에 그대로 찍혀 나간다.**
+   *
+   * '어디에서 쓰나요' 칸의 예시에 실제 회사 이름이 들어 있었다 —
+   * `Chase, Visa, Amazon` / `국민은행, 현대카드, 쿠팡` 같은 것들.
+   * 남의 상표가 찍혀 있으면 "그 회사와 관계가 있는 앱" 으로 읽힌다. 심사에서
+   * 되돌아올 수 있고, 우리가 그 회사와 아무 상관이 없다는 점에서 사실도 아니다.
+   * 일반 명사로 바꿨고, 되돌아오지 못하게 여기서 막는다.
+   *
+   * **뺀 것만 적는다.** "상표 같은 것" 을 알아보는 검사는 만들 수 없다. 이 목록은
+   * 우리가 실제로 한 번 넣었던 이름들이고, 같은 자리에 다시 들어오는 것을 잡는다.
+   */
+  const REMOVED = [
+    'Chase', 'Visa', 'Amazon', 'Ozon',
+    '국민은행', '현대카드', '쿠팡', '네이버',
+    '三菱UFJ', '楽天',
+    'Сбербанк', 'Яндекс',
+  ];
+  const offenders: string[] = [];
+  for (const [tag, catalog] of [['ko', ko], ['en', en], ['ja', ja], ['ru', ru]] as const) {
+    for (const [key, value] of Object.entries(catalog)) {
+      if (typeof value !== 'string') continue;
+      for (const brand of REMOVED) {
+        if (value.includes(brand)) offenders.push(`${tag} ${key} → ${brand}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], `화면에 남의 상표가 있다:\n  ${offenders.join('\n  ')}`);
+});
+
 test('가짜 언어에도 같은 열쇠가 모두 있다', () => {
   const pseudo = makePseudo(ko);
   assert.deepEqual(Object.keys(pseudo).sort(), Object.keys(ko).sort());

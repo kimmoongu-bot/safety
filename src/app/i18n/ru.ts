@@ -155,7 +155,7 @@ export const ru = {
   'edit.titleEdit': 'Изменить',
   'edit.save': 'Сохранить',
   'edit.service': 'Где вы это используете?',
-  'edit.serviceHint': 'например: Сбербанк, Ozon, Яндекс',
+  'edit.serviceHint': 'например: Банк, Кредитная карта, Интернет-магазин',
   'edit.username': 'Логин',
   'edit.password': 'Пароль',
   'edit.show': 'Показать',

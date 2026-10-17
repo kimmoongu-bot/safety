@@ -135,7 +135,7 @@ export const ja = {
   'edit.titleEdit': '直す',
   'edit.save': '保存する',
   'edit.service': 'どこで使いますか？',
-  'edit.serviceHint': '例: 三菱UFJ銀行、楽天カード、Amazon',
+  'edit.serviceHint': '例: 銀行、クレジットカード、ネットショップ',
   'edit.username': 'ID',
   'edit.password': 'パスワード',
   'edit.show': '見る',

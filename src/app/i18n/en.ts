@@ -144,7 +144,7 @@ export const en = {
   'edit.titleEdit': 'Edit',
   'edit.save': 'Save',
   'edit.service': 'Where do you use this?',
-  'edit.serviceHint': 'e.g. Chase, Visa, Amazon',
+  'edit.serviceHint': 'e.g. My bank, Credit card, Online store',
   'edit.username': 'Username',
   'edit.password': 'Password',
   'edit.show': 'Show',
