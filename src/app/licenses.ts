@@ -138,4 +138,4 @@ OTHER DEALINGS IN THE FONT SOFTWARE.`;
  * 비어 있으면 화면에서 문의 줄을 아예 감춘다 — 눌러도 아무 일 안 나는 단추를
  * 보여 주는 것이 아무것도 없는 것보다 나쁘다.
  */
-export const CONTACT_EMAIL = 'jamgim.app@gmail.com';
+export const CONTACT_EMAIL = 'support@codetfind.com';

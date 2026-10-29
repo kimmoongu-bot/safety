@@ -21,7 +21,7 @@ import { font, space } from '../theme/index.ts';
 type View_ = 'home' | 'privacy' | 'licenses';
 
 /** 처리방침을 마지막으로 손본 날. 내용을 고치면 **반드시** 같이 고친다. */
-const PRIVACY_UPDATED = '2026-09-12';
+const PRIVACY_UPDATED = '2026-10-29';
 
 export function InfoScreen() {
   const styles = useStyles();
@@ -34,7 +34,7 @@ export function InfoScreen() {
       <Screen title={t('privacy.title')} onBack={() => setView('home')}>
         <Notice tone="plain">{t('privacy.summary')}</Notice>
         <Body dim>{t('privacy.updated', { date: PRIVACY_UPDATED })}</Body>
-        {([1, 2, 3, 4, 5, 6] as const).map((n) => (
+        {([1, 2, 3, 4, 5, 6, 7] as const).map((n) => (
           <View key={n} style={styles.section}>
             <Title>{t(`privacy.h${n}`)}</Title>
             <Body>{t(`privacy.b${n}`)}</Body>

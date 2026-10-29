@@ -7,6 +7,7 @@ import {
   PRIVACY_SOURCE,
   PRIVACY_TARGET,
 } from '../tools/site/build-privacy.ts';
+import { CONTACT_EMAIL } from '../src/app/licenses.ts';
 
 /**
  * 스토어는 개인정보 처리방침을 볼 수 있는 **웹 주소**를 요구한다.
@@ -44,7 +45,9 @@ test('우리끼리 하는 말은 웹에 안 나간다', () => {
 
 test('문의 주소가 눌리는 링크로 나간다', () => {
   const made = buildPrivacyHtml(source);
-  assert.match(made, /<a href="mailto:jamgim\.app@gmail\.com">/);
+  // 주소를 여기 박아 두면 바꿀 때 또 어긋난다. 앱이 쓰는 값을 그대로 본다.
+  const escaped = CONTACT_EMAIL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(made, new RegExp('<a href="mailto:' + escaped + '">'));
 });
 
 /**

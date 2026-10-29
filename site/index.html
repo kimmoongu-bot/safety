@@ -25,7 +25,7 @@ strong { font-weight: 600; }
   </head>
   <body>
     <h1>잠김 개인정보 처리방침</h1>
-    <p>마지막 수정: 2026-09-12</p>
+    <p>마지막 수정: 2026-10-29</p>
     <h2>한 줄 요약</h2>
     <p><strong>잠김은 사용자의 어떤 정보도 수집하지 않고, 어디로도 보내지 않습니다.</strong></p>
     <h2>1. 수집하는 정보</h2>
@@ -34,14 +34,26 @@ strong { font-weight: 600; }
     <p>사용자가 직접 넣은 서비스명·아이디·비밀번호·메모·갈래는 <strong>사용자 기기 안에만</strong> 저장됩니다. 저장될 때 모두 암호로 잠깁니다(AES-256-GCM). 잠그는 열쇠는 사용자의 PIN 과 기기의 보안 저장소(안드로이드 Keystore / iOS Keychain)에서 만들어지며, 개발자를 포함한 누구도 이 열쇠를 가지고 있지 않습니다.</p>
     <h2>3. 정보를 보내는 곳</h2>
     <p>없습니다. 이 앱은 인터넷 권한을 요청하지 않으며, 서버가 존재하지 않습니다. 광고 · 분석 도구 · 크래시 리포트 자동 전송을 넣지 않았습니다.</p>
-    <h2>4. 백업 파일</h2>
+    <h2>4. 자동 완성</h2>
+    <p>사용자가 폰 설정에서 잠김을 '자동 완성 서비스'로 직접 고른 경우에만 동작합니다. 다른 앱의 로그인 칸을 누르면, 어떤 항목을 보여 줄지 고르기 위해 그 앱의 이름(꾸러미 이름) 또는 웹 주소를 <strong>기기 안에서만</strong> 확인합니다. 이 정보는 저장하거나 어디로도 보내지 않습니다. 채울 내용은 사용자가 잠김 잠금 화면에서 PIN이나 지문으로 연 뒤 직접 고른 항목뿐입니다. 설정에서 자동 완성 서비스를 끄면 바로 멈춥니다.</p>
+    <p>다른 앱에 아이디와 비밀번호를 넣고 나면 안드로이드가 "잠김에 담을까요" 하고 묻습니다. 담겠다고 하신 경우에만, 방금 그 두 칸에 넣은 값을 <strong>기기 안에서</strong> 받아 담기 화면에 채워 보여 드립니다. 그 값은 사용자가 '담기'를 눌러야 금고에 저장되며, 누르지 않고 화면을 닫으면 사라집니다. 이때도 어디로도 보내지 않습니다.</p>
+    <h2>5. 백업 파일</h2>
     <p>사용자가 직접 만들 때에만 백업 파일이 생깁니다. 파일 내용은 사용자가 정한 백업 비밀번호로 잠겨 있어, 비밀번호를 모르면 열 수 없습니다. 이 파일을 어디에 보관하고 누구에게 보낼지는 전적으로 사용자가 정하며, 앱은 관여하지 않습니다.</p>
-    <h2>5. 삭제</h2>
+    <h2>6. 삭제</h2>
     <p>앱을 지우면 기기에 저장된 금고 내용도 함께 사라집니다. 앱 안의 "금고 초기화"로도 지울 수 있습니다. 개발자 쪽에 남는 사본은 애초에 없습니다.</p>
-    <h2>6. 어린이</h2>
+    <h2>7. 어린이</h2>
     <p>이 앱은 개인 기록 도구이며 별도의 연령 제한 기능을 두지 않습니다. 어떤 이용자에 대해서도 정보를 수집하지 않습니다.</p>
-    <h2>7. 문의</h2>
-    <p><a href="mailto:jamgim.app@gmail.com">jamgim.app@gmail.com</a></p>
+    <h2>8. 운영자</h2>
+    <p>코드파인드(Codetfind) · 대표 김문구 · 사업자등록번호 547-60-00916 · 통신판매업 신고 2026-부산진-1303</p>
+    <h2>9. 문의</h2>
+    <p><a href="mailto:support@codetfind.com">support@codetfind.com</a></p>
     <p>앱에 대한 문의, 개인정보 관련 요청은 위 주소로 보내 주세요. 저희가 가진 이용자 정보가 없으므로 열람·정정·삭제 요청은 해당되지 않지만, 무엇이든 물어보실 수 있습니다.</p>
+    <h2>English</h2>
+    <p><strong>Kepta does not collect any of your information and does not send it anywhere.</strong> There is no sign-up, no account and no server, and the app does not request internet permission at all. You can check this yourself in the permission list.</p>
+    <p>What you enter — service name, ID, password and memo — is stored on your device only, and everything is encrypted when it is saved (AES-256-GCM). The key is derived from your PIN together with your device's secure storage, and nobody, including the developer, holds it. Deleting the app removes the stored vault with it.</p>
+    <p>Autofill works only if you choose Kepta as your autofill service in your phone's settings. When you tap a login field in another app, Kepta checks that app's package name or web address <strong>on your device only</strong> to decide which entries to suggest. This information is never stored or sent anywhere. Nothing is filled until you unlock Kepta with your PIN or fingerprint and pick an entry yourself. Turning off the autofill service in settings stops it immediately.</p>
+    <p>After you type an ID and password into another app, Android may ask whether to save them to Kepta. Only if you agree, the values from those two fields are handed to Kepta <strong>on your device</strong> and shown in the save screen. They are kept in your vault only when you tap Save, and they are discarded if you close that screen without saving. They are not sent anywhere either.</p>
+    <p>Operator: Codetfind (KIM Moongu), Business Registration No. 547-60-00916, Republic of Korea.</p>
+    <p>Contact: <a href="mailto:support@codetfind.com">support@codetfind.com</a></p>
   </body>
 </html>
