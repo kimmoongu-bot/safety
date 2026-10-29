@@ -106,17 +106,38 @@ test('app.json 자체는 언제나 인터넷을 막아 둔다', () => {
  *   필요 없다. 비밀번호 앱에 이게 붙어 있으면 좋게 안 본다.
  * - 설치 경로 알아내기: 알림 라이브러리가 끌고 온 expo-application 이 넣는다.
  *   광고 추적에 쓰이는 종류다. 우리 코드는 부르지 않는다.
+ * - 사진 읽기(READ_MEDIA_IMAGES): expo-screen-capture 가 **스크린샷 감지**용으로
+ *   넣는다(안드로이드 13 한 판에만). 우리는 막기만 걸고 감지(addScreenshotListener)는
+ *   쓰지 않는다. **2026-10-29 플레이가 이것 때문에 출시를 막았다** — "사진 및 동영상
+ *   권한을 요청하는 모든 개발자는 앱의 핵심 기능을 알려야 합니다". 핵심 기능이 아니라
+ *   안 쓰는 권한이므로 막는다.
  */
 const UNUSED_PERMISSIONS = [
   'com.google.android.c2dm.permission.RECEIVE',
   'android.permission.SYSTEM_ALERT_WINDOW',
   'com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE',
+  'android.permission.READ_MEDIA_IMAGES',
 ];
 
 test('쓰지 않는 권한은 막아 둔다', () => {
   const android = appJson.expo.android as { blockedPermissions?: string[] };
   const open = UNUSED_PERMISSIONS.filter((p) => !android.blockedPermissions?.includes(p));
   assert.deepEqual(open, [], `쓰지 않는 권한이 열려 있다:\n  ${open.join('\n  ')}`);
+});
+
+/**
+ * 개발용 빌드는 인터넷만 열고, 나머지는 그대로 막아 둔다.
+ *
+ * `app.config.js` 가 막는 목록에서 인터넷 하나만 빼내는데, 거기서 실수로 목록을
+ * 통째로 비우면 개발용에만 권한이 되살아난다. 그 빌드로 찍은 화면이나 확인이
+ * 배포판과 달라진다.
+ */
+test('개발용 빌드에서도 쓰지 않는 권한은 막혀 있다', () => {
+  for (const env of [{ JAMGIM_DEV_BUILD: '1' }, { EAS_BUILD_PROFILE: 'development' }]) {
+    const blocked = resolve(appJson.expo, env).android?.blockedPermissions ?? [];
+    const open = UNUSED_PERMISSIONS.filter((p) => !blocked.includes(p));
+    assert.deepEqual(open, [], `${JSON.stringify(env)} 에서 열렸다:\n  ${open.join('\n  ')}`);
+  }
 });
 
 /**
